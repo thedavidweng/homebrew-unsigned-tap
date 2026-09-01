@@ -20,7 +20,7 @@ jobs:
           def: |
             - label: unsigned
               path: Casks/.+
-              content: \n  (deprecate|disable)!.*:fails_gatekeeper_check\n
+              content: com\.apple\.quarantine\n
             - label: cask disabled
               path: Casks/.+
               content: \n  disable!.*\n
