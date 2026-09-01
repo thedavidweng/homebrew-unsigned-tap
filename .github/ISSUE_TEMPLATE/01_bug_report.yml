@@ -1,28 +1,24 @@
-name: Bug Report
-description: Reproducible bug for an unsigned cask in this tap
+name: Reproducible Bug Report
+description: If you’re sure it’s reproducible and not just your machine, submit an issue so we can investigate
 type: "Bug"
 body:
   - type: checkboxes
     attributes:
       label: Verification
-      description: Please verify you've followed these steps
+      description: Please verify that you’ve followed these steps
       options:
-        - label: I understand if I ignore these instructions my issue may be closed without review.
+        - label: I understand that [if I ignore these instructions, my issue may be closed without review](https://github.com/Homebrew/homebrew-cask/blob/HEAD/doc/faq/closing_issues_without_review.md).
           required: true
-        - label: I retried with `brew update && brew reinstall --cask thedavidweng/unsigned-tap/<cask> --force`.
+        - label: I have retried my command with `--force`.
           required: false
-        - label: I ran `brew doctor`, fixed issues and retried.
+        - label: I ran `brew update-reset && brew update` and retried my command.
           required: false
-        - label: I checked this cask is disabled in Homebrew/homebrew-cask with `fails_gatekeeper_check` (this tap only restores those).
+        - label: I ran `brew doctor`, fixed as many issues as possible and retried my command.
+          required: false
+        - label: I have checked the instructions for [reporting bugs](https://github.com/Homebrew/homebrew-cask#reporting-bugs).
           required: true
-        - label: This is not a SHA256 mismatch (open a PR to fix version/sha256 instead).
+        - label: I made doubly sure this is not a [checksum does not match / SHA256 mismatch](https://docs.brew.sh/Common-Issues#cask---checksum-does-not-match) error (do not open an issue before trying to open a PR to fix first).
           required: true
-  - type: textarea
-    attributes:
-      label: Cask token
-      placeholder: darktable
-    validations:
-      required: true
   - type: textarea
     attributes:
       label: Description of issue
@@ -31,12 +27,11 @@ body:
   - type: input
     attributes:
       label: Command that failed
-      placeholder: brew install --cask thedavidweng/unsigned-tap/darktable
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Output with `--verbose --debug`
+      label: Output of command with `--verbose --debug`
       render: shell
     validations:
       required: true
