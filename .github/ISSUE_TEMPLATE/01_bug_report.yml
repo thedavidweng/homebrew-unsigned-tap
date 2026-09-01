@@ -1,0 +1,54 @@
+name: Bug Report
+description: Reproducible bug for an unsigned cask in this tap
+type: "Bug"
+body:
+  - type: checkboxes
+    attributes:
+      label: Verification
+      description: Please verify you've followed these steps
+      options:
+        - label: I understand if I ignore these instructions my issue may be closed without review.
+          required: true
+        - label: I retried with `brew update && brew reinstall --cask thedavidweng/unsigned-tap/<cask> --force`.
+          required: false
+        - label: I ran `brew doctor`, fixed issues and retried.
+          required: false
+        - label: I checked this cask is disabled in Homebrew/homebrew-cask with `fails_gatekeeper_check` (this tap only restores those).
+          required: true
+        - label: This is not a SHA256 mismatch (open a PR to fix version/sha256 instead).
+          required: true
+  - type: textarea
+    attributes:
+      label: Cask token
+      placeholder: darktable
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Description of issue
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Command that failed
+      placeholder: brew install --cask thedavidweng/unsigned-tap/darktable
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Output with `--verbose --debug`
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Output of `brew doctor` and `brew config`
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Output of `brew tap`
+      render: shell
+    validations:
+      required: true

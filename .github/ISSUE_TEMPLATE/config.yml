@@ -1,0 +1,12 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Homebrew Cask bug (upstream disabled)
+    url: https://github.com/Homebrew/homebrew-cask/issues/new/choose
+    about: If the cask is still in Homebrew/homebrew-cask and not disabled, report there.
+  - name: Homebrew/brew bug
+    url: https://github.com/Homebrew/brew/issues/new/choose
+    about: brew package manager bug not specific to this tap
+  - name: Discussions
+    url: https://github.com/thedavidweng/homebrew-unsigned-tap/discussions
+    about: Questions / ideas — this tap restores 618 Gatekeeper-disabled casks with quarantine removal.

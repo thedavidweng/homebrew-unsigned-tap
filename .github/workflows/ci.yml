@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+    inputs:
+      casks:
+        description: List of casks to audit (comma-separated)
+        required: true
+      skip_install:
+        description: Skip install
+        required: false
+        default: true
+        type: boolean
+
+env:
+  HOMEBREW_DEVELOPER: 1
+  HOMEBREW_NO_AUTO_UPDATE: 1
+  HOMEBREW_NO_INSTALL_FROM_API: 1
+
+concurrency:
+  group: "${{ github.ref }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  generate-matrix:
+    outputs:
+      matrix: ${{ steps.generate-matrix.outputs.matrix }}
+    runs-on: macos-latest
+    steps:
+      - uses: Homebrew/actions/setup-homebrew@main
+        with:
+          core: false
+          cask: true
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Generate matrix
+        id: generate-matrix
+        env:
+          INPUT_CASKS: ${{ github.event.inputs.casks }}
+          PR_URL: ${{ github.event.pull_request.url }}
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            brew generate-cask-ci-matrix ${{ github.event.inputs.skip_install && '--skip-install' }} --casks $INPUT_CASKS
+          elif [[ "${GITHUB_EVENT_NAME}" == "push" || "${GITHUB_EVENT_NAME}" == "merge_group" ]]; then
+            brew generate-cask-ci-matrix --syntax-only
+          else
+            brew generate-cask-ci-matrix --url "$PR_URL"
+          fi
+
+  test:
+    name: ${{ matrix.name }}
+    needs: generate-matrix
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container || null }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+    steps:
+      - uses: Homebrew/actions/setup-homebrew@main
+        with:
+          core: true
+          cask: true
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Run brew test-bot --only-tap-syntax
+        if: always() && !matrix.cask
+        run: brew test-bot --tap '${{ matrix.tap }}' --only-tap-syntax
+      - name: Run brew audit --cask
+        if: always() && matrix.cask
+        run: brew audit --cask ${{ matrix.cask.token || matrix.tap }}
+      - name: Run brew style
+        if: always() && matrix.cask
+        run: brew style Casks/${{ matrix.cask.token }}.rb
+
+  conclusion:
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - run: ${{ needs.test.result == 'success' }}

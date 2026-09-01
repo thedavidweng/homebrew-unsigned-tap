@@ -1,0 +1,41 @@
+name: Autobump
+
+on:
+  workflow_dispatch:
+    inputs:
+      casks:
+        description: Custom list of casks to bump
+        required: false
+  schedule:
+    - cron: "23 */3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  autobump:
+    env:
+      HOMEBREW_DEVELOPER: 1
+    runs-on: macos-latest
+    steps:
+      - uses: Homebrew/actions/setup-homebrew@main
+        with:
+          core: true
+          cask: true
+      - uses: Homebrew/actions/git-user-config@main
+        with:
+          username: BrewTestBot
+      - uses: Homebrew/actions/setup-commit-signing@main
+        with:
+          signing_key: ${{ secrets.BREWTESTBOT_SSH_SIGNING_KEY }}
+      - name: Bump casks
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+          CASKS: ${{ inputs.casks }}
+        run: |
+          BUMP=(brew bump --no-fork --open-pr --casks)
+          if [[ -n "${CASKS-}" ]]; then
+            xargs "${BUMP[@]}" <<<"${CASKS}"
+          else
+            "${BUMP[@]}" --auto --tap=thedavidweng/unsigned-tap
+          fi

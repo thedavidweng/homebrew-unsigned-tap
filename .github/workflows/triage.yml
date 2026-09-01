@@ -1,0 +1,36 @@
+name: Triage
+
+on: pull_request_target
+
+concurrency:
+  group: "triage-${{ github.event.number }}"
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Label pull request
+        uses: Homebrew/actions/label-pull-requests@main
+        with:
+          token: ${{ secrets.HOMEBREW_GITHUB_PUBLIC_REPO_TOKEN }}
+          def: |
+            - label: unsigned
+              path: Casks/.+
+              content: \n  (deprecate|disable)!.*:fails_gatekeeper_check\n
+            - label: cask disabled
+              path: Casks/.+
+              content: \n  disable!.*\n
+            - label: new cask
+              status: added
+              path: Casks/.+
+              allow_any_match: true
+            - label: documentation
+              path: (.*\.md|\.github/.*)
+            - label: bump-cask-pr
+              pr_body_content: Created with `brew bump-cask-pr`
+            - label: ci
+              path: \.github/workflows/.*\.yml
