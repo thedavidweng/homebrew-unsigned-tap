@@ -38,7 +38,7 @@ jobs:
         with:
           core: false
           cask: true
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -70,7 +70,7 @@ jobs:
         with:
           core: true
           cask: true
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false

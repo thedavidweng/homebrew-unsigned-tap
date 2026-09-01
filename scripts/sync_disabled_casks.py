@@ -6,7 +6,7 @@ into this tap, stripping disable! and injecting quarantine removal.
 import pathlib, re, sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-SRC_CASK_DIR = pathlib.Path.home() / "homebrew-cask" / "Casks"
+SRC_CASK_DIR = pathlib.Path(__import__("os").environ.get("SRC_CASK_DIR", str(pathlib.Path.home() / "homebrew-cask" / "Casks")))
 DEST_CASK_DIR = ROOT / "Casks"
 
 # Generic quarantine stripping postflight - covers app/pkg/binary

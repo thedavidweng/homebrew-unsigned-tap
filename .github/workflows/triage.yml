@@ -16,7 +16,7 @@ jobs:
       - name: Label pull request
         uses: Homebrew/actions/label-pull-requests@main
         with:
-          token: ${{ secrets.HOMEBREW_GITHUB_PUBLIC_REPO_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           def: |
             - label: unsigned
               path: Casks/.+

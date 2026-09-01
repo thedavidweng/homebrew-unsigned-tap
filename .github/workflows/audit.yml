@@ -10,11 +10,11 @@ jobs:
   audit:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
       - name: Tap self
-        run: brew tap thedavidweng/unsigned-tap $GITHUB_WORKSPACE
+        run: brew tap --custom-remote --force-auto-update thedavidweng/unsigned-tap $GITHUB_WORKSPACE
       - name: Audit all casks (offline)
         run: |
           for cask in Casks/*.rb; do
@@ -23,4 +23,4 @@ jobs:
             brew audit --cask --strict thedavidweng/unsigned-tap/$token || exit 1
           done
       - name: Style
-        run: brew style --fix --cask thedavidweng/unsigned-tap/* 2>&1 | tail -n 20; brew style Casks/*.rb
+        run: brew style Casks/*.rb
