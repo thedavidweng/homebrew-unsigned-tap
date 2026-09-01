@@ -1,0 +1,32 @@
+cask "rocks-n-diamonds" do
+  version "4.3.2.1"
+  sha256 "6499fe6382eec6506cc625b0f372a29918640cfb6ebdca3ee3e6b97d83ff458c"
+
+  url "https://www.artsoft.org/RELEASES/mac/rocksndiamonds/rocksndiamonds-#{version}.dmg"
+  name "Rocks'n'Diamonds"
+  desc "Arcade-style game"
+  homepage "https://www.artsoft.org/rocksndiamonds/"
+
+  livecheck do
+    url "https://www.artsoft.org/RELEASES/mac/rocksndiamonds/"
+    regex(/href=.*?rocksndiamonds[._-]?v?(\d+(?:\.\d+)+)\.dmg/i)
+  end
+
+
+  depends_on :macos
+
+  app "Rocks'n'Diamonds.app"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  zap trash: [
+    "~/Documents/Rocks'n'Diamonds",
+    "~/Library/Saved Application State/org.artsoft.rocksndiamonds.savedState",
+  ]
+
+  caveats do
+    requires_rosetta
+  end
+end

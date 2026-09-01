@@ -1,0 +1,30 @@
+cask "alpha" do
+  version "9.2.3"
+  sha256 "f3445a2ecb23cf1f12811d6003890f091e04334cc92cb4f00140065359c7e91a"
+
+  url "https://downloads.sourceforge.net/alphacocoa/Alpha_#{version}.dmg.zip"
+  name "Alpha"
+  desc "Text editor based on Apple's Cocoa framework"
+  homepage "https://alphacocoa.sourceforge.io/"
+
+
+  depends_on :macos
+
+  app "Alpha.app"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  zap trash: [
+    "~/Library/Application Support/Alpha",
+    "~/Library/Caches/net.sourceforge.alphacocoa",
+    "~/Library/Preferences/Alpha-v#{version.major}",
+    "~/Library/Preferences/net.sourceforge.alphacocoa.plist",
+    "~/Library/Saved Application State/net.sourceforge.alphacocoa.savedState",
+  ]
+
+  caveats do
+    requires_rosetta
+  end
+end

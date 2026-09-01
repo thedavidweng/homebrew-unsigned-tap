@@ -1,0 +1,28 @@
+cask "leocad" do
+  version "25.09"
+  sha256 "6e4664f6d5a9c2ffe3855c2bfcdffc32f666efe759076d976818b28a911eb9d8"
+
+  url "https://github.com/leozide/leocad/releases/download/v#{version}/LeoCAD-macOS-#{version}.dmg"
+  name "LeoCAD"
+  desc "CAD program for creating virtual LEGO models"
+  homepage "https://github.com/leozide/leocad"
+
+
+  depends_on :macos
+
+  app "LeoCAD.app"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  zap trash: [
+    "~/Library/Caches/LeoCAD Software",
+    "~/Library/Preferences/org.leocad.LeoCAD.plist",
+    "~/Library/Saved Application State/org.leozide.LeoCAD.savedState",
+  ]
+
+  caveats do
+    requires_rosetta
+  end
+end

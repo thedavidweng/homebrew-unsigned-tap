@@ -1,0 +1,31 @@
+cask "cerebro" do
+  version "0.11.0"
+  sha256 "9c26a044f6ae0d7c4f1df8056b88ff5014edb168d4cc13e00f0cad21948359fd"
+
+  url "https://github.com/cerebroapp/cerebro/releases/download/v#{version}/cerebro-#{version}.dmg"
+  name "Cerebro"
+  desc "Open-source launcher"
+  homepage "https://cerebroapp.vercel.app/"
+
+
+  depends_on :macos
+
+  app "Cerebro.app"
+
+  uninstall quit: "cerebro"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  zap trash: [
+    "~/Library/Application Support/Cerebro",
+    "~/Library/Preferences/com.cerebroapp.Cerebro.helper.plist",
+    "~/Library/Preferences/com.cerebroapp.Cerebro.plist",
+    "~/Library/Saved Application State/com.cerebroapp.Cerebro.savedState",
+  ]
+
+  caveats do
+    requires_rosetta
+  end
+end

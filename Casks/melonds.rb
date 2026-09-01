@@ -1,0 +1,20 @@
+cask "melonds" do
+  version "1.1"
+  sha256 "79843a5e5cab93188bd11942bff5440b9505ee91c6f526f7e90c22e3cff6718d"
+
+  url "https://github.com/melonDS-emu/melonDS/releases/download/#{version}/melonDS-#{version}-macOS-universal.zip"
+  name "melonDS"
+  desc "Nintendo DS and DSi emulator"
+  homepage "https://melonds.kuribo64.net/"
+
+
+  depends_on macos: :big_sur
+
+  app "melonDS.app"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  zap trash: "~/Library/Preferences/melonDS/melonDS.ini"
+end

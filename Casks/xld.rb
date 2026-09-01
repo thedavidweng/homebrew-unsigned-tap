@@ -2,8 +2,7 @@ cask "xld" do
   version "20250302"
   sha256 "0032a5470ea4e32a11a35b8077ebf4986102891f8eb82743094f2c6621ad8aeb"
 
-  url "https://downloads.sourceforge.net/xld/xld-#{version}.dmg",
-      verified: "sourceforge.net/xld/"
+  url "https://downloads.sourceforge.net/xld/xld-#{version}.dmg"
   name "X Lossless Decoder"
   name "XLD"
   desc "Lossless audio decoder"
@@ -30,6 +29,10 @@ cask "xld" do
     EOS
   end
 
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
   zap trash: [
     "~/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/jp.tmkk.xld.sfl*",
     "~/Library/Application Support/XLD",
@@ -38,8 +41,4 @@ cask "xld" do
     "~/Library/Preferences/jp.tmkk.XLD.plist",
     "~/Library/Saved Application State/jp.tmkk.XLD.savedState",
   ]
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "#{staged_path}"]
-  end
 end

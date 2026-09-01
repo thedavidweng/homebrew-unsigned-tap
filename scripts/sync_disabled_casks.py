@@ -11,7 +11,7 @@ DEST_CASK_DIR = ROOT / "Casks"
 
 # Generic quarantine stripping postflight - covers app/pkg/binary
 POSTFLIGHT_BLOCK = """  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "#{staged_path}"]
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
 """
 
@@ -22,9 +22,15 @@ def transform_content(text: str) -> str:
     for line in lines:
         if "disable!" in line and "fails_gatekeeper_check" in line:
             continue
-        # also handle standalone disable! if it was split? (unlikely)
         filtered.append(line)
     text = "\n".join(filtered)
+
+    # Strip deprecated `verified:` param (brew audit now flags it)
+    # Handles `, verified: "..."` either on same line or next line
+    text = re.sub(r',\s*\n\s*verified:\s*"[^"]+"', '', text)
+    text = re.sub(r',\s*verified:\s*"[^"]+"', '', text)
+    text = re.sub(r',\s*\n\s*verified:\s*\'[^\']+\'', '', text)
+    text = re.sub(r',\s*verified:\s*\'[^\']+\'', '', text)
 
     # If already has quarantine handling, keep as is (don't duplicate)
     if "com.apple.quarantine" in text or "remove_quarantine" in text:
@@ -33,20 +39,23 @@ def transform_content(text: str) -> str:
             text += "\n"
         return text
 
-    # Inject postflight before final `end`
-    # Find last occurrence of `^end`
-    # We want to insert before final `end` at column 0
-    # Use rfind
+    # Inject postflight respecting stanza order (postflight before zap/caveats)
+    # Prefer before `zap` if present, else before final `end`
+    if "\n  zap" in text:
+        parts = text.split("\n  zap", 1)
+        before, after = parts
+        injected = before.rstrip() + "\n\n" + POSTFLIGHT_BLOCK.rstrip() + "\n\n  zap" + after
+        if not injected.endswith("\n"):
+            injected += "\n"
+        return injected
     parts = text.rsplit("\nend", 1)
     if len(parts) == 2:
         before, after = parts
-        # before ends without the final end, after is remainder (usually \n or empty)
         injected = before.rstrip() + "\n\n" + POSTFLIGHT_BLOCK.rstrip() + "\nend" + after
         if not injected.endswith("\n"):
             injected += "\n"
         return injected
     else:
-        # fallback: append
         return text.rstrip() + "\n\n" + POSTFLIGHT_BLOCK + "\n"
 
 def sync_all(limit_files=None, dry_run=False):
