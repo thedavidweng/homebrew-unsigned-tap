@@ -1,0 +1,22 @@
+# homebrew-unsigned-tap
+
+> Homebrew tap restoring 618 casks disabled on 2026-09-01 for fails_gatekeeper_check (Gatekeeper unsigned). One-click migrate from homebrew/cask disabled to auto-updating.
+
+## Keywords
+Homebrew cask disabled fails_gatekeeper_check Gatekeeper 2026-09-01 unsigned unnotarized quarantine darktable makemkv xld
+
+## Install
+```bash
+brew tap thedavidweng/unsigned-tap
+brew install --cask thedavidweng/unsigned-tap/darktable
+```
+
+## Migrate all disabled you have installed
+```bash
+curl -fsSL https://raw.githubusercontent.com/thedavidweng/homebrew-unsigned-tap/main/scripts/migrate.sh | bash
+# or
+brew tap thedavidweng/unsigned-tap && brew reinstall --cask thedavidweng/unsigned-tap/darktable
+```
+
+## Source
+Scripts sync from Homebrew/homebrew-cask Casks/**/*.rb where disable! because: :fails_gatekeeper_check (618), strip disable! + verified, inject postflight xattr -r -d com.apple.quarantine staged_path.
