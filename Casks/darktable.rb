@@ -1,7 +1,7 @@
 cask "darktable" do
   arch arm: "arm64", intel: "x86_64"
 
-  version "5.6.0"
+  version "5.6.1"
   sha256 arm:   "49aec447e891ab481e436b4c0231fc3c8d0001aad220762ae8e765d3bda5d102",
          intel: "24c83655af0d81c2f8cb78b97531a03bb6a650349b7fd49c1679080db675cbcb"
 
