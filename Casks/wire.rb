@@ -1,6 +1,6 @@
 cask "wire" do
-  version "3.40.5442"
-  sha256 "0711a401b925e6481e1eae1d8084d8b14d5f5c563c5c358439fc231e793a5ed4"
+  version "3.43.5493"
+  sha256 "462106e7817fb93422943be69fbb29dea83c06d7f91db1bc617f516ed2cb1fdd"
 
   url "https://github.com/wireapp/wire-desktop/releases/download/macos%2F#{version}/Wire.pkg"
   name "Wire"
@@ -25,7 +25,7 @@ cask "wire" do
   end
 
 
-  depends_on :macos
+  depends_on macos: :monterey
 
   pkg "Wire.pkg"
 

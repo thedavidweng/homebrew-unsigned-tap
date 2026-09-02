@@ -1,6 +1,6 @@
 cask "atlauncher" do
-  version "3.4.41.0"
-  sha256 "a48ecf17a85248f55712b322c357d47bfdb9930c1a3c696bac17fe6733e60a86"
+  version "3.4.41.2"
+  sha256 "55600fe80d5033e0783ce4286fe85b760112a93ae0a70c5258715c71ca026755"
 
   url "https://github.com/ATLauncher/ATLauncher/releases/download/v#{version}/ATLauncher-#{version}.zip"
   name "ATLauncher"
@@ -11,6 +11,8 @@ cask "atlauncher" do
   depends_on :macos
 
   app "ATLauncher.app"
+
+  uninstall quit: "com.atlauncher.App"
 
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]

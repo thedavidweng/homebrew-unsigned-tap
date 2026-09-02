@@ -58,5 +58,5 @@ cask "cinc-workstation" do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
 
-  zap trash: "~/.cinc-workstation/"
+  zap trash: "~/.cinc-workstation"
 end

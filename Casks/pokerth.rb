@@ -1,11 +1,15 @@
 cask "pokerth" do
-  version "2.0.8"
-  sha256 "c35ba20313883caac2cce5be6910b3c05f3db5f284f509ff12340d7fc0da07c3"
+  version "2.1.7"
+  sha256 "12dd48e42eb6f629604bb519a79079282d74302de044283e97a7e1dea0954193"
 
-  url "https://downloads.sourceforge.net/pokerth/PokerTH-Widget-#{version}.dmg"
+  url "https://downloads.sourceforge.net/pokerth/PokerTH-#{version}-Combined.dmg"
   name "PokerTH"
   desc "Free Texas hold'em poker"
   homepage "https://www.pokerth.net/"
+
+  livecheck do
+    url "https://sourceforge.net/projects/pokerth/rss?path=/pokerth"
+  end
 
 
   depends_on macos: :monterey
@@ -17,8 +21,4 @@ cask "pokerth" do
   end
 
   zap trash: "~/.pokerth"
-
-  caveats do
-    requires_rosetta
-  end
 end

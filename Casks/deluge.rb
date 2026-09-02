@@ -22,7 +22,7 @@ cask "deluge" do
   end
 
   zap trash: [
-    "~/.config/deluge/",
+    "~/.config/deluge",
     "~/Library/Preferences/org.deluge.plist",
     "~/Library/Saved Application State/org.deluge.savedState",
   ]

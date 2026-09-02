@@ -1,6 +1,6 @@
 cask "qownnotes" do
-  version "26.6.11"
-  sha256 "9c65fab3a1321eebd1392dc1890d93f80b47e6696b1d8795ae5f6469db0f07cf"
+  version "26.9.0"
+  sha256 "2fe30b0aa2ddd7652204ad265f79e370b1cb7d9bd93e0c66b41e41b391ecb967"
 
   url "https://github.com/pbek/QOwnNotes/releases/download/v#{version}/QOwnNotes.dmg"
   name "QOwnNotes"
@@ -17,6 +17,8 @@ cask "qownnotes" do
   depends_on macos: :ventura
 
   app "QOwnNotes.app"
+
+  uninstall quit: "com.PBE.QOwnNotes"
 
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]

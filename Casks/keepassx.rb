@@ -17,8 +17,8 @@ cask "keepassx" do
 
   app "KeePassX.app"
 
-  uninstall_preflight do
-    set_ownership "#{appdir}/KeePassX.app"
+  uninstall_preflight_steps do
+    set_ownership "KeePassX.app", base: :appdir
   end
 
   postflight do

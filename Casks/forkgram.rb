@@ -1,9 +1,9 @@
 cask "forkgram" do
   arch arm: "arm64", intel: "x86"
 
-  version "6.9.3"
-  sha256 arm:   "87a96753b257af4a0e39f1dc83eda311cc43875d6f37e09702a840ab6bef537e",
-         intel: "13a5b1dc934a70b923875f4a8a28076cd4df87278af41cda8bf82f410f7b1ed0"
+  version "7.1.3"
+  sha256 arm:   "17426a3b813c37941f69c0d29c901237848acfe033d92846f06be968f97d00bb",
+         intel: "2904089155278d8d370d6a7f186addec2ff535e9671a9340b06f37e8055dc859"
 
   url "https://github.com/Forkgram/tdesktop/releases/download/v#{version}/Forkgram.macOS.no.auto-update_#{arch}.zip"
   name "Forkgram"
@@ -39,5 +39,8 @@ cask "forkgram" do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
 
-  zap trash: "~/Library/Application Support/Forkgram Desktop"
+  zap trash: [
+    "~/Library/Application Support/Forkgram Desktop",
+    "~/Library/Preferences/com.tdesktop.Telegram.plist",
+  ]
 end

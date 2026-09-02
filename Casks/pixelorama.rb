@@ -1,6 +1,6 @@
 cask "pixelorama" do
-  version "1.1.10"
-  sha256 "c647b3d24532ffc8fb12367a123773feeba321399a87e458ffc3cc78f30bbf81"
+  version "1.2.1"
+  sha256 "0999c2652473ae0688fa1d53de3863059b6d17ed1588a9a6aaf5b22c6c4ccf27"
 
   url "https://github.com/Orama-Interactive/Pixelorama/releases/download/v#{version}/Pixelorama-Mac.dmg"
   name "Pixelorama"
@@ -11,6 +11,8 @@ cask "pixelorama" do
   depends_on macos: :big_sur
 
   app "Pixelorama.app"
+
+  uninstall quit: "com.orama-interactive.pixelorama"
 
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]

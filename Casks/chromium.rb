@@ -14,16 +14,8 @@ cask "chromium" do
   depends_on macos: :monterey
 
   app "chrome-mac/Chromium.app"
-  # shim script (https://github.com/Homebrew/homebrew-cask/issues/18809)
-  shimscript = "#{staged_path}/chromium.wrapper.sh"
-  binary shimscript, target: "chromium"
-
-  preflight do
-    File.write shimscript, <<~EOS
-      #!/bin/sh
-      exec '#{appdir}/Chromium.app/Contents/MacOS/Chromium' "$@"
-    EOS
-  end
+  command_wrapper "chromium",
+                  executable: "#{appdir}/Chromium.app/Contents/MacOS/Chromium"
 
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]

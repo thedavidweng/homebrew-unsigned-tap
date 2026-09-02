@@ -1,16 +1,9 @@
 cask "kindle-comic-converter" do
   arch arm: "arm", intel: "i386"
 
-  version "10.3.0"
-  sha256 arm:   "bda8b774b3cabe7a89b620433ff34678dce209bfa32887b5ffdbf601b027374f",
-         intel: "946e7ed3d0330917cadac0b598d207efcc3f04825904df98560ac6f8875e0b8e"
-
-  on_arm do
-    depends_on macos: :big_sur
-  end
-  on_intel do
-    depends_on macos: :catalina
-  end
+  version "11.0.3"
+  sha256 arm:   "30fefe8aa9632dd16113e34bb2006cd4e7cb34f2d37efe76bb3fde85e8e0059c",
+         intel: "fb96ac65eded7237ad2a1d26be749ce7da10bd12e90909a0a67b8c9081633a42"
 
   url "https://github.com/ciromattia/kcc/releases/download/v#{version}/kcc_macos_#{arch}_#{version}.dmg"
   name "Kindle Comic Converter"
@@ -24,7 +17,7 @@ cask "kindle-comic-converter" do
   end
 
 
-  depends_on :macos
+  depends_on macos: :big_sur
 
   app "Kindle Comic Converter.app"
 
