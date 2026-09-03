@@ -10,7 +10,7 @@ SRC_CASK_DIR = pathlib.Path(__import__("os").environ.get("SRC_CASK_DIR", str(pat
 DEST_CASK_DIR = ROOT / "Casks"
 
 # Generic quarantine stripping postflight - covers app/pkg/binary
-QUARANTINE_LINE = '    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]'
+QUARANTINE_LINE = '    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s], must_succeed: false'
 POSTFLIGHT_BLOCK = f"""  postflight do
 {QUARANTINE_LINE}
   end

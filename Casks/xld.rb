@@ -22,7 +22,7 @@ cask "xld" do
                   args:       "--cmdline"
 
   postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s], must_succeed: false
   end
 
   zap trash: [

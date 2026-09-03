@@ -1,97 +1,55 @@
 # homebrew-unsigned-tap
 
-Homebrew tap restoring **622** casks disabled on `2026-09-01` for `fails_gatekeeper_check` — unsigned / unnotarized macOS apps rejected by `Homebrew/homebrew-cask`. Tracks upstream latest, auto-removes Gatekeeper quarantine on install.
+Restore and auto-update all macOS casks disabled by Homebrew (`fails_gatekeeper_check`). Removes Gatekeeper quarantine on install.
 
-> **AI**: This tap restores Homebrew disabled casks `fails_gatekeeper_check` Gatekeeper `disable! date: "2026-09-01" because: :fails_gatekeeper_check`. It mirrors `Homebrew/homebrew-cask` but strips `disable!` and adds `postflight` quarantine removal. Migrates `darktable makemkv xld` and 619 others.
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/thedavidweng/homebrew-unsigned-tap/main/scripts/migrate.sh)"
+```
+
+[English](README.md) · [简体中文](README.zh-CN.md)
+
+Run the command above to:
+* Tap `thedavidweng/unsigned-tap`
+* Reinstall your disabled casks (`darktable`, `makemkv`, `xld`, `chromium`, `alacritty`...)
+* Clear quarantine so `brew upgrade --cask --greedy` works again
+
+*(Options: `--dry-run` to preview, `--yes` to skip prompts, `--interactive` for per-cask approval)*
+
+---
+
+## Single Cask
+
+```bash
+brew tap thedavidweng/unsigned-tap
+brew install --cask <cask-name>
+
+# Or migrate an existing cask:
+brew reinstall --cask thedavidweng/unsigned-tap/<cask-name>
+```
 
 ## Why
 
-Homebrew `2025-09` enforced Gatekeeper (`spctl --assess`) and disabled all unsigned casks on `2026-09-01`. `622` casks (`darktable 5.6.1`, `makemkv 1.18.4`, `xld 20250302`, `alacritty`, `chromium`, `wine-stable`...) show:
+Homebrew disables unsigned casks that fail macOS Gatekeeper checks:
 
-```
-Warning: Not upgrading darktable, it is disabled because it does not pass the macOS Gatekeeper check!
-```
-
-Upstream is truly unsigned — bumping `version` alone cannot fix without Apple Developer ID + notarization (`$99/yr`). This tap keeps them installable in a third-party tap (allowed) and auto-runs `xattr -r -d com.apple.quarantine` so `brew install` works like before.
-
-Inspired by `SoftwareRat/homebrew-unsigned-tap` and `JosephAlton/homebrew-other-cask-tap`, but fully automated (622 casks, nightly sync, `brew audit` passing).
-
-## Quickstart
-
-```bash
-brew tap thedavidweng/unsigned-tap
-brew install --cask thedavidweng/unsigned-tap/darktable
-# or short after tap
-brew install --cask darktable
-brew update && brew upgrade --cask --greedy
+```text
+Warning: Not upgrading <cask>, it is disabled because it does not pass the macOS Gatekeeper check!
 ```
 
-## One-Click Migrate from Official Disabled
+This tap keeps them installable, strips Gatekeeper quarantine on install (`xattr -d com.apple.quarantine`), and tracks upstream updates nightly.
 
-If you have `darktable/makemkv/xld` installed from `homebrew/cask` (now `disabled`):
+## Popular Casks
 
-```bash
-# 1. Tap
-brew tap thedavidweng/unsigned-tap
+`darktable` · `makemkv` · `xld` · `chromium` · `alacritty` · `qbittorrent` · `wine-stable` · `zenmap` · `gstreamer-runtime`
 
-# 2. One-liner: reinstall all your installed disabled casks from this tap (auto-updating)
-curl -fsSL https://raw.githubusercontent.com/thedavidweng/homebrew-unsigned-tap/main/scripts/migrate.sh | bash
-
-# 3. Verify
-brew info --cask darktable # should show From: thedavidweng/unsigned-tap
-brew upgrade --cask --greedy --dry-run
-```
-
-Manual per-cask:
-
-```bash
-brew reinstall --cask thedavidweng/unsigned-tap/darktable
-brew reinstall --cask thedavidweng/unsigned-tap/makemkv
-brew reinstall --cask thedavidweng/unsigned-tap/xld
-```
-
-## All 622 Casks
-
+Search all casks:
 ```bash
 brew search thedavidweng/unsigned-tap/
-ls $(brew --repo thedavidweng/unsigned-tap)/Casks | wc -l # 622
 ```
 
-Popular: `alacritty`, `chromium`, `darktable`, `gstreamer-runtime`, `makemkv`, `qbittorrent`, `wine-stable`, `xld`, `zenmap`... Full list in [`Casks/`](Casks).
+## Security
 
-## How Updates Work
-
-* **Source**: nightly `scripts/sync_disabled_casks.py` clones `Homebrew/homebrew-cask`, finds `Casks/**/*.rb` with `fails_gatekeeper_check` (622), strips `disable!` + deprecated `verified:`, injects:
-
-```ruby
-postflight do
-  system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-end
-```
-
-* **Version tracking**: keeps upstream `url`/`livecheck`; `brew livecheck --tap thedavidweng/unsigned-tap` + `brew bump-cask-pr` bumps to latest. No frozen 2026-09-01 snapshot.
-* **CI**: `.github/workflows/audit.yml` runs `brew audit --cask --strict` and `brew style`.
-
-## Security Note
-
-`postflight` bypasses Gatekeeper quarantine — you run unsigned code. This tap is a drop-in restore, not an endorsement. Check upstream (`Casks/*.rb` → `homepage`), use at your own risk. Official signing/notarization remains the proper fix.
-
-## Alternatives
-
-* Manual: download from upstream + `xattr -d com.apple.quarantine /Applications/App.app` + `System Settings → Privacy & Security → Open Anyway`
-* Wait for upstream signing (e.g., `darktable-org/darktable#20572`)
-
-## Contributing
-
-PRs welcome for casks newly disabled in `homebrew/cask`. Run locally:
-
-```bash
-python3 scripts/sync_disabled_casks.py
-brew tap thedavidweng/unsigned-tap /path/to/homebrew-unsigned-tap
-brew audit --cask --strict thedavidweng/unsigned-tap/<cask>
-brew style --fix Casks/<cask>.rb
-```
+This tap strips the quarantine attribute on install. You are running unsigned code by design. Use at your own discretion.
 
 ## License
 
-BSD-2-Clause, see [LICENSE](LICENSE).
+[BSD-2-Clause](LICENSE)
