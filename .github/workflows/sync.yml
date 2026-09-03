@@ -41,7 +41,7 @@ jobs:
           branch="sync/$(date +%Y%m%d)"
           git checkout -B "$branch"
           git add Casks/
-          git commit -m "sync: update $(ls Casks | wc -l) disabled casks from Homebrew/homebrew-cask"
+          git commit -m "sync: update $(find Casks -maxdepth 1 -name '*.rb' | wc -l | tr -d ' ') disabled casks from Homebrew/homebrew-cask"
           git push --force-with-lease origin "$branch"
           # Requires repo setting: Settings > Actions > General >
           # "Allow GitHub Actions to create and approve pull requests".

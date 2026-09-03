@@ -14,13 +14,13 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@main
       - name: Tap self
-        run: brew tap --custom-remote thedavidweng/unsigned-tap $GITHUB_WORKSPACE
+        run: brew tap --custom-remote thedavidweng/unsigned-tap "${GITHUB_WORKSPACE}"
       - name: Audit all casks (offline)
         run: |
           for cask in Casks/*.rb; do
             token=$(basename "$cask" .rb)
-            echo "Auditing $token ..."
-            brew audit --cask --strict thedavidweng/unsigned-tap/$token || exit 1
+            echo "Auditing ${token} ..."
+            brew audit --cask --strict "thedavidweng/unsigned-tap/${token}" || exit 1
           done
       - name: Style
-        run: brew style --tap=thedavidweng/unsigned-tap
+        run: brew style thedavidweng/unsigned-tap

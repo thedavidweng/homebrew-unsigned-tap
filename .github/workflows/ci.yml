@@ -49,7 +49,7 @@ jobs:
           PR_URL: ${{ github.event.pull_request.url }}
         run: |
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            brew generate-cask-ci-matrix ${{ github.event.inputs.skip_install && '--skip-install' }} --casks $INPUT_CASKS
+            brew generate-cask-ci-matrix ${{ github.event.inputs.skip_install && '--skip-install' }} --casks "${INPUT_CASKS}"
           elif [[ "${GITHUB_EVENT_NAME}" == "push" || "${GITHUB_EVENT_NAME}" == "merge_group" ]]; then
             brew generate-cask-ci-matrix --syntax-only
           else
