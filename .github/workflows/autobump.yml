@@ -37,7 +37,8 @@ jobs:
           # when there is simply nothing to bump.
           if [[ -n "${CASKS-}" ]]; then
             # Explicit list (e.g. manual dispatch): bump each, continue on error.
-            # shellcheck disable=SC2086 -- word splitting on list is intentional.
+            # Word splitting on the list is intentional.
+            # shellcheck disable=SC2086
             for cask in ${CASKS}; do
               echo "==> Bumping ${cask} ..."
               brew bump-cask-pr --no-fork "${cask}" || echo "::warning::bump failed for ${cask}"
@@ -52,7 +53,8 @@ jobs:
             exit 0
           fi
           echo "Outdated: ${OUTDATED}"
-          # shellcheck disable=SC2086 -- word splitting on list is intentional.
+          # Word splitting on the list is intentional.
+          # shellcheck disable=SC2086
           for cask in ${OUTDATED}; do
             echo "==> Bumping ${cask} ..."
             brew bump-cask-pr --no-fork "${cask}" || echo "::warning::bump failed for ${cask}"
