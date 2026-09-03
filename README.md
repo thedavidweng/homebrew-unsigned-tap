@@ -21,6 +21,7 @@ Run the command above to:
 
 ```bash
 brew tap thedavidweng/unsigned-tap
+brew trust thedavidweng/unsigned-tap
 brew install --cask <cask-name>
 
 # Or migrate an existing cask:

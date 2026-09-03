@@ -107,6 +107,13 @@ then
   brew tap "${TAP}"
 fi
 
+# Automatically trust tap if supported by Homebrew version
+brew_commands="$(brew commands 2>/dev/null || true)"
+if echo "${brew_commands}" | grep -q "^trust$"
+then
+  brew trust "${TAP}" >/dev/null 2>&1 || true
+fi
+
 TAP_REPO=$(brew --repo "${TAP}")
 
 INSTALLED=$(brew list --cask 2>/dev/null || true)

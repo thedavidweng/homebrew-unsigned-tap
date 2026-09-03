@@ -21,6 +21,7 @@
 
 ```bash
 brew tap thedavidweng/unsigned-tap
+brew trust thedavidweng/unsigned-tap
 brew install --cask <软件名>
 
 # 或接管已安装的软件：
