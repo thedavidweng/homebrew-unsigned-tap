@@ -14,18 +14,17 @@ cask "sqlworkbenchj" do
     end
   end
 
-
   depends_on :macos
 
   app "SQLWorkbenchJ.app"
 
   # No zap stanza required
 
-  caveats do
-    depends_on_java "11+"
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    depends_on_java "11+"
   end
 end

@@ -12,7 +12,6 @@ cask "oss-browser" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "oss-browser-darwin-x64/oss-browser.app"

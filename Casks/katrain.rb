@@ -31,7 +31,6 @@ cask "katrain" do
     end
   end
 
-
   depends_on :macos
 
   app "KaTrain.app"

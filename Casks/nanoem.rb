@@ -7,7 +7,6 @@ cask "nanoem" do
   desc "Cross-platform MMD (MikuMikuDance) compatible implementation"
   homepage "https://github.com/hkrn/nanoem"
 
-
   depends_on :macos
 
   app "nanoem.app"

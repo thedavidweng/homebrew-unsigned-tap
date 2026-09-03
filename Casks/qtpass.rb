@@ -7,7 +7,6 @@ cask "qtpass" do
   desc "Multi-platform GUI for pass, the standard unix password manager"
   homepage "https://qtpass.org/"
 
-
   depends_on macos: :monterey
 
   app "QtPass.app"

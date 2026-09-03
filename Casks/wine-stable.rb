@@ -30,7 +30,6 @@ cask "wine-stable" do
     end
   end
 
-
   conflicts_with cask: [
     "wine@devel",
     "wine@staging",

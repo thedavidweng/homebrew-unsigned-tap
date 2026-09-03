@@ -4,18 +4,18 @@ cask "vagrant-manager" do
 
   url "https://github.com/lanayotech/vagrant-manager/releases/download/#{version}/vagrant-manager-#{version}.dmg"
   name "Vagrant Manager"
+  desc "Manage Vagrant development environments"
   homepage "https://www.vagrantmanager.com/"
-
 
   depends_on :macos
 
   app "Vagrant Manager.app"
 
-  uninstall quit: "lanayo.Vagrant-Manager"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "lanayo.Vagrant-Manager"
 
   zap trash: [
     "~/Library/Caches/lanayo.Vagrant-Manager",

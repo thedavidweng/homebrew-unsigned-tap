@@ -12,7 +12,6 @@ cask "openscad" do
     regex(/href=.*?OpenSCAD[._-]v?(\d+(?:\.\d+)+)\.dmg/i)
   end
 
-
   conflicts_with cask: "openscad@snapshot"
   depends_on :macos
 

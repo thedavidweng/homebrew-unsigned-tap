@@ -12,7 +12,6 @@ cask "rocks-n-diamonds" do
     regex(/href=.*?rocksndiamonds[._-]?v?(\d+(?:\.\d+)+)\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "Rocks'n'Diamonds.app"

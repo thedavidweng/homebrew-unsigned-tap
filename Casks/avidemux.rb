@@ -20,7 +20,6 @@ cask "avidemux" do
   desc "Video editor"
   homepage "https://www.avidemux.org/"
 
-
   depends_on :macos
 
   app "Avidemux_#{version}.app"

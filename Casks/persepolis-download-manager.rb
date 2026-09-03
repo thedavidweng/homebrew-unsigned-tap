@@ -12,7 +12,6 @@ cask "persepolis-download-manager" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "Persepolis Download Manager.app"

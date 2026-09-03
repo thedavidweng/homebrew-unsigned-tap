@@ -4,18 +4,18 @@ cask "helium" do
 
   url "https://github.com/koush/CarbonResources/releases/download/v#{version}/carbon-mac.zip"
   name "Helium"
+  desc "Backup Android devices to computer"
   homepage "https://github.com/koush/support-wiki/wiki/Helium-Desktop-Installer-and-Android-App"
-
 
   depends_on :macos
 
   app "Helium.app"
 
-  uninstall quit: "com.koushikdutta.Helium"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.koushikdutta.Helium"
 
   zap trash: "~/Library/Saved Application State/com.koushikdutta.Helium.savedState"
 

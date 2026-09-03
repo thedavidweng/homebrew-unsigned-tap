@@ -12,7 +12,6 @@ cask "ved" do
     regex(/href=.*?ved[ ._-]v?(\d+(?:\.\d+)+)[ ._-]mac\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "Ved.app"

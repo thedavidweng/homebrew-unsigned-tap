@@ -7,7 +7,6 @@ cask "google-assistant" do
   desc "Cross-platform unofficial Google Assistant Client for Desktop"
   homepage "https://github.com/Melvin-Abraham/Google-Assistant-Unofficial-Desktop-Client"
 
-
   depends_on :macos
 
   app "Google Assistant.app"

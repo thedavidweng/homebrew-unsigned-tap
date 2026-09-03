@@ -7,16 +7,15 @@ cask "capslocknodelay" do
   desc "Removes delay when pressing the caps lock"
   homepage "https://github.com/gkpln3/CapsLockNoDelay"
 
-
   depends_on :macos
 
   app "CapsLockNoDelay.app"
 
-  uninstall quit: "gkpln3.CapsLockNoDelay"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "gkpln3.CapsLockNoDelay"
 
   zap trash: "~/Library/Containers/gkpln3.CapsLockNoDelay"
 end

@@ -13,7 +13,6 @@ cask "dd-utility" do
     strategy :page_match
   end
 
-
   depends_on :macos
 
   app "dd Utility.app"

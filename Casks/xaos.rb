@@ -1,8 +1,8 @@
 cask "xaos" do
-  version "4.3.5"
-  sha256 "ef54cf7f01bf8f05cffcf20e782159c4c1545fbc2be5937222dbc5d324a66408"
+  version "4.3.7"
+  sha256 "b265b728ddeb476661d09c70a3f6cdc7b25b2f9d2622c8d29f88748c2162e98a"
 
-  url "https://github.com/xaos-project/XaoS/releases/download/release-#{version}/XaoS-#{version}.dmg"
+  url "https://github.com/xaos-project/XaoS/releases/download/release-#{version}/XaoS.dmg"
   name "GNU XaoS"
   desc "Real-time interactive fractal zoomer"
   homepage "https://xaos-project.github.io/"
@@ -11,7 +11,6 @@ cask "xaos" do
     url :url
     regex(/^release[._-]v?(\d+(?:\.\d+)+)$/i)
   end
-
 
   depends_on macos: :ventura
 

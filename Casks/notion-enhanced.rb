@@ -7,7 +7,6 @@ cask "notion-enhanced" do
   desc "Enhancer/customiser for the all-in-one productivity workspace notion.so"
   homepage "https://notion-enhancer.github.io/"
 
-
   depends_on :macos
 
   app "Notion Enhanced.app"

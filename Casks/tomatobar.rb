@@ -7,7 +7,6 @@ cask "tomatobar" do
   desc "Menu bar pomodoro timer"
   homepage "https://github.com/ivoronin/TomatoBar"
 
-
   depends_on macos: :big_sur
 
   app "TomatoBar.app"

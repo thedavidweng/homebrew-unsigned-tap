@@ -10,7 +10,6 @@ cask "sabaki" do
   desc "Go board and SGF editor"
   homepage "https://sabaki.yichuanshen.de/"
 
-
   depends_on :macos
 
   app "Sabaki.app"

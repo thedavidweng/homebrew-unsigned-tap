@@ -12,16 +12,15 @@ cask "psi" do
     regex(/psi[._-]?(\d+(?:\.\d+)*)[._-]?mac\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "Psi.app"
 
-  uninstall quit: "org.psi-im"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "org.psi-im"
 
   zap trash: [
     "~/Library/Application Support/Psi",

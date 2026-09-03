@@ -13,7 +13,6 @@ cask "pencil" do
     regex(/href=.*?Pencil[._-]v?(\d+(?:\.\d+)+)[^"' >]*?\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "Pencil.app"

@@ -7,11 +7,14 @@ cask "shadowsocksx-ng" do
   desc "Tunneling proxy"
   homepage "https://github.com/shadowsocks/ShadowsocksX-NG/"
 
-
   conflicts_with cask: "shadowsocksx"
   depends_on :macos
 
   app "ShadowsocksX-NG.app"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall launchctl: [
               "com.qiuyuzhou.shadowsocksX-NG.http",
@@ -26,10 +29,6 @@ cask "shadowsocksx-ng" do
               sudo:       true,
             },
             delete:    "/Library/Application Support/ShadowsocksX-NG"
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: [
     "~/.ShadowsocksX-NG",

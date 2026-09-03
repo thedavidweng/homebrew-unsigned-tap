@@ -4,8 +4,8 @@ cask "switchkey" do
 
   url "https://github.com/itsuhane/SwitchKey/releases/download/v#{version}/SwitchKey.zip"
   name "SwitchKey"
+  desc "Keyboard layout switcher"
   homepage "https://github.com/itsuhane/SwitchKey"
-
 
   depends_on :macos
 

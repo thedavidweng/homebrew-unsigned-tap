@@ -12,7 +12,6 @@ cask "todour" do
     regex(/href=.*?Todour[._-]v?(\d+(?:\.\d+)+)\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "Todour.app"

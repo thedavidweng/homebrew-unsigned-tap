@@ -7,7 +7,6 @@ cask "torrent-file-editor" do
   desc "GUI for editing and creating torrent files"
   homepage "https://torrent-file-editor.github.io/"
 
-
   depends_on :macos
 
   app "Torrent File Editor.app"

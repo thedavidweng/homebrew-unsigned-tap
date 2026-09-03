@@ -7,7 +7,6 @@ cask "cool-retro-term" do
   desc "Terminal emulator mimicking the old cathode display"
   homepage "https://github.com/Swordfish90/cool-retro-term"
 
-
   depends_on :macos
 
   app "cool-retro-term.app"

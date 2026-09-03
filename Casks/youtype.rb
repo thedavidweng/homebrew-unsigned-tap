@@ -12,17 +12,16 @@ cask "youtype" do
     strategy :sparkle
   end
 
-
   auto_updates true
   depends_on :macos
 
   app "YouType.app"
 
-  uninstall quit: "com.AVKorotkov.YouType"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.AVKorotkov.YouType"
 
   zap trash: [
     "~/Library/Caches/com.AVKorotkov.YouType",

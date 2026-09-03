@@ -7,7 +7,6 @@ cask "pusher" do
   desc "Send push notifications through Apple Push Notification Service"
   homepage "https://github.com/noodlewerk/NWPusher"
 
-
   depends_on :macos
 
   app "Pusher.app"

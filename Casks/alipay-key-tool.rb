@@ -11,7 +11,6 @@ cask "alipay-key-tool" do
     skip "version is shown in screenshot on homepage"
   end
 
-
   depends_on :macos
 
   app "支付宝开放平台密钥工具.app"

@@ -7,7 +7,6 @@ cask "crunch-app" do
   desc "PNG image optimiser"
   homepage "https://github.com/chrissimpkins/Crunch"
 
-
   depends_on :macos
 
   app "Crunch.app"

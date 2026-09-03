@@ -7,7 +7,6 @@ cask "chronos" do
   desc "Desktop client for JIRA and Trello"
   homepage "https://github.com/web-pal/chronos-timetracker"
 
-
   depends_on :macos
 
   app "Chronos.app"

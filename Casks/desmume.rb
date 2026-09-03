@@ -15,7 +15,6 @@ cask "desmume" do
     end
   end
 
-
   depends_on :macos
 
   app "DeSmuME.app"

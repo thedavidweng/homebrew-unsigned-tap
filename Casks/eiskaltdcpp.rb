@@ -12,7 +12,6 @@ cask "eiskaltdcpp" do
     regex(%r{url=.*?/EiskaltDC%2B%2B[._-]v?(\d+(?:\.\d+)+)(?:-[^"']+?)?\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "EiskaltDC++.app"

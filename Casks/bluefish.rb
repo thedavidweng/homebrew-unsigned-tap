@@ -1,6 +1,6 @@
 cask "bluefish" do
-  version "2.4.1"
-  sha256 "23bd0a0009e9213c535ecb8e1c08832e0bdd356b55c512e269f4c17b57411b06"
+  version "2.4.2"
+  sha256 "c10c1d90a61319553f85febde2955d9684de23a2e5ab39210df773b9f46855b5"
 
   url "https://www.bennewitz.com/bluefish/stable/binaries/macosx/Bluefish-#{version}.dmg"
   name "Bluefish"
@@ -11,7 +11,6 @@ cask "bluefish" do
     url "https://www.bennewitz.com/bluefish/stable/binaries/macosx/"
     regex(/href=.*?Bluefish[._-]v?(\d+(?:\.\d+)+)\.dmg/i)
   end
-
 
   depends_on :macos
 

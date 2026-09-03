@@ -24,7 +24,6 @@ cask "kvirc" do
     end
   end
 
-
   depends_on arch: :arm64
   depends_on macos: :sonoma
 

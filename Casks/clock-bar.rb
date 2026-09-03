@@ -21,7 +21,6 @@ cask "clock-bar" do
     end
   end
 
-
   depends_on :macos
 
   app "Clock Bar.app"

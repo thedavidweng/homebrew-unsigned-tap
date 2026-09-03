@@ -7,7 +7,6 @@ cask "augur" do
   desc "App that bundles Augur UI and Augur Node together and deploys them locally"
   homepage "https://github.com/AugurProject/augur-app/"
 
-
   depends_on :macos
 
   app "augur.app"

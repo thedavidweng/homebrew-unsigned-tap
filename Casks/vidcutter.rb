@@ -12,16 +12,15 @@ cask "vidcutter" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "VidCutter.app"
 
-  caveats do
-    requires_rosetta
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    requires_rosetta
   end
 end

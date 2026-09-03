@@ -12,7 +12,6 @@ cask "deluge" do
     regex(/href=["']?deluge[._-]v?(\d+(?:\.\d+)+)[._-][a-z0-9._-]*\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "Deluge.app"
@@ -22,7 +21,7 @@ cask "deluge" do
   end
 
   zap trash: [
-    "~/.config/deluge/",
+    "~/.config/deluge",
     "~/Library/Preferences/org.deluge.plist",
     "~/Library/Saved Application State/org.deluge.savedState",
   ]

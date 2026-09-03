@@ -15,7 +15,6 @@ cask "openlp" do
     regex(%r{href=['"]?(\d+(?:\.\d+)+)(?!rc\d+)/['"]?}i)
   end
 
-
   depends_on :macos
 
   app "OpenLP.app"

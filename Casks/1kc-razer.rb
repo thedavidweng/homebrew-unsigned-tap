@@ -12,7 +12,6 @@ cask "1kc-razer" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "Razer macOS.app"

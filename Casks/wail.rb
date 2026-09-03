@@ -12,7 +12,6 @@ cask "wail" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "WAIL.app"

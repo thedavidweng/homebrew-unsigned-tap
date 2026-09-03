@@ -10,7 +10,6 @@ cask "mark-text" do
   desc "Markdown editor"
   homepage "https://github.com/marktext/marktext"
 
-
   auto_updates true
   depends_on macos: :monterey
 

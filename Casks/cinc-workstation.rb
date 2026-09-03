@@ -42,10 +42,13 @@ cask "cinc-workstation" do
   desc "Installer for Chef infrastructure management tools"
   homepage "https://cinc.sh/start/workstation/"
 
-
   depends_on macos: :big_sur
 
   pkg "cinc-workstation-#{version}-1.#{arch}.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall launchctl: "io.chef.chef-workstation.app",
             script:    {
@@ -54,9 +57,5 @@ cask "cinc-workstation" do
             },
             pkgutil:   "com.cinc-project.pkg.cinc-workstation"
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
-
-  zap trash: "~/.cinc-workstation/"
+  zap trash: "~/.cinc-workstation"
 end

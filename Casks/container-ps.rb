@@ -7,7 +7,6 @@ cask "container-ps" do
   desc "App to show all docker images"
   homepage "https://github.com/Toinane/container-ps"
 
-
   depends_on :macos
 
   app "Container PS.app"

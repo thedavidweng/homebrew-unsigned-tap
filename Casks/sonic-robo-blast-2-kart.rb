@@ -13,7 +13,6 @@ cask "sonic-robo-blast-2-kart" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "Sonic Robo Blast 2 Kart.app"

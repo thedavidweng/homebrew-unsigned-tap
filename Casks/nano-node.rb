@@ -12,7 +12,6 @@ cask "nano-node" do
     strategy :github_latest
   end
 
-
   depends_on macos: :ventura
 
   app "Nano.app"

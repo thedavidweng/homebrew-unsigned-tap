@@ -7,16 +7,15 @@ cask "haptickey" do
   desc "Trigger haptic feedback when tapping Touch Bar"
   homepage "https://github.com/niw/HapticKey"
 
-
   depends_on :macos
 
   app "HapticKey.app"
 
-  uninstall quit: "at.niw.HapticKey"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "at.niw.HapticKey"
 
   zap trash: [
     "~/Library/Caches/at.niw.HapticKey",

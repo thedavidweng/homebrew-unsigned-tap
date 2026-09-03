@@ -15,7 +15,6 @@ cask "mockplus" do
     end
   end
 
-
   depends_on :macos
 
   app "Mockplus Classic.app"

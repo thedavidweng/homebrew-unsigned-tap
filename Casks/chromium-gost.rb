@@ -1,9 +1,9 @@
 cask "chromium-gost" do
   arch arm: "arm64", intel: "amd64"
 
-  version "148.0.7778.280"
-  sha256 arm:   "4e49447b0405685643b1939a662f9857fe66577971ea0e76a1de972d2fe01115",
-         intel: "432d0a567e05910c2f452c8da053d19eb87aef53b82a60e9e15d7e2e2d478e8b"
+  version "150.0.7871.224"
+  sha256 arm:   "9bc80d7ecd9caf43459d89d4c4880f95aae333b4a73ab6e886b59018cae1e2e7",
+         intel: "e4dbe5b029c0c688c5c077e5818a9e2ad00caad76feb697f6c8f9d3b016f709a"
 
   url "https://github.com/deemru/Chromium-Gost/releases/download/#{version}/chromium-gost-#{version}-macos-#{arch}.tar.bz2"
   name "Chromium-Gost"
@@ -14,7 +14,6 @@ cask "chromium-gost" do
     url :url
     strategy :github_latest
   end
-
 
   depends_on macos: :monterey
 
@@ -27,5 +26,6 @@ cask "chromium-gost" do
   zap trash: [
     "~/Library/Application Support/Chromium",
     "~/Library/Caches/Chromium",
+    "~/Library/Preferences/ru.cryptopro.chromium-gost.plist",
   ]
 end

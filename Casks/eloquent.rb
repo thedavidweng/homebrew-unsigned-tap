@@ -7,7 +7,6 @@ cask "eloquent" do
   desc "Free/open-source Bible study application, based on the SWORD Project"
   homepage "https://github.com/mdbergmann/Eloquent"
 
-
   auto_updates true
   depends_on macos: :ventura
 

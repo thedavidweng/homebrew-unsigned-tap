@@ -12,7 +12,6 @@ cask "baretorrent" do
     regex(/href=.*?baretorrent[._-]v?(\d+(?:\.\d+)+)(?:[._-][^"' >]+?)?\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "baretorrent.app"

@@ -7,17 +7,16 @@ cask "ballast" do
   desc "Status Bar app to keep the audio balance from drifting"
   homepage "https://jamsinclair.nz/ballast"
 
-
   depends_on macos: :monterey
 
   app "ballast.app"
 
-  uninstall launchctl: "nz.jamsinclair.ballast-LaunchAtLoginHelper",
-            quit:      "nz.jamsinclair.ballast"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall launchctl: "nz.jamsinclair.ballast-LaunchAtLoginHelper",
+            quit:      "nz.jamsinclair.ballast"
 
   zap trash: [
     "~/Library/Application Scripts/nz.jamsinclair.ballast",

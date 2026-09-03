@@ -7,7 +7,6 @@ cask "isimulator" do
   desc "Utility to control and manage the Simulator"
   homepage "https://github.com/wigl/iSimulator"
 
-
   depends_on :macos
 
   app "iSimulator.app"

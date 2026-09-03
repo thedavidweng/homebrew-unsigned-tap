@@ -15,7 +15,6 @@ cask "clickhouse" do
     regex(/^v?(\d+(?:\.\d+)+[._-](lts|stable))$/i)
   end
 
-
   depends_on :macos
 
   binary "clickhouse-macos#{arch}", target: "clickhouse"

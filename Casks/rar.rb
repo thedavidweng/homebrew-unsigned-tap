@@ -15,7 +15,6 @@ cask "rar" do
     regex(/>\s*RAR\s+for\s+macOS.*?v?(\d+(:?\.\d+)+)\s*</i)
   end
 
-
   depends_on :macos
 
   binary "rar/rar"

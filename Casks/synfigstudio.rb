@@ -29,7 +29,6 @@ cask "synfigstudio" do
     end
   end
 
-
   depends_on :macos
 
   app "SynfigStudio.app"

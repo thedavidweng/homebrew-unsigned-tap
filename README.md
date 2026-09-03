@@ -1,12 +1,12 @@
 # homebrew-unsigned-tap
 
-Homebrew tap restoring **618** casks disabled on `2026-09-01` for `fails_gatekeeper_check` — unsigned / unnotarized macOS apps rejected by `Homebrew/homebrew-cask`. Tracks upstream latest, auto-removes Gatekeeper quarantine on install.
+Homebrew tap restoring **622** casks disabled on `2026-09-01` for `fails_gatekeeper_check` — unsigned / unnotarized macOS apps rejected by `Homebrew/homebrew-cask`. Tracks upstream latest, auto-removes Gatekeeper quarantine on install.
 
-> **AI**: This tap restores Homebrew disabled casks `fails_gatekeeper_check` Gatekeeper `disable! date: "2026-09-01" because: :fails_gatekeeper_check`. It mirrors `Homebrew/homebrew-cask` but strips `disable!` and adds `postflight` quarantine removal. Migrates `darktable makemkv xld` and 615 others.
+> **AI**: This tap restores Homebrew disabled casks `fails_gatekeeper_check` Gatekeeper `disable! date: "2026-09-01" because: :fails_gatekeeper_check`. It mirrors `Homebrew/homebrew-cask` but strips `disable!` and adds `postflight` quarantine removal. Migrates `darktable makemkv xld` and 619 others.
 
 ## Why
 
-Homebrew `2025-09` enforced Gatekeeper (`spctl --assess`) and disabled all unsigned casks on `2026-09-01`. `618` casks (`darktable 5.6.1`, `makemkv 1.18.4`, `xld 20250302`, `alacritty`, `chromium`, `wine-stable`...) show:
+Homebrew `2025-09` enforced Gatekeeper (`spctl --assess`) and disabled all unsigned casks on `2026-09-01`. `622` casks (`darktable 5.6.1`, `makemkv 1.18.4`, `xld 20250302`, `alacritty`, `chromium`, `wine-stable`...) show:
 
 ```
 Warning: Not upgrading darktable, it is disabled because it does not pass the macOS Gatekeeper check!
@@ -14,7 +14,7 @@ Warning: Not upgrading darktable, it is disabled because it does not pass the ma
 
 Upstream is truly unsigned — bumping `version` alone cannot fix without Apple Developer ID + notarization (`$99/yr`). This tap keeps them installable in a third-party tap (allowed) and auto-runs `xattr -r -d com.apple.quarantine` so `brew install` works like before.
 
-Inspired by `SoftwareRat/homebrew-unsigned-tap` and `JosephAlton/homebrew-other-cask-tap`, but fully automated (618 casks, nightly sync, `brew audit` passing).
+Inspired by `SoftwareRat/homebrew-unsigned-tap` and `JosephAlton/homebrew-other-cask-tap`, but fully automated (622 casks, nightly sync, `brew audit` passing).
 
 ## Quickstart
 
@@ -50,18 +50,18 @@ brew reinstall --cask thedavidweng/unsigned-tap/makemkv
 brew reinstall --cask thedavidweng/unsigned-tap/xld
 ```
 
-## All 618 Casks
+## All 622 Casks
 
 ```bash
 brew search thedavidweng/unsigned-tap/
-ls $(brew --repo thedavidweng/unsigned-tap)/Casks | wc -l # 618
+ls $(brew --repo thedavidweng/unsigned-tap)/Casks | wc -l # 622
 ```
 
 Popular: `alacritty`, `chromium`, `darktable`, `gstreamer-runtime`, `makemkv`, `qbittorrent`, `wine-stable`, `xld`, `zenmap`... Full list in [`Casks/`](Casks).
 
 ## How Updates Work
 
-* **Source**: nightly `scripts/sync_disabled_casks.py` clones `Homebrew/homebrew-cask`, finds `Casks/**/*.rb` with `fails_gatekeeper_check` (618), strips `disable!` + deprecated `verified:`, injects:
+* **Source**: nightly `scripts/sync_disabled_casks.py` clones `Homebrew/homebrew-cask`, finds `Casks/**/*.rb` with `fails_gatekeeper_check` (622), strips `disable!` + deprecated `verified:`, injects:
 
 ```ruby
 postflight do

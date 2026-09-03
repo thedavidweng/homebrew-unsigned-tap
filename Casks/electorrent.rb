@@ -1,6 +1,6 @@
 cask "electorrent" do
-  version "2.13.1"
-  sha256 "b9906d6b5cbe1a2eb347464ed317c88fbc375f81ffdf0f2a754dad1bf0f124d1"
+  version "2.16.0"
+  sha256 "c693d0aa4702b94a25529095233cf53942f0fa0d92a57131489a72c1f2e0f54a"
 
   url "https://github.com/tympanix/Electorrent/releases/download/v#{version}/Electorrent-#{version}-universal.dmg"
   name "Electorrent"
@@ -15,7 +15,6 @@ cask "electorrent" do
     end
   end
 
-
   auto_updates true
   depends_on macos: :monterey
 
@@ -26,6 +25,7 @@ cask "electorrent" do
   end
 
   zap trash: [
+    "~/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/com.github.tympanix.electorrent.sfl*",
     "~/Library/Application Support/Electorrent",
     "~/Library/Preferences/com.github.tympanix.Electorrent.plist",
     "~/Library/Saved Application State/com.github.tympanix.Electorrent.savedState",

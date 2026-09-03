@@ -17,7 +17,6 @@ cask "jquake" do
     end
   end
 
-
   depends_on :macos
 
   app "JQuake.app"

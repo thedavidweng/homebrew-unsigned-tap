@@ -12,7 +12,6 @@ cask "mumble" do
     strategy :header_match
   end
 
-
   conflicts_with cask: "mumble@snapshot"
   depends_on :macos
 

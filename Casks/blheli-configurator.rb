@@ -4,18 +4,18 @@ cask "blheli-configurator" do
 
   url "https://github.com/blheli-configurator/blheli-configurator/releases/download/#{version}/BLHeli-Configurator_macOS_#{version}.dmg"
   name "BLHeli Configurator"
+  desc "Configure BLHeli electronic speed controllers"
   homepage "https://github.com/blheli-configurator/blheli-configurator"
-
 
   depends_on :macos
 
   app "BLHeli Configurator.app"
 
-  caveats do
-    requires_rosetta
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    requires_rosetta
   end
 end

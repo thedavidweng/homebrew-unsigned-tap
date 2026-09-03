@@ -12,20 +12,19 @@ cask "kern" do
     regex(/v(\d+(?:\.\d+)+)/i)
   end
 
-
   depends_on :macos
 
   pkg "kern_#{version.dots_to_underscores}_mac.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: [
     "de.fullbucket.audiounit.pkg.Kern",
     "de.fullbucket.vst.pkg.Kern",
     "de.fullbucket.vst3.pkg.Kern",
   ]
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: "~/Music/FullBucketMusic/kern.ini"
 

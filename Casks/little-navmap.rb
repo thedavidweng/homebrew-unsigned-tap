@@ -7,7 +7,6 @@ cask "little-navmap" do
   desc "Flight planning and navigation and airport search and information system"
   homepage "https://albar965.github.io/littlenavmap.html"
 
-
   depends_on :macos
 
   app "Little Navconnect.app"

@@ -11,7 +11,6 @@ cask "listen1" do
   desc "Search and play songs from a variety of online sources"
   homepage "https://listen1.github.io/listen1/"
 
-
   depends_on :macos
 
   app "Listen1.app"

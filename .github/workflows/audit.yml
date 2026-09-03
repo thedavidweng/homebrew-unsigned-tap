@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@main
       - name: Tap self
         run: brew tap --custom-remote thedavidweng/unsigned-tap $GITHUB_WORKSPACE
       - name: Audit all casks (offline)
@@ -23,4 +23,4 @@ jobs:
             brew audit --cask --strict thedavidweng/unsigned-tap/$token || exit 1
           done
       - name: Style
-        run: brew style Casks/*.rb
+        run: brew style --tap=thedavidweng/unsigned-tap

@@ -7,7 +7,6 @@ cask "html-mangareader" do
   desc "Lightweight offline CBZ/CBR and image viewer with full continuous scrolling"
   homepage "https://github.com/luejerry/html-mangareader"
 
-
   depends_on :macos
 
   app "HTML Mangareader.app"

@@ -7,7 +7,6 @@ cask "morkro-papyrus" do
   desc "Unofficial Dropbox Paper desktop app"
   homepage "https://github.com/morkro/papyrus"
 
-
   conflicts_with cask: "papyrus"
   depends_on :macos
 

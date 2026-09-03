@@ -37,7 +37,6 @@ cask "tinypng4mac" do
   desc "TinyPNG client"
   homepage "https://github.com/kyleduo/TinyPNG4Mac"
 
-
   depends_on :macos
 
   postflight do

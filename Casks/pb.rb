@@ -7,11 +7,14 @@ cask "pb" do
   desc "Unofficial Pushbullet desktop app to get push notifications"
   homepage "https://sidneys.github.io/pb-for-desktop"
 
-
   auto_updates true
   depends_on :macos
 
   app "PB for Desktop.app"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall launchctl: "PB for Desktop",
             quit:      [
@@ -21,10 +24,6 @@ cask "pb" do
               "de.sidneys.pb-for-desktop.helper.Plugin",
               "de.sidneys.pb-for-desktop.helper.Renderer",
             ]
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: [
     "~/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/de.sidneys.pb-for-desktop.sfl*",

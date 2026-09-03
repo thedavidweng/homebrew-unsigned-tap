@@ -30,9 +30,28 @@ jobs:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CASKS: ${{ inputs.casks }}
         run: |
-          BUMP=(brew bump --no-fork --open-pr --casks)
+          # NOTE: `brew bump --auto` only works for official taps
+          # (it looks for the autobump list). For third-party taps it always
+          # exits 1 with "No autobumped casks found", failing the check.
+          # Use livecheck + bump-cask-pr instead, and never fail the check
+          # when there is simply nothing to bump.
           if [[ -n "${CASKS-}" ]]; then
-            xargs "${BUMP[@]}" <<<"${CASKS}"
-          else
-            "${BUMP[@]}" --auto --tap=thedavidweng/unsigned-tap
+            # Explicit list (e.g. manual dispatch): bump each, continue on error.
+            for cask in ${CASKS}; do
+              echo "==> Bumping ${cask} ..."
+              brew bump-cask-pr --no-fork "${cask}" || echo "::warning::bump failed for ${cask}"
+            done
+            exit 0
           fi
+          echo "==> Checking for outdated casks via livecheck ..."
+          OUTDATED_JSON=$(brew livecheck --tap=thedavidweng/unsigned-tap --newer-only --json 2>/dev/null || echo "[]")
+          OUTDATED=$(echo "${OUTDATED_JSON}" | python3 -c "import json,sys; data=json.load(sys.stdin); print(' '.join(d.get('token','') for d in data if d.get('version',{}).get('latest') and d['version']['latest'] != d['version'].get('current')))" || true)
+          if [[ -z "${OUTDATED// /}" ]]; then
+            echo "No outdated casks found."
+            exit 0
+          fi
+          echo "Outdated: ${OUTDATED}"
+          for cask in ${OUTDATED}; do
+            echo "==> Bumping ${cask} ..."
+            brew bump-cask-pr --no-fork "${cask}" || echo "::warning::bump failed for ${cask}"
+          done

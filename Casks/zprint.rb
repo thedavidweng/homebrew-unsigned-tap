@@ -10,7 +10,6 @@ cask "zprint" do
   desc "Library to reformat Clojure and Clojurescript source code and s-expressions"
   homepage "https://github.com/kkinnear/zprint"
 
-
   depends_on :macos
 
   binary "zprintm#{arch}-#{version}", target: "zprint"

@@ -12,7 +12,6 @@ cask "dvdstyler" do
     regex(%r{url=.*?/DVDStyler[._-]?v?(\d+(?:[._]\d+)+)(?:[._-]?MacOSX?)?\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "DVDStyler.app"

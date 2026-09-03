@@ -13,18 +13,17 @@ cask "pd-l2ork" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "Purr-Data.app"
   binary "#{appdir}/Purr-Data.app/Contents/Resources/app.nw/bin/pd-l2ork"
 
-  uninstall_preflight do
-    set_permissions "#{appdir}/Purr-Data.app", "0777"
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  uninstall_preflight_steps do
+    set_permissions "Purr-Data.app", "0777", base: :appdir
   end
 
   zap trash: [

@@ -7,16 +7,15 @@ cask "cerebro" do
   desc "Open-source launcher"
   homepage "https://cerebroapp.vercel.app/"
 
-
   depends_on :macos
 
   app "Cerebro.app"
 
-  uninstall quit: "cerebro"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "cerebro"
 
   zap trash: [
     "~/Library/Application Support/Cerebro",

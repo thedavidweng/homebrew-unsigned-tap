@@ -7,7 +7,6 @@ cask "betelguese" do
   desc "Odysseyra1n installer GUI for jailbroken devices"
   homepage "https://github.com/23Aaron/Betelguese"
 
-
   depends_on :macos
 
   app "Betelguese.app"

@@ -1,6 +1,6 @@
 cask "rave" do
-  version "1.18.11"
-  sha256 "3fb38d7ca29e534643ebfcf7ab5e5f7f8ad613c28ccf313b36e4ff4af6838daa"
+  version "1.18.22"
+  sha256 "a671f6ead8415c7c3ca8bfbc2cc1bba0ea34878e316ff6960cba24d7123e26b4"
 
   url "https://static.rave-web.com/rave-desktop/mac/x64/Rave-#{version}.dmg"
   name "Rave"
@@ -11,7 +11,6 @@ cask "rave" do
     url "https://static.rave-web.com/rave-desktop/mac/x64/latest-mac.yml"
     strategy :electron_builder
   end
-
 
   auto_updates true
   depends_on macos: :monterey

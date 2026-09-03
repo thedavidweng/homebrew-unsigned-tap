@@ -12,10 +12,13 @@ cask "audiogridder-plugin" do
     regex(/(\d+(?:[._]\d+)+)/i)
   end
 
-
   depends_on :macos
 
   pkg "AudioGridderPlugin_#{version}_macOS-universal.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: [
     "com.e47.audiogridder.aax",
@@ -28,10 +31,6 @@ cask "audiogridder-plugin" do
     "com.e47.pkg.vst",
     "com.e47.pkg.vst3",
   ]
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: [
         "~/.audiogridder/audiogridder.winpos",

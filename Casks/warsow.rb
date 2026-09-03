@@ -12,7 +12,6 @@ cask "warsow" do
     regex(%r{href=.*?/warsow-(\d+(?:\.\d+)*)\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "Warsow.app"

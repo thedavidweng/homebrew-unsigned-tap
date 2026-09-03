@@ -12,7 +12,6 @@ cask "x2goclient" do
     regex(/x2goclient[._-]v?(\d+(?:\.\d+)+)/i)
   end
 
-
   depends_on :macos
 
   app "x2goclient.app"

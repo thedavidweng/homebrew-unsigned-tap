@@ -7,7 +7,6 @@ cask "xcodeclangformat" do
   desc "Format code in Xcode with clang-format"
   homepage "https://github.com/mapbox/XcodeClangFormat"
 
-
   depends_on :macos
 
   app "XcodeClangFormat.app"

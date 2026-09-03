@@ -12,7 +12,6 @@ cask "tortoisehg" do
     regex(/TortoiseHg-(\d+(?:\.\d+)*)-mac-x64-qt5\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "TortoiseHg.app"

@@ -7,7 +7,6 @@ cask "whoozle-android-file-transfer" do
   desc "Android File Transfer for Linux"
   homepage "https://whoozle.github.io/android-file-transfer-linux/"
 
-
   depends_on :macos
 
   app "Android File Transfer for Linux.app"
@@ -16,11 +15,11 @@ cask "whoozle-android-file-transfer" do
 
   # No zap stanza required
 
-  caveats do
-    requires_rosetta
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    requires_rosetta
   end
 end

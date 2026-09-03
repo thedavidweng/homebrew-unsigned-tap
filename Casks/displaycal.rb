@@ -11,18 +11,17 @@ cask "displaycal" do
     url "https://sourceforge.net/projects/dispcalgui/rss?path=/release"
   end
 
-
   auto_updates true
   depends_on :macos
   depends_on formula: "argyll-cms"
 
   pkg "DisplayCAL-#{version}.pkg"
 
-  uninstall pkgutil: "net.displaycal.*.DisplayCAL.*"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall pkgutil: "net.displaycal.*.DisplayCAL.*"
 
   zap trash: [
     "~/Library/Application Support/dispcalGUI",

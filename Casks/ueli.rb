@@ -10,16 +10,15 @@ cask "ueli" do
   desc "Keystroke launcher"
   homepage "https://ueli.app/"
 
-
   depends_on macos: :monterey
 
   app "ueli.app"
 
-  uninstall quit: "ueli"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "ueli"
 
   zap trash: [
     "~/Library/Application Support/ueli",

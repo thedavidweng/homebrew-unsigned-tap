@@ -7,7 +7,6 @@ cask "alpha" do
   desc "Text editor based on Apple's Cocoa framework"
   homepage "https://alphacocoa.sourceforge.io/"
 
-
   depends_on :macos
 
   app "Alpha.app"

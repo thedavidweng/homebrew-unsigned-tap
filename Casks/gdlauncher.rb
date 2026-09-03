@@ -7,7 +7,6 @@ cask "gdlauncher" do
   desc "Custom Minecraft Launcher"
   homepage "https://gdevs.io/"
 
-
   depends_on :macos
 
   app "GDLauncher.app"

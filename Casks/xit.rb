@@ -52,7 +52,6 @@ cask "xit" do
   desc "GUI for the git version control system"
   homepage "https://github.com/Uncommon/Xit"
 
-
   depends_on macos: :big_sur
 
   postflight do

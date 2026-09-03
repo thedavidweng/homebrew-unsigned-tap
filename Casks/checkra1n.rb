@@ -12,7 +12,6 @@ cask "checkra1n" do
     regex(%r{href=.*?/checkra1n%20beta%20(\d+(?:\.\d+)+)\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "checkra1n.app"
@@ -20,11 +19,11 @@ cask "checkra1n" do
 
   # No zap stanza required
 
-  caveats do
-    requires_rosetta
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    requires_rosetta
   end
 end

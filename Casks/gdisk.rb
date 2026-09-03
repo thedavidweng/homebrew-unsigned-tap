@@ -7,16 +7,15 @@ cask "gdisk" do
   desc "Disk partitioning tool"
   homepage "https://sourceforge.net/projects/gptfdisk/"
 
-
   depends_on :macos
 
   pkg "gdisk-#{version}.pkg"
 
-  uninstall pkgutil: "com.rodsbooks.pkg.gdisk"
-
-  # No zap stanza required
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall pkgutil: "com.rodsbooks.pkg.gdisk"
+
+  # No zap stanza required
 end

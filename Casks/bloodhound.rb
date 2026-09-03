@@ -10,7 +10,6 @@ cask "bloodhound" do
   desc "Six Degrees of Domain Admin"
   homepage "https://github.com/BloodHoundAD/BloodHound"
 
-
   depends_on :macos
 
   app "BloodHound-darwin-#{arch}/BloodHound.app"

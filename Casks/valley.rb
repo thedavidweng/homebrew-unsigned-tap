@@ -12,7 +12,6 @@ cask "valley" do
     regex(%r{href=.*?/Unigine_Valley-(\d+(?:\.\d+)*)\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "Valley.app"

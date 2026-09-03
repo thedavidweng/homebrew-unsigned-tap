@@ -18,7 +18,6 @@ cask "macdown" do
     end
   end
 
-
   auto_updates true
   conflicts_with cask: "macdown-3000"
   depends_on :macos

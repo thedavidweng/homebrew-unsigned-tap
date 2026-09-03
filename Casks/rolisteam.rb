@@ -7,7 +7,6 @@ cask "rolisteam" do
   desc "Virtual tabletop software"
   homepage "https://rolisteam.org/"
 
-
   depends_on :macos
 
   app "rolisteam.app"

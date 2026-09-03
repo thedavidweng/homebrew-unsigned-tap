@@ -16,10 +16,13 @@ cask "quickapp-studio" do
     regex(/QuickApp[._-]Studio[._-]#{arch}[._-]v?(\d+(?:\.\d+)+)\.pkg/i)
   end
 
-
   depends_on :macos
 
   pkg "QuickApp_Studio_#{arch}-#{version}.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall quit:    "cn.quickapp.studio",
             pkgutil: [
@@ -27,10 +30,6 @@ cask "quickapp-studio" do
               "com.hapteam.app",
               "com.mygreatcompany.pkg.quickAppIde",
             ]
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: "~/.快应用开发工具"
 end

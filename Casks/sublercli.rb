@@ -7,18 +7,17 @@ cask "sublercli" do
   desc "Command-line version of Subler"
   homepage "https://bitbucket.org/galad87/sublercli/"
 
-
   depends_on :macos
 
   binary "SublerCLI"
 
   # No zap stanza required
 
-  caveats do
-    requires_rosetta
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    requires_rosetta
   end
 end

@@ -7,7 +7,6 @@ cask "lmms" do
   desc "Music production software"
   homepage "https://lmms.io/"
 
-
   depends_on :macos
 
   app "LMMS.app"

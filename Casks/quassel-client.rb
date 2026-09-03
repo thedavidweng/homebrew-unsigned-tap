@@ -12,7 +12,6 @@ cask "quassel-client" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "Quassel Client.app"

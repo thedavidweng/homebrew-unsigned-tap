@@ -13,7 +13,6 @@ cask "manyverse" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "Manyverse.app"

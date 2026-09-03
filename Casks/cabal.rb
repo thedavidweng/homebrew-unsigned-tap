@@ -7,7 +7,6 @@ cask "cabal" do
   desc "Desktop client for the chat platform Cabal"
   homepage "https://cabal.chat/"
 
-
   depends_on :macos
 
   app "Cabal.app"

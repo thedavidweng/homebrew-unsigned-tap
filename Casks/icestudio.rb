@@ -33,7 +33,6 @@ cask "icestudio" do
     end
   end
 
-
   depends_on :macos
 
   app "icestudio.app"

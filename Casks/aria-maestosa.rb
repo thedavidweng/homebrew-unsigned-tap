@@ -12,7 +12,6 @@ cask "aria-maestosa" do
     regex(%r{url=.*?/AriaMaestosa[._-]osx[._-]64bits[._-]v?(\d+(?:\.\d+)+[a-z]?)\.zip}i)
   end
 
-
   depends_on :macos
 
   app "Aria Maestosa.app"

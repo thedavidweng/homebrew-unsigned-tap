@@ -11,7 +11,6 @@ cask "gitdock" do
     url "https://gitlab.com/mvanremmerden/gitdock.git"
   end
 
-
   depends_on :macos
 
   app "GitDock.app"

@@ -14,17 +14,16 @@ cask "webots" do
     strategy :github_latest
   end
 
-
   auto_updates true
   depends_on :macos
 
   app "Webots.app"
 
-  uninstall quit: "com.cyberbotics.webots"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.cyberbotics.webots"
 
   zap trash: [
     "~/Library/Application Support/Cyberbotics/Webots",

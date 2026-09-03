@@ -12,7 +12,6 @@ cask "pdf-toolbox" do
     regex(/Version\s*(\d+(?:\.\d+)*)/i)
   end
 
-
   depends_on :macos
 
   app "PDF Toolbox.app"

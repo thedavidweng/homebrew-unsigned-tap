@@ -12,7 +12,6 @@ cask "bili-downloader" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "biliDownloader_GUI.app"

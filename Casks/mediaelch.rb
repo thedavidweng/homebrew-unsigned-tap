@@ -20,7 +20,6 @@ cask "mediaelch" do
     end
   end
 
-
   depends_on :macos
 
   app "MediaElch.app"

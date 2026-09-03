@@ -9,19 +9,18 @@ cask "assinador-serpro" do
 
   livecheck do
     url :homepage
-    regex(/href=.*?AssinadorSerpro[._-]v?(\d+(?:\.\d+)+)\.m?pkg/i)
+    regex(/href=.*?Assinador[._-]?Serpro[._-]v?(\d+(?:\.\d+)+)\.m?pkg/i)
   end
-
 
   depends_on :macos
 
   pkg "AssinadorSerpro-#{version}.pkg"
 
-  uninstall pkgutil: "br.gov.serpro.desktop.assinador"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall pkgutil: "br.gov.serpro.desktop.assinador"
 
   zap trash: "~/Library/Preferences/org.demoiselle.signer.serpro.desktop.Main.plist"
 end

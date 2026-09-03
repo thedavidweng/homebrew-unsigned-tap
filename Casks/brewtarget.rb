@@ -12,7 +12,6 @@ cask "brewtarget" do
     strategy :github_latest
   end
 
-
   depends_on macos: :sequoia
 
   app "brewtarget_#{version}_MacOS.app"

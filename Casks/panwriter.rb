@@ -15,7 +15,6 @@ cask "panwriter" do
     strategy :github_latest
   end
 
-
   depends_on formula: "pandoc"
   depends_on macos: :monterey
 

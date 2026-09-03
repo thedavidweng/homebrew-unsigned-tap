@@ -1,9 +1,9 @@
 cask "nuclear" do
   arch arm: "aarch64", intel: "x64"
 
-  version "1.41.4"
-  sha256 arm:   "4a8eacef75937d2b2a0a02f43d09fc2d8882f47ca70114ee84b67824b44d3d96",
-         intel: "05b692f730597aa0703cafadde142053b18f6b1fa8bad7ac3ddd97f53d1697de"
+  version "1.47.1"
+  sha256 arm:   "a775aa5ab00c6b9d38bbb85280808eb2ace62510e7ed419f1b14f7fecf88ec2e",
+         intel: "b316d666509eaded9573f820f30a0f6093b3311d267c9a3aa616b3011e5f3e28"
 
   url "https://github.com/nukeop/nuclear/releases/download/player%40#{version}/Nuclear_#{version}_#{arch}.dmg"
   name "Nuclear"
@@ -15,7 +15,6 @@ cask "nuclear" do
     regex(/^(?:player@)?v?(\d+(?:\.\d+)+)$/i)
   end
 
-
   depends_on :macos
 
   app "Nuclear.app"
@@ -25,9 +24,13 @@ cask "nuclear" do
   end
 
   zap trash: [
+    "~/Library/Application Support/com.nuclearplayer",
     "~/Library/Application Support/nuclear",
+    "~/Library/Caches/com.nuclearplayer",
+    "~/Library/Logs/com.nuclearplayer",
     "~/Library/Logs/nuclear",
     "~/Library/Preferences/nuclear.plist",
     "~/Library/Saved Application State/nuclear.savedState",
+    "~/Library/WebKit/com.nuclearplayer",
   ]
 end

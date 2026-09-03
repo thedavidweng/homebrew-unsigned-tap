@@ -12,7 +12,6 @@ cask "ryver" do
     strategy :header_match
   end
 
-
   depends_on :macos
   container nested: "Ryver-#{version}.dmg"
 

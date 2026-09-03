@@ -1,6 +1,6 @@
 cask "lyx" do
-  version "2.5.1,6"
-  sha256 "1c3a8cbf7c81e9d06b53e1ba291119363881b347722816cf53b6b912b3589370"
+  version "2.5.2,6"
+  sha256 "329a4f45a04f2585eac7b44722f068fe24722481dcc8521dc284c02161fb2855"
 
   url "https://ftp.lip6.fr/pub/lyx/bin/#{version.csv.first.major_minor_patch}/LyX-#{version.csv.first}+qt#{version.csv.second}-x86_64-arm64-cocoa.dmg"
   name "LyX"
@@ -14,7 +14,6 @@ cask "lyx" do
       page.scan(regex).map { |match| "#{match[0]},#{match[1]}" }
     end
   end
-
 
   depends_on macos: :monterey
 
@@ -30,6 +29,8 @@ cask "lyx" do
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "org.lyx.lyx"
 
   zap trash: [
     "~/Library/Application Support/LyX-#{version.major_minor}",

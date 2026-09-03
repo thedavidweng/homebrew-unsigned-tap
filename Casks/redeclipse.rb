@@ -7,7 +7,6 @@ cask "redeclipse" do
   desc "Multiplayer & singleplayer first person shooter"
   homepage "https://www.redeclipse.net/"
 
-
   depends_on :macos
 
   app "redeclipse.app"

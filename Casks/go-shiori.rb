@@ -10,7 +10,6 @@ cask "go-shiori" do
   desc "Shiori is a simple bookmarks manager written in the Go language"
   homepage "https://github.com/go-shiori/shiori"
 
-
   depends_on :macos
 
   binary "shiori"

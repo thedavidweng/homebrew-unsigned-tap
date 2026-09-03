@@ -28,7 +28,6 @@ cask "the-unofficial-homestuck-collection" do
     end
   end
 
-
   depends_on :macos
 
   app "The Unofficial Homestuck Collection.app"

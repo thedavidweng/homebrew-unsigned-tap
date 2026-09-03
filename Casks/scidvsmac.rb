@@ -12,7 +12,6 @@ cask "scidvsmac" do
     regex(/ScidvsMac-(\d+(?:\.\d+)*)\.x64\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "ScidvsMac.app"

@@ -14,7 +14,6 @@ cask "fightcade" do
     end
   end
 
-
   depends_on :macos
 
   app "Fightcade#{version.major}.app"

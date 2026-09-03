@@ -15,7 +15,6 @@ cask "teamspeak-client@beta" do
     regex(%r{href=.*?/(\d+(?:\.\d+)+[^/]*)/teamspeak[._-]client-#{arch}\.dmg}i)
   end
 
-
   auto_updates true
   depends_on :macos
 

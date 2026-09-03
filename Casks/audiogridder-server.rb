@@ -11,19 +11,18 @@ cask "audiogridder-server" do
     cask "audiogridder-plugin"
   end
 
-
   depends_on :macos
 
   pkg "AudioGridderServer_#{version}_macOS-universal.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: [
     "com.e47.audiogridder.server",
     "com.e47.pkg.server",
   ]
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: [
         "~/.audiogridder/audiogridder.winpos",

@@ -7,7 +7,6 @@ cask "gridea" do
   desc "Static blog writing client"
   homepage "https://gridea.dev/"
 
-
   auto_updates true
   depends_on :macos
 

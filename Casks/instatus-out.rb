@@ -7,7 +7,6 @@ cask "instatus-out" do
   desc "Monitor services in your menu bar"
   homepage "https://instatus.com/out"
 
-
   depends_on :macos
 
   app "Instatus Out.app"

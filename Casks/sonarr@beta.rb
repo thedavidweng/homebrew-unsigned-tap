@@ -12,7 +12,6 @@ cask "sonarr@beta" do
     regex(%r{href=["']?v?(\d+(?:\.\d+)+)/?["' >]}i)
   end
 
-
   conflicts_with cask: "sonarr"
   depends_on :macos
   depends_on cask: "mono-mdk"

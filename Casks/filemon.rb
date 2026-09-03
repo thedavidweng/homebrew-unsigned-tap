@@ -12,7 +12,6 @@ cask "filemon" do
     regex(/File\s*Monitor\s+(\d+(?:\.\d+)+)/i)
   end
 
-
   depends_on :macos
 
   binary "filemon"

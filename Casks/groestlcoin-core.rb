@@ -10,14 +10,13 @@ cask "groestlcoin-core" do
   desc "Groestlcoin client and wallet"
   homepage "https://www.groestlcoin.org/groestlcoin-core-wallet/"
 
-
   depends_on macos: :sonoma
 
   # Renamed for consistency: app name is different in the Finder and in a shell.
   app "Groestlcoin-Qt.app", target: "Groestlcoin Core.app"
 
-  preflight do
-    set_permissions "#{staged_path}/Groestlcoin-Qt.app", "0755"
+  preflight_steps do
+    set_permissions "Groestlcoin-Qt.app", "0755"
   end
 
   postflight do

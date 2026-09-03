@@ -1,6 +1,6 @@
 cask "treesheets" do
-  version "3226"
-  sha256 "907f13b91b36d503fb8a77d12a407aa49a3d7a17068cebf1760b93381eebe12a"
+  version "3333"
+  sha256 "4f4a05011d3d3c0256d3f97bee49a28c1bd6a4e7253cb296b6f73f392695e90e"
 
   url "https://github.com/aardappel/treesheets/releases/download/#{version.csv.second || version.csv.first}/TreeSheets-#{version.csv.first}-Darwin.dmg"
   name "TreeSheets"
@@ -20,18 +20,18 @@ cask "treesheets" do
     end
   end
 
-
   depends_on :macos
 
   app "TreeSheets.app"
-
-  uninstall quit: "dot3labs.TreeSheets"
 
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
 
+  uninstall quit: "dot3labs.TreeSheets"
+
   zap trash: [
+    "~/Library/Preferences/com.strlen.TreeSheets.plist",
     "~/Library/Preferences/dot3labs.TreeSheets.plist",
     "~/Library/Preferences/TreeSheets Preferences",
     "~/Library/Saved Application State/dot3labs.TreeSheets.savedState",

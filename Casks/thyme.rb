@@ -7,7 +7,6 @@ cask "thyme" do
   desc "Task timer"
   homepage "https://joaomoreno.github.io/thyme/"
 
-
   depends_on :macos
 
   app "Thyme.app"

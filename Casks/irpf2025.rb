@@ -14,16 +14,15 @@ cask "irpf2025" do
     end
   end
 
-
   depends_on :macos
 
   installer manual: "IRPF2025.app"
 
-  uninstall delete: "/Applications/IRPF2025"
-
-  # No zap stanza required
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall delete: "/Applications/IRPF2025"
+
+  # No zap stanza required
 end

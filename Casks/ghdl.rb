@@ -55,7 +55,6 @@ cask "ghdl" do
   desc "VHDL 2008/93/87 simulator"
   homepage "https://ghdl.github.io/ghdl/"
 
-
   depends_on macos: :ventura
 
   directory = "ghdl-llvm-#{version}-macos#{macos_version}-#{arch}"

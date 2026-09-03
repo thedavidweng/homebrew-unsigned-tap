@@ -7,7 +7,6 @@ cask "openkey" do
   desc "Vietnamese input system"
   homepage "https://github.com/tuyenvm/OpenKey/"
 
-
   depends_on :macos
 
   app "OpenKey.app"

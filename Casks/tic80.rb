@@ -8,16 +8,15 @@ cask "tic80" do
   desc "Fantasy computer for making, playing and sharing tiny games"
   homepage "https://tic80.com/"
 
-
   depends_on :macos
 
   app "tic80.app"
 
-  uninstall quit: "com.nesbox.tic"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.nesbox.tic"
 
   zap trash: [
     "~/Library/Application Support/com.nesbox.tic",

@@ -12,17 +12,16 @@ cask "ace-link" do
     strategy :github_latest
   end
 
-
   depends_on :macos
   depends_on cask: "docker"
 
   app "Ace Link.app"
 
-  uninstall quit: "blaise.io.acelink"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "blaise.io.acelink"
 
   zap trash: "~/Library/Application Support/Ace Link"
 end

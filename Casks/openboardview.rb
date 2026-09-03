@@ -12,7 +12,6 @@ cask "openboardview" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "openboardview.app"

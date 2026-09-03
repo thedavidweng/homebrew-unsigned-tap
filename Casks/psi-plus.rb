@@ -12,16 +12,15 @@ cask "psi-plus" do
     regex(%r{url=.*?/Psi%2B[._-]?v?(\d+(?:\.\d+)+)[._-]?macOS[^"' >]*?\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "Psi+.app"
 
-  uninstall quit: "com.psi-plus"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.psi-plus"
 
   zap trash: [
     "~/Library/Application Support/Psi+",

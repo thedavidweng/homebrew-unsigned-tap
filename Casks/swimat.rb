@@ -7,7 +7,6 @@ cask "swimat" do
   desc "Xcode formatter plug-in for Swift code"
   homepage "https://github.com/Jintin/Swimat"
 
-
   depends_on :macos
 
   app "Swimat.app"

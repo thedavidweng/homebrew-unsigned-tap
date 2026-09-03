@@ -10,7 +10,6 @@ cask "laravel-kit" do
   desc "Desktop Laravel admin panel app"
   homepage "https://tmdh.github.io/laravel-kit"
 
-
   depends_on :macos
 
   app "Laravel Kit.app"

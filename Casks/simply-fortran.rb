@@ -39,7 +39,6 @@ cask "simply-fortran" do
     regex(/href=.*?simplyfortran[._-]v?(\d+(?:\.\d+)+)[._-]#{arch}\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "Simply Fortran.app"

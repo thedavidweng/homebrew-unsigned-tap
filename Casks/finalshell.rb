@@ -14,10 +14,13 @@ cask "finalshell" do
     regex(/版本号?(\d+(?:\.\d+)+)/i)
   end
 
-
   depends_on :macos
 
   pkg "finalshell_macos_#{arch}.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall quit:    "finalshellinstall.all",
             pkgutil: [
@@ -25,10 +28,6 @@ cask "finalshell" do
               "st",
             ],
             delete:  "/Applications/FinalShell.app"
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: [
     "~/fsdownload",

@@ -12,7 +12,6 @@ cask "plotdigitizer" do
     regex(%r{url=.*?/v?(\d+(?:\.\d+)+[a-z]?)/PlotDigitizer(?:[._-]v?\d+(?:\.\d+)+)?[._-]MacOSX?\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "Plot Digitizer.app"

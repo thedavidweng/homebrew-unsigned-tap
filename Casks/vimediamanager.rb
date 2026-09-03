@@ -20,7 +20,6 @@ cask "vimediamanager" do
     end
   end
 
-
   depends_on :macos
 
   app "ViMediaManager.app"

@@ -12,7 +12,6 @@ cask "steam-plus-plus" do
     strategy :github_latest
   end
 
-
   depends_on macos: :monterey
 
   app "Steam++.app"

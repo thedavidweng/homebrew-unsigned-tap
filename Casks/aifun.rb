@@ -14,17 +14,16 @@ cask "aifun" do
     end
   end
 
-
   auto_updates true
   depends_on :macos
 
   app "AiFun.app"
 
-  uninstall quit: "com.getaifun"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.getaifun"
 
   zap trash: [
     "~/Library/Application Scripts/com.getaifun",

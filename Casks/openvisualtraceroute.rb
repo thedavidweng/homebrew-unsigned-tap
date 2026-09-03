@@ -12,7 +12,6 @@ cask "openvisualtraceroute" do
     regex(%r{url=.*?/OpenVisualTraceRoute[._-]?v?(\d+(?:\.\d+)+)\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "OpenVisualTraceroute.app"

@@ -15,7 +15,6 @@ cask "oso-cloud" do
     regex(/v?(\d+(?:\.\d+)+)/i)
   end
 
-
   depends_on :macos
 
   binary "oso_cli_mac_osx_#{arch}", target: "oso-cloud"

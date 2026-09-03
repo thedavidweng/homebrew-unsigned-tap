@@ -7,7 +7,6 @@ cask "git-it" do
   desc "Desktop app for learning Git and GitHub"
   homepage "https://github.com/jlord/git-it-electron"
 
-
   depends_on :macos
 
   app "Git-it-Mac-x64/Git-it.app"

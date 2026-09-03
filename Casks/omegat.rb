@@ -11,7 +11,6 @@ cask "omegat" do
     url "https://sourceforge.net/projects/omegat/rss?path=/OmegaT%20-%20Standard"
   end
 
-
   conflicts_with cask: "omegat@latest"
   depends_on :macos
 

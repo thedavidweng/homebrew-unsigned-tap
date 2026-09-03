@@ -12,7 +12,6 @@ cask "orca" do
     strategy :github_latest
   end
 
-
   depends_on :macos
   container nested: "orca-#{version}.dmg"
 

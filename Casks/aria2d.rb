@@ -14,7 +14,6 @@ cask "aria2d" do
     end
   end
 
-
   depends_on macos: :big_sur
 
   app "Aria2D.app"

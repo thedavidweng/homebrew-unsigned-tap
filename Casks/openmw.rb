@@ -23,7 +23,6 @@ cask "openmw" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "OpenMW.app"

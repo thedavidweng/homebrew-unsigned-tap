@@ -15,7 +15,6 @@ cask "davmail-app" do
     end
   end
 
-
   depends_on :macos
 
   app "DavMail.app"

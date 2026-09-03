@@ -11,7 +11,6 @@ cask "osmc" do
     skip "unversioned QT application"
   end
 
-
   depends_on :macos
 
   # Renamed for clarity: app name is inconsistent with its branding.

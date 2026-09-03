@@ -12,16 +12,15 @@ cask "hp-prime" do
     regex(/<title>.*?\((\d+(?:-\d+)+)\)/i)
   end
 
-
   depends_on :macos
 
   app "HP Prime.app"
 
-  caveats do
-    requires_rosetta
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    requires_rosetta
   end
 end

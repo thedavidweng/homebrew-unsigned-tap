@@ -7,7 +7,6 @@ cask "modelio" do
   desc "Extensible modelling environment"
   homepage "https://www.modelio.org/"
 
-
   depends_on :macos
 
   app "Modelio #{version.major_minor}.app"

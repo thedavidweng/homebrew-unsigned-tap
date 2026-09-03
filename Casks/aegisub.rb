@@ -12,16 +12,15 @@ cask "aegisub" do
     strategy :github_latest
   end
 
-
   depends_on macos: :ventura
 
   app "Aegisub.app"
 
-  uninstall quit: "com.aegisub.aegisub"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.aegisub.aegisub"
 
   zap trash: [
     "~/Library/Application Support/Aegisub",

@@ -13,16 +13,15 @@ cask "appgrid" do
     strategy :page_match
   end
 
-
   depends_on :macos
 
   app "AppGrid.app"
 
-  uninstall quit: "com.sdegutis.AppGrid"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.sdegutis.AppGrid"
 
   zap trash: "~/Library/Preferences/com.sdegutis.AppGrid.plist"
 

@@ -12,17 +12,16 @@ cask "keepassx" do
     regex(/href=.*?KeePassX[._-]v?(\d+(?:\.\d+)+)\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "KeePassX.app"
 
-  uninstall_preflight do
-    set_ownership "#{appdir}/KeePassX.app"
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  uninstall_preflight_steps do
+    set_ownership "KeePassX.app", base: :appdir
   end
 
   zap trash: "~/.keepassx"

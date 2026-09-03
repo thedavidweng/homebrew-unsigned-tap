@@ -12,7 +12,6 @@ cask "topcat" do
     regex(/Version\s*(\d+(?:\.\d+)*(?:-\d+)?)\s*released/i)
   end
 
-
   depends_on :macos
 
   app "TOPCAT.app"

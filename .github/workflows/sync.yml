@@ -7,7 +7,7 @@ on:
 
 jobs:
   sync:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     permissions:
       contents: write
       pull-requests: write
@@ -21,9 +21,17 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: "3.11"
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          core: false
+          cask: false
       - name: Sync
         run: |
           SRC_CASK_DIR=/tmp/homebrew-cask/Casks python3 scripts/sync_disabled_casks.py
+          # Normalize with brew's own fixer (new DSL migrations, grouping).
+          # Keeps `brew style --tap` green even when upstream still uses old syntax.
+          brew style --fix Casks/ || true
           if git diff --quiet; then
             echo "No changes"
             exit 0
@@ -31,10 +39,22 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           branch="sync/$(date +%Y%m%d)"
-          git checkout -b "$branch"
+          git checkout -B "$branch"
           git add Casks/
           git commit -m "sync: update $(ls Casks | wc -l) disabled casks from Homebrew/homebrew-cask"
-          git push origin "$branch"
-          gh pr create --title "sync: update disabled casks $(date +%Y-%m-%d)" --body "Automated sync from Homebrew/homebrew-cask (fails_gatekeeper_check). Strips disable! and injects quarantine removal. Audit with \`brew audit --cask --strict\`." --base main
+          git push --force-with-lease origin "$branch"
+          # Requires repo setting: Settings > Actions > General >
+          # "Allow GitHub Actions to create and approve pull requests".
+          # If disabled, the branch is still pushed; create the PR manually.
+          # Do not fail the check for a repo setting.
+          if gh pr create --title "sync: update disabled casks $(date +%Y-%m-%d)" --body "Automated sync from Homebrew/homebrew-cask (fails_gatekeeper_check). Strips disable! and injects quarantine removal. Audit with \`brew audit --cask --strict\`." --base main; then
+            echo "Opened sync PR."
+          else
+            echo "::warning::gh pr create failed. If the error is 'GitHub Actions is not permitted to create or approve pull requests', enable it in Settings > Actions > General, then create the PR manually from branch $branch."
+            if gh pr list --head "$branch" --json number --jq '.[0].number' 2>/dev/null | grep -q '[0-9]'; then
+              echo "A PR for $branch already exists."
+            fi
+            exit 0
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

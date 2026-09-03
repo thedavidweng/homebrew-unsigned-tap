@@ -13,7 +13,6 @@ cask "bdinfo" do
     regex(/BDInfo\s+(\d+(?:\.\d+)+)\s+Mac/i)
   end
 
-
   depends_on :macos
 
   app "BDInfo OSX.app"

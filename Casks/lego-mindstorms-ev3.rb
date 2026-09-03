@@ -13,10 +13,13 @@ cask "lego-mindstorms-ev3" do
     strategy :header_match
   end
 
-
   depends_on :macos
 
   pkg "LEGO MINDSTORMS EV3 Home Edition.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: [
     "com.microsoft.silverlight.plugin",
@@ -29,10 +32,6 @@ cask "lego-mindstorms-ev3" do
     "com.ni.pkg.legodriver",
     "com.xamarin.mono-MDK.pkg",
   ]
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap pkgutil: [
     "com.microsoft.silverlight.plugin",

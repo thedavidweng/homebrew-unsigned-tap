@@ -26,7 +26,6 @@ cask "phd2" do
   desc "Telescope guiding software"
   homepage "https://openphdguiding.org/"
 
-
   depends_on :macos
 
   app "PHD2.app"

@@ -7,7 +7,6 @@ cask "hackintool" do
   desc "Hackintosh patching tool"
   homepage "https://github.com/headkaze/Hackintool"
 
-
   auto_updates true
   depends_on :macos
 

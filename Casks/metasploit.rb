@@ -1,6 +1,6 @@
 cask "metasploit" do
-  version "6.4.135,20260522055548"
-  sha256 "4b14b40d26c178bf6c4241fe76038395cba3cc00e2f0039afd415695f61adbd9"
+  version "6.5.3,20260826055538"
+  sha256 "643851d6bd79a7b5d7345dc0f0d295719e1d927526c6d5c9bdef12bce395165d"
 
   url "https://osx.metasploit.com/metasploit-framework-#{version.csv.first}-#{version.csv.second}-1rapid7-1.x86_64.pkg"
   name "Metasploit Framework"
@@ -18,7 +18,6 @@ cask "metasploit" do
     end
   end
 
-
   depends_on :macos
   depends_on formula: "nmap"
 
@@ -35,16 +34,16 @@ cask "metasploit" do
   binary "/opt/metasploit-framework/bin/msfrpcd"
   binary "/opt/metasploit-framework/bin/msfvenom"
 
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
   uninstall script: {
               executable: "/opt/metasploit-framework/bin/msfremove",
               input:      ["y"],
               sudo:       true,
             },
             rmdir:  "/opt/metasploit-framework"
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: "~/.msf4"
 

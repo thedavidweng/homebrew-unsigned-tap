@@ -12,7 +12,6 @@ cask "guijs" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "guijs.app"

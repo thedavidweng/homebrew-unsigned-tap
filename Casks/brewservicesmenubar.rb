@@ -7,16 +7,15 @@ cask "brewservicesmenubar" do
   desc "Menu item for starting and stopping homebrew services"
   homepage "https://github.com/andrewn/brew-services-menubar"
 
-
   depends_on :macos
 
   app "BrewServicesMenubar.app"
 
-  uninstall quit: "andrewnicolaou.BrewServicesMenubar"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "andrewnicolaou.BrewServicesMenubar"
 
   zap trash: "~/Library/Preferences/andrewnicolaou.BrewServicesMenubar.plist"
 end

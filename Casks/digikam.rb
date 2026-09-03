@@ -15,10 +15,13 @@ cask "digikam" do
     regex(%r{href=["']?v?(\d+(?:\.\d+)+)/?["' >]}i)
   end
 
-
   depends_on :macos
 
   pkg "digiKam-#{version}-#{arch}.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: [
               "org.digiKam",
@@ -28,10 +31,6 @@ cask "digikam" do
               "/Applications/digiKam.org/digikam.app",
               "/Applications/digiKam.org/showfoto.app",
             ]
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: [
     "~/Library/Application Support/digikam",

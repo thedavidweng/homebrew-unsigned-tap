@@ -7,7 +7,6 @@ cask "wintertime" do
   desc "Utility to freeze apps running in the background to save battery"
   homepage "https://github.com/actuallymentor/wintertime-mac-background-freezer"
 
-
   depends_on :macos
 
   app "Wintertime.app"

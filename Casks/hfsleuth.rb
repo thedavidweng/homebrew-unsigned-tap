@@ -11,7 +11,6 @@ cask "hfsleuth" do
     skip "unversioned command-line application"
   end
 
-
   depends_on :macos
 
   binary "hfsleuth.universal", target: "hfsleuth"

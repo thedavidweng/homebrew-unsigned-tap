@@ -7,7 +7,6 @@ cask "welly" do
   desc "BBS client"
   homepage "https://github.com/clyang/welly"
 
-
   auto_updates true
   depends_on :macos
 

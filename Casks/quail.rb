@@ -15,14 +15,13 @@ cask "quail" do
       skip "Legacy version"
     end
 
-    depends_on macos: :catalina
+    depends_on macos: :big_sur
   end
 
   url "https://github.com/1000ch/quail/releases/download/v#{version}/Quail-#{version}#{arch}.dmg"
   name "Quail"
   desc "Unofficial but officially accepted esa app"
   homepage "https://github.com/1000ch/quail"
-
 
   depends_on :macos
 

@@ -17,13 +17,16 @@ cask "asix-ax88179" do
     end
   end
 
-
   depends_on macos: :monterey
   container nested: "ASIX_USB_Device_Installer_v#{version.csv.first}.dmg"
 
   rename "ASIX_USB_Device_Un*.pkg", "AX88179_178A_Uninstall.pkg"
 
   pkg "ASIX_USB_Device_Installer_v#{version.csv.first}.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall early_script: {
               executable:   "/usr/sbin/installer",
@@ -41,9 +44,5 @@ cask "asix-ax88179" do
 
   caveats do
     reboot
-  end
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
 end

@@ -12,7 +12,6 @@ cask "futurerestore-gui" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "FutureRestore GUI.app"

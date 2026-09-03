@@ -12,7 +12,6 @@ cask "kext-updater" do
     strategy :sparkle, &:short_version
   end
 
-
   depends_on :macos
 
   app "Kext Updater.app"

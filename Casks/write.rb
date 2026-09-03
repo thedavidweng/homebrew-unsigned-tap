@@ -18,7 +18,6 @@ cask "write" do
     end
   end
 
-
   depends_on :macos
 
   app "Write.app"

@@ -7,7 +7,6 @@ cask "katana-app" do
   desc "Open-source screenshot utility"
   homepage "https://github.com/bluegill/katana/"
 
-
   depends_on :macos
 
   app "Katana.app"

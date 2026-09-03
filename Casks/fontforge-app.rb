@@ -20,7 +20,6 @@ cask "fontforge-app" do
     end
   end
 
-
   depends_on macos: :ventura
 
   app "FontForge.app"

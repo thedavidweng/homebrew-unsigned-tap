@@ -10,7 +10,6 @@ cask "blobsaver" do
   desc "GUI for automatically saving SHSH blobs"
   homepage "https://github.com/airsquared/blobsaver"
 
-
   depends_on :macos
 
   app "blobsaver.app"

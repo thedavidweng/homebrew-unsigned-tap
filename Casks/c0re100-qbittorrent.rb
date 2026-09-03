@@ -1,6 +1,6 @@
 cask "c0re100-qbittorrent" do
-  version "5.1.3.10"
-  sha256 "6a44d5a57374c10787d0224c184d8152e4d7a91b30f0f6e02f144b2cf9d51458"
+  version "5.2.3.10"
+  sha256 "bff0dce3571ffd8ead2c55adcb44baec40a696f8fec7e422ff7908b98bd624ea"
 
   url "https://github.com/c0re100/qBittorrent-Enhanced-Edition/releases/download/release-#{version}/qBittorrent-Enhanced-Edition-release-#{version}-macOS-universal.dmg"
   name "qBittorrent Enhanced Edition"
@@ -12,11 +12,10 @@ cask "c0re100-qbittorrent" do
     regex(/^release[._-]v?(\d+(?:\.\d+)+)$/i)
   end
 
-
   conflicts_with cask: "qbittorrent"
-  depends_on macos: :monterey
+  depends_on macos: :ventura
 
-  app "qbittorrent.app"
+  app "qBittorrent.app"
 
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]

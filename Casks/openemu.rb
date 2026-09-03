@@ -12,7 +12,6 @@ cask "openemu" do
     strategy :sparkle
   end
 
-
   auto_updates true
   conflicts_with cask: "openemu@experimental"
   depends_on :macos

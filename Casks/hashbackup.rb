@@ -12,7 +12,6 @@ cask "hashbackup" do
     regex(/id=["']?_?(\d+)/i)
   end
 
-
   depends_on :macos
 
   binary "hb"

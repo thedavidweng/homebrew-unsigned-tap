@@ -7,7 +7,6 @@ cask "pine" do
   desc "Native markdown editor"
   homepage "https://github.com/lukakerr/pine"
 
-
   depends_on :macos
 
   app "Pine.app"

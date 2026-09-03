@@ -12,7 +12,6 @@ cask "latexdraw" do
     regex(%r{url=.*?/LaTeXDraw[._-]v?(\d+(?:\.\d+)+)\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "LaTeXDraw.app"

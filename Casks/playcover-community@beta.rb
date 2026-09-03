@@ -12,7 +12,6 @@ cask "playcover-community@beta" do
     regex(/(\d+(?:\.\d+)+[._-]beta(\.\d+)?)/i)
   end
 
-
   auto_updates true
   conflicts_with cask: "playcover-community"
   depends_on arch: :arm64

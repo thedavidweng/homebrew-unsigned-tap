@@ -12,17 +12,16 @@ cask "cinco" do
     regex(%r{href=["']?v?(\d+(?:\.\d+)+)/?["' >]}i)
   end
 
-
   depends_on :macos
 
   pkg "Install Cinco.pkg"
 
-  uninstall quit:    "de.jabc.cinco.meta.product.product",
-            pkgutil: "de.jabc.cinco.meta.product.product.cinco.pkg.component"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit:    "de.jabc.cinco.meta.product.product",
+            pkgutil: "de.jabc.cinco.meta.product.product.cinco.pkg.component"
 
   zap trash: [
     "~/Library/Preferences/de.jabc.cinco.meta.product.product.plist",

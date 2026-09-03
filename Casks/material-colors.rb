@@ -4,8 +4,8 @@ cask "material-colors" do
 
   url "https://github.com/romannurik/MaterialColorsApp/releases/download/v#{version}/MaterialColors-#{version}.zip"
   name "Material Colors for Mac"
+  desc "Browse Material Design color palettes"
   homepage "https://github.com/romannurik/MaterialColorsApp"
-
 
   depends_on :macos
 

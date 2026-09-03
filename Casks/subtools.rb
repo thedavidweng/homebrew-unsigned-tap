@@ -12,7 +12,6 @@ cask "subtools" do
     regex(/href=.*?subtools[._-]?v?(\d+(?:\.\d+)+)\.zip/i)
   end
 
-
   depends_on :macos
 
   app "subtools#{version}/SUBtools.app"

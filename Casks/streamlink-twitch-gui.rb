@@ -7,7 +7,6 @@ cask "streamlink-twitch-gui" do
   desc "Multi platform Twitch.tv browser for Streamlink"
   homepage "https://github.com/streamlink/streamlink-twitch-gui/"
 
-
   depends_on :macos
   depends_on formula: "streamlink"
 

@@ -7,16 +7,15 @@ cask "trackerzapper" do
   desc "Menubar app to remove link tracking parameters automatically"
   homepage "https://rknight.me/apps/tracker-zapper"
 
-
   depends_on macos: :big_sur
 
   app "TrackerZapper.app"
 
-  uninstall quit: "com.rknightuk.TrackerZapper"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.rknightuk.TrackerZapper"
 
   zap trash: [
     "~/Library/Application Scripts/com.rknightuk.TrackerZapper",

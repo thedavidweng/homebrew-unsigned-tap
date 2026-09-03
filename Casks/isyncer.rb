@@ -12,18 +12,17 @@ cask "isyncer" do
     regex(/href=.*?iSyncer[._-]?v?(\d+(?:\.\d+)+)[._-]?mac[._-]installer\.t/i)
   end
 
-
   depends_on :macos
 
   pkg "iSyncer-installer-#{version}.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: "main.ISyncer.*"
 
   caveats do
     requires_rosetta
-  end
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
 end

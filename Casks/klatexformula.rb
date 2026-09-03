@@ -7,7 +7,6 @@ cask "klatexformula" do
   desc "Generate images from LaTeX equations"
   homepage "https://klatexformula.sourceforge.io/"
 
-
   depends_on :macos
 
   app "klatexformula.app"

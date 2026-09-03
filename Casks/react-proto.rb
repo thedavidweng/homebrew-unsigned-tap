@@ -7,7 +7,6 @@ cask "react-proto" do
   desc "React application prototyping tool for developers and designers"
   homepage "https://react-proto.github.io/react-proto"
 
-
   depends_on :macos
 
   app "React-Proto.app"

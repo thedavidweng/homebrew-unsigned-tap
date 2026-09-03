@@ -12,7 +12,6 @@ cask "exfalso" do
     regex(%r{href=.*?/ExFalso[._-]v?(\d+(?:\.\d+)+)\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "ExFalso.app"

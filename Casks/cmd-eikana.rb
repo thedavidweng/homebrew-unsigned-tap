@@ -5,8 +5,8 @@ cask "cmd-eikana" do
   url "https://github.com/iMasanari/cmd-eikana/releases/download/v#{version}/eikana-#{version}.app.zip"
   name "Eikana"
   name "⌘英かな"
+  desc "Switch Japanese input mode with Command key"
   homepage "https://github.com/iMasanari/cmd-eikana"
-
 
   depends_on :macos
 

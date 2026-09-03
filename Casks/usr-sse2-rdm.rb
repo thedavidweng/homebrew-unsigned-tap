@@ -7,17 +7,16 @@ cask "usr-sse2-rdm" do
   desc "Set a Retina display to custom resolutions"
   homepage "https://github.com/usr-sse2/RDM"
 
-
   depends_on :macos
 
   app "RDM.app"
 
-  uninstall quit:    "net.alkalay.RDM",
-            pkgutil: "net.alkalay.RDM"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit:    "net.alkalay.RDM",
+            pkgutil: "net.alkalay.RDM"
 
   zap trash: [
     "~/Library/Application Support/net.alkalay.RDM",

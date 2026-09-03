@@ -7,7 +7,6 @@ cask "macstroke" do
   desc "Configurable global mouse gestures"
   homepage "https://github.com/mtjo/MacStroke/"
 
-
   depends_on :macos
 
   app "MacStroke.app"

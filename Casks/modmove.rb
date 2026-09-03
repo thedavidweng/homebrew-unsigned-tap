@@ -7,7 +7,6 @@ cask "modmove" do
   desc "Utility to move/resize windows using modifiers and the mouse"
   homepage "https://github.com/keith/modmove"
 
-
   depends_on :macos
 
   app "ModMove.app"

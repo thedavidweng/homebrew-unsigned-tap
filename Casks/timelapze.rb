@@ -7,17 +7,16 @@ cask "timelapze" do
   desc "Record screen and camera time lapses in a menu bar interface"
   homepage "https://github.com/wkaisertexas/ScreenTimeLapse"
 
-
   auto_updates true
   depends_on macos: :sonoma
 
   app "TimeLapze.app"
 
-  uninstall quit: "com.smartservices.TimeLapze"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.smartservices.TimeLapze"
 
   zap trash: [
     "~/Library/Application Scripts/com.smartservices.TimeLapze",

@@ -7,7 +7,6 @@ cask "menutube" do
   desc "Tool to capture YouTube into the menu bar"
   homepage "https://edanchenkov.github.io/MenuTube/"
 
-
   depends_on :macos
 
   app "MenuTube.app"

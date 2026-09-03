@@ -7,7 +7,6 @@ cask "jedit" do
   desc "Text editor"
   homepage "https://www.jedit.org/"
 
-
   depends_on :macos
 
   app "jEdit.app"

@@ -29,7 +29,6 @@ cask "ytmdesktop-youtube-music" do
     end
   end
 
-
   depends_on macos: :monterey
 
   app "YouTube Music Desktop App.app"

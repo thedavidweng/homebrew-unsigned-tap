@@ -12,7 +12,6 @@ cask "zandronum" do
     regex(/href=.*?zandronum[._-]?v?(\d+(?:\.\d+)+)[._-]macosx\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "Zandronum.app"

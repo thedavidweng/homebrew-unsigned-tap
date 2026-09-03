@@ -20,7 +20,6 @@ cask "mindforger" do
     end
   end
 
-
   depends_on :macos
 
   app "mindforger.app"

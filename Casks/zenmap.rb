@@ -1,6 +1,6 @@
 cask "zenmap" do
-  version "7.99"
-  sha256 "97b0f4be5e8125d0da665e54f335f47c7dd3fa1bd7f7db5c7953441a56264d39"
+  version "7.991"
+  sha256 "a1726429e4b6717ee9c98213a52e5fae2f365037bd1bf5fd570cebb68965049e"
 
   url "https://nmap.org/dist/nmap-#{version}.dmg"
   name "Zenmap"
@@ -12,10 +12,13 @@ cask "zenmap" do
     regex(/href=.*?nmap[._-]v?(\d+(?:\.\d+)+)\.dmg/i)
   end
 
-
   depends_on :macos
 
   pkg "nmap-#{version}.mpkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: [
               "org.insecure.nmap",
@@ -25,10 +28,6 @@ cask "zenmap" do
               "org.insecure.nmap.zenmap",
             ],
             delete:  "/Applications/Zenmap.app"
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: [
     "~/.zenmap",

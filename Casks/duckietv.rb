@@ -26,10 +26,13 @@ cask "duckietv" do
     end
   end
 
-
   depends_on :macos
 
   pkg "DuckieTV-#{version}-OSX-x64.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: "tv.duckie.base.pkg",
             delete:  [
@@ -39,9 +42,5 @@ cask "duckietv" do
 
   caveats do
     requires_rosetta
-  end
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
 end

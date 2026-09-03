@@ -20,7 +20,6 @@ cask "quaternion" do
     end
   end
 
-
   depends_on :macos
 
   app "quaternion.app"

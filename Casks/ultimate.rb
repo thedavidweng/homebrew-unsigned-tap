@@ -1,5 +1,5 @@
 cask "ultimate" do
-  version "3.0.16.599"
+  version "3.0.16.664"
   sha256 :no_check
 
   url "https://download.epubor.com/epubor_ultimate.zip"
@@ -12,16 +12,15 @@ cask "ultimate" do
     regex(/Version:\s*v?(\d+(?:\.\d+)+).*?#os_Mac/i)
   end
 
-
   depends_on :macos
 
   pkg "Ultimate.pkg"
 
-  uninstall pkgutil: "EpuborStudioUltimate2"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall pkgutil: "EpuborStudioUltimate2"
 
   zap trash: [
     "~/.Epubor_Keys",

@@ -15,17 +15,16 @@ cask "yggdrasil" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   pkg "yggdrasil-#{version}-macos-#{arch}.pkg"
 
-  uninstall launchctl: "yggdrasil",
-            pkgutil:   "io.github.yggdrasil-network.pkg"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall launchctl: "yggdrasil",
+            pkgutil:   "io.github.yggdrasil-network.pkg"
 
   zap delete: [
     "/etc/yggdrasil.conf",

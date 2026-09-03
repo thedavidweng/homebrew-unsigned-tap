@@ -29,7 +29,6 @@ cask "oclint" do
   desc "Static source code analysis tool"
   homepage "https://github.com/oclint/oclint/"
 
-
   depends_on macos: :monterey
 
   binary "oclint-#{version}/bin/oclint-json-compilation-database"

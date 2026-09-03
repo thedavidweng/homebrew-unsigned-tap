@@ -7,7 +7,6 @@ cask "semulov" do
   desc "Access mounted and unmounted volumes from the menubar"
   homepage "https://github.com/kainjow/Semulov"
 
-
   depends_on :macos
 
   app "Semulov.app"

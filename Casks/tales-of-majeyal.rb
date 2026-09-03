@@ -12,7 +12,6 @@ cask "tales-of-majeyal" do
     regex(/href=.*?t-engine4[._-]osx[._-]v?(\d+(?:\.\d+)+)\.zip/i)
   end
 
-
   depends_on :macos
 
   # Renamed for clarity: app name is inconsistent with its branding.

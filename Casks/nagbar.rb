@@ -7,7 +7,6 @@ cask "nagbar" do
   desc "Status bar monitor for Nagios, Icinga/2 and Thruk"
   homepage "https://sites.google.com/site/nagbarapp/home"
 
-
   depends_on :macos
 
   app "NagBar.app"

@@ -7,16 +7,15 @@ cask "simsim" do
   desc "Tool to explore iOS application folders in Terminal or Finder"
   homepage "https://github.com/dsmelov/simsim/"
 
-
   depends_on :macos
 
   app "SimSim.app"
 
-  uninstall quit: "com.dsmelov.SimSim"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.dsmelov.SimSim"
 
   zap trash: "~/Library/Preferences/com.dsmelov.SimSim.plist"
 end

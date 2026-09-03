@@ -13,16 +13,15 @@ cask "skychart" do
     regex(%r{url=.*?/skychart[._-]v?(\d+(?:[.-]\d+)+[a-z]?)[^"' >]*?\.dmg}i)
   end
 
-
   depends_on :macos
 
   pkg "Install Skychart.pkg"
 
-  uninstall pkgutil: "net.ap-i.pkg.skychart"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall pkgutil: "net.ap-i.pkg.skychart"
 
   zap trash: [
     "~/Library/Application Support/skychart",

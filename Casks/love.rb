@@ -7,7 +7,6 @@ cask "love" do
   desc "2D game framework for Lua"
   homepage "https://love2d.org/"
 
-
   depends_on :macos
 
   app "love.app"

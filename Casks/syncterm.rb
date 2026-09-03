@@ -7,7 +7,6 @@ cask "syncterm" do
   desc "BBS terminal program"
   homepage "https://syncterm.bbsdev.net/"
 
-
   depends_on macos: :ventura
 
   app "SyncTERM.app"

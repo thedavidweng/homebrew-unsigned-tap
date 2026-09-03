@@ -12,7 +12,6 @@ cask "rockboxutility" do
     regex(/RockboxUtility[._-]v?(\d+(?:\.\d+)+)\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "RockboxUtility.app"

@@ -18,7 +18,6 @@ cask "qdslrdashboard" do
     end
   end
 
-
   depends_on :macos
 
   app "qDslrDashboard.app"

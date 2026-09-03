@@ -12,7 +12,6 @@ cask "dupeguru" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "dupeguru.app"

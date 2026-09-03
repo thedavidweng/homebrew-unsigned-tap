@@ -7,7 +7,6 @@ cask "moebius" do
   desc "ANSI editor"
   homepage "https://blocktronics.github.io/moebius/"
 
-
   depends_on :macos
 
   app "Moebius.app"

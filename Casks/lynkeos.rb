@@ -12,7 +12,6 @@ cask "lynkeos" do
     regex(%r{url=.*?/v?(\d+(?:\.\d+)+)/Lynkeos[._-]App[\d._-]*\.zip}i)
   end
 
-
   depends_on :macos
 
   app "Lynkeos-App-#{version.dots_to_hyphens}/Lynkeos.app"

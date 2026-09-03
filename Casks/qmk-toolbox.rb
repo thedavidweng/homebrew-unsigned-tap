@@ -7,16 +7,15 @@ cask "qmk-toolbox" do
   desc "Toolbox companion for QMK Firmware"
   homepage "https://qmk.fm/"
 
-
   depends_on macos: :monterey
 
   app "QMK Toolbox.app"
 
-  uninstall quit: "fm.qmk.toolbox"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "fm.qmk.toolbox"
 
   zap trash: [
     "~/Library/Caches/fm.qmk.toolbox",

@@ -15,7 +15,6 @@ cask "ipepresenter" do
     regex(/href=.*?ipepresenter[._-](\d+(?:\.\d+)+)[._-]mac[._-]#{arch}\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "IpePresenter.app"

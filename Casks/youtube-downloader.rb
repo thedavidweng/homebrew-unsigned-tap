@@ -7,7 +7,6 @@ cask "youtube-downloader" do
   desc "Simple menu bar app to download YouTube movies"
   homepage "https://github.com/DenBeke/YouTube-Downloader-for-macOS"
 
-
   depends_on :macos
 
   app "Youtube Downloader.app"

@@ -15,7 +15,6 @@ cask "conferences" do
     end
   end
 
-
   depends_on :macos
 
   app "Conferences.app"

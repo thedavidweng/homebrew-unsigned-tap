@@ -10,16 +10,15 @@ cask "galaxybudsclient" do
   desc "Unofficial manager for the Buds, Buds+, Buds Live and Buds Pro"
   homepage "https://github.com/ThePBone/GalaxyBudsClient"
 
-
   depends_on macos: :monterey
 
   pkg "GalaxyBudsClient_macOS_#{arch}.pkg"
 
-  uninstall pkgutil: "me.timschneeberger.galaxybudsclient"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall pkgutil: "me.timschneeberger.galaxybudsclient"
 
   zap trash: [
     "~/Library/Application Support/GalaxyBudsClient",

@@ -12,7 +12,6 @@ cask "brewlet" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "Brewlet.app"

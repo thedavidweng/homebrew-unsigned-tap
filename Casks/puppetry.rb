@@ -7,7 +7,6 @@ cask "puppetry" do
   desc "Web testing solution for non-developers on top of Puppeteer and Jest"
   homepage "https://puppetry.app/"
 
-
   depends_on :macos
 
   app "puppetry.app"

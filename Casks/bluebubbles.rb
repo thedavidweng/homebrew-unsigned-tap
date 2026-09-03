@@ -15,10 +15,13 @@ cask "bluebubbles" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "BlueBubbles.app"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall launchctl:  "com.BlueBubbles.BlueBubbles-Server.ShipIt",
             quit:       [
@@ -30,10 +33,6 @@ cask "bluebubbles" do
               "com.bluebubbles.messaging",
             ],
             login_item: "BlueBubbles"
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: [
     "~/Library/Application Support/@bluebubbles",

@@ -7,7 +7,6 @@ cask "exist-db" do
   desc "Native XML database and application platform"
   homepage "https://exist-db.org/exist/apps/homepage/index.html"
 
-
   depends_on :macos
 
   app "eXist-db.app"

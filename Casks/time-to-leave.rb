@@ -15,7 +15,6 @@ cask "time-to-leave" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "Time To Leave.app"

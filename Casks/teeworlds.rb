@@ -4,6 +4,7 @@ cask "teeworlds" do
 
   url "https://downloads.teeworlds.com/teeworlds-#{version}-osx.dmg"
   name "Teeworlds"
+  desc "Retro multiplayer shooter game"
   homepage "https://www.teeworlds.com/"
 
   livecheck do
@@ -11,17 +12,16 @@ cask "teeworlds" do
     regex(%r{href=.*?/teeworlds[._-](\d+(?:\.\d+)*)[._-]osx\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "Teeworlds.app"
   app "Teeworlds Server.app"
 
-  caveats do
-    requires_rosetta
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    requires_rosetta
   end
 end

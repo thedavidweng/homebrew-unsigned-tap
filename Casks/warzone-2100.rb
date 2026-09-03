@@ -12,7 +12,6 @@ cask "warzone-2100" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "Warzone 2100.app"

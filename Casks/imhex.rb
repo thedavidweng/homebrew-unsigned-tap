@@ -17,7 +17,6 @@ cask "imhex" do
   desc "Hex editor for reverse engineers"
   homepage "https://imhex.werwolv.net/"
 
-
   depends_on :macos
 
   app "ImHex.app"

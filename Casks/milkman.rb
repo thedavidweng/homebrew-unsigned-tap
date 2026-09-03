@@ -7,7 +7,6 @@ cask "milkman" do
   desc "Extensible request and response workbench"
   homepage "https://github.com/warmuuh/milkman"
 
-
   depends_on :macos
 
   app "Milkman.app"

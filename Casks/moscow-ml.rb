@@ -7,10 +7,13 @@ cask "moscow-ml" do
   desc "Light-weight implementation of Standard ML"
   homepage "https://mosml.org/"
 
-
   depends_on :macos
 
   pkg "mosml-#{version}.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: "org.mosml"
 
@@ -18,9 +21,5 @@ cask "moscow-ml" do
 
   caveats do
     requires_rosetta
-  end
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
 end

@@ -24,7 +24,6 @@ cask "bison-wallet" do
   desc "Multi-coin wallet with feeless DEX, atomic swaps, and arbitrage tools"
   homepage "https://github.com/decred/dcrdex"
 
-
   depends_on macos: :big_sur
 
   app "Bison Wallet.app"

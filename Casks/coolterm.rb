@@ -12,7 +12,6 @@ cask "coolterm" do
     regex(/^\s*v?(\d+(?:\.\d+)+)\s*$/i)
   end
 
-
   depends_on :macos
 
   app "CoolTerm.app"

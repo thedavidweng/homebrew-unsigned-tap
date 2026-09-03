@@ -15,10 +15,13 @@ cask "fpc-laz" do
     end
   end
 
-
   depends_on :macos
 
   pkg "fpc-#{version.csv.first}-intelarm64-macosx.mpkg/Contents/Packages/fpc-#{version.csv.first}-intelarm64-macosx.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: [
     "org.freepascal.fpc",
@@ -30,9 +33,5 @@ cask "fpc-laz" do
 
   caveats do
     files_in_usr_local
-  end
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
 end

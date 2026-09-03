@@ -12,7 +12,6 @@ cask "ckan-app" do
     strategy :github_latest
   end
 
-
   depends_on :macos
   depends_on cask: "mono-mdk"
 

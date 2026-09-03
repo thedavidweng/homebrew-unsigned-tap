@@ -7,7 +7,6 @@ cask "bilimini" do
   desc "Small window bilibili client"
   homepage "https://github.com/chitosai/bilimini"
 
-
   auto_updates true
   depends_on :macos
 

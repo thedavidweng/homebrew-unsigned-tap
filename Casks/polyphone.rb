@@ -29,7 +29,6 @@ cask "polyphone" do
     end
   end
 
-
   depends_on :macos
 
   app "polyphone.app"

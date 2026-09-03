@@ -12,7 +12,6 @@ cask "vmpk" do
     regex(/url=.*?vmpk[._-]?v?(\d+(?:\.\d+)+)-mac-x64\.dmg/i)
   end
 
-
   depends_on :macos
   depends_on formula: "fluid-synth"
 

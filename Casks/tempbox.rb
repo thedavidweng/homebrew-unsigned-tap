@@ -7,7 +7,6 @@ cask "tempbox" do
   desc "Disposable email client"
   homepage "https://tempbox.waseem.works/"
 
-
   depends_on macos: :big_sur
 
   app "TempBox.app"

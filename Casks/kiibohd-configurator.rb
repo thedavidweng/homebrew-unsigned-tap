@@ -7,17 +7,16 @@ cask "kiibohd-configurator" do
   desc "Modular community keyboard firmware"
   homepage "https://kiibohd.com/"
 
-
   depends_on :macos
   depends_on formula: "dfu-util"
 
   app "Kiibohd Configurator.app"
 
-  uninstall quit: "club.input.KiibohdConfigurator"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "club.input.KiibohdConfigurator"
 
   zap trash: [
     "~/Library/Application Support/kiibohd-configurator",

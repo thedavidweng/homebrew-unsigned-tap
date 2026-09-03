@@ -12,7 +12,6 @@ cask "manuskript" do
     regex(/href.*?manuskript[._-]v?(\d+(?:\.\d+)+)[._-]osx\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "manuskript.app"

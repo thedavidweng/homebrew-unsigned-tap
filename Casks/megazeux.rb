@@ -12,7 +12,6 @@ cask "megazeux" do
     regex(/href=["'][^"' >]*?download\.php\?latest=osx["' ][^>]*?>\s*v?(\d+(?:\.\d+)+[a-z]?)\s*</im)
   end
 
-
   depends_on :macos
 
   app "MegaZeux.app"

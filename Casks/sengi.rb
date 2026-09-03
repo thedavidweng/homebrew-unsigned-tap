@@ -12,7 +12,6 @@ cask "sengi" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "Sengi.app"

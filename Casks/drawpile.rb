@@ -32,7 +32,6 @@ cask "drawpile" do
   desc "Collaborative drawing app"
   homepage "https://drawpile.net/"
 
-
   depends_on :macos
 
   app "Drawpile.app"

@@ -12,7 +12,6 @@ cask "pynsource" do
     regex(/^version[._-]v?(\d+(?:\.\d+)+)$/i)
   end
 
-
   depends_on :macos
 
   app "Pynsource.app"

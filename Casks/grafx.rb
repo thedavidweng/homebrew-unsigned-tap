@@ -36,7 +36,6 @@ cask "grafx" do
     end
   end
 
-
   depends_on :macos
 
   app "Grafx#{version.major}.app"

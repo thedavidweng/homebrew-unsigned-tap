@@ -18,7 +18,6 @@ cask "noxappplayer" do
     end
   end
 
-
   depends_on :macos
   container nested: "NoxAppPlayerInstaller.app/Contents/MacOS/NoxAppPlayer.zip"
 

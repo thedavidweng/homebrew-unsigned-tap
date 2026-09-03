@@ -15,7 +15,6 @@ cask "wireframe-sketcher" do
     regex(/Current\s+version\s+is\s+v?(\d+(?:\.\d+)+)/i)
   end
 
-
   depends_on macos: :big_sur
 
   app "WireframeSketcher.app"

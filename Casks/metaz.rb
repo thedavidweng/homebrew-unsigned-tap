@@ -12,7 +12,6 @@ cask "metaz" do
     regex(/href=.*?MetaZ[._-]v?(.+)\.zip/i)
   end
 
-
   depends_on :macos
 
   app "MetaZ.app"

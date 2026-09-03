@@ -7,7 +7,6 @@ cask "wombat" do
   desc "Cross platform gRPC client"
   homepage "https://github.com/rogchap/wombat"
 
-
   depends_on :macos
 
   app "Wombat.app"

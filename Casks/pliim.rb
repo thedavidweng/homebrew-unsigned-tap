@@ -7,7 +7,6 @@ cask "pliim" do
   desc "One click and be ready to go up on stage and shine!"
   homepage "https://zehfernandes.github.io/pliim/"
 
-
   depends_on :macos
 
   app "Pliim.app"

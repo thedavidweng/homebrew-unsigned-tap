@@ -15,7 +15,6 @@ cask "matterhorn" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   binary "matterhorn-#{version}-Darwin-#{arch}/matterhorn"

@@ -7,7 +7,6 @@ cask "jd-gui" do
   desc "Standalone Java Decompiler GUI"
   homepage "https://java-decompiler.github.io/"
 
-
   depends_on :macos
 
   app "jd-gui-osx-#{version}/JD-GUI.app"

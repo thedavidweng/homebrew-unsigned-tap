@@ -7,7 +7,6 @@ cask "objektiv" do
   desc "Browser switcher utility"
   homepage "https://github.com/nthloop/Objektiv"
 
-
   depends_on :macos
 
   app "Objektiv.app"

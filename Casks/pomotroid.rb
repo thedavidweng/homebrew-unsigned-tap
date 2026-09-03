@@ -12,7 +12,6 @@ cask "pomotroid" do
     regex(/^v?(\d+(?:\.\d+)+)$/i)
   end
 
-
   depends_on :macos
 
   app "Pomotroid.app"

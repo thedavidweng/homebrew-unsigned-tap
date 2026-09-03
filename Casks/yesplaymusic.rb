@@ -27,7 +27,6 @@ cask "yesplaymusic" do
     end
   end
 
-
   depends_on :macos
 
   app "YesPlayMusic.app"

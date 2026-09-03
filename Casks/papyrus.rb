@@ -15,7 +15,6 @@ cask "papyrus" do
     end
   end
 
-
   conflicts_with cask: "morkro-papyrus"
   depends_on :macos
 

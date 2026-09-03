@@ -64,7 +64,6 @@ cask "codelite" do
   desc "IDE for C, C++, PHP and Node.js"
   homepage "https://codelite.org/"
 
-
   depends_on macos: :monterey
 
   app "codelite.app"

@@ -47,7 +47,6 @@ cask "turtl" do
     end
   end
 
-
   depends_on :macos
 
   app "Turtl.app"

@@ -7,7 +7,6 @@ cask "slicer@preview" do
   desc "Medical image processing and visualization system"
   homepage "https://www.slicer.org/"
 
-
   conflicts_with cask: "slicer"
   depends_on macos: :sonoma
 

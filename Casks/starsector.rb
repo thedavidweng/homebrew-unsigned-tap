@@ -14,7 +14,6 @@ cask "starsector" do
     skip "Cannot be fetched due to Cloudflare protections"
   end
 
-
   depends_on :macos
 
   app "Starsector.app"

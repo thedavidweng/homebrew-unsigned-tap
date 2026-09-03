@@ -7,7 +7,6 @@ cask "lumen" do
   desc "Magic auto brightness based on screen contents"
   homepage "https://github.com/anishathalye/lumen"
 
-
   depends_on macos: :sonoma
 
   app "Lumen.app"

@@ -21,7 +21,6 @@ cask "librewolf" do
     end
   end
 
-
   depends_on :macos
 
   app "LibreWolf.app"

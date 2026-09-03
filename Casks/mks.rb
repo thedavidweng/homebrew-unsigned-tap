@@ -7,7 +7,6 @@ cask "mks" do
   desc "Mechanical keyboard simulator"
   homepage "https://github.com/x0054/MKS"
 
-
   depends_on :macos
 
   app "MKS.app"

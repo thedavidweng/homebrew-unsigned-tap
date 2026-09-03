@@ -7,20 +7,19 @@ cask "spaceid" do
   desc "Menu bar indicator showing the currently selected space"
   homepage "https://github.com/dshnkao/SpaceId/"
 
-
   depends_on :macos
 
   app "SpaceId.app"
 
-  preflight do
-    set_permissions "#{staged_path}/SpaceId.app", "0755"
+  preflight_steps do
+    set_permissions "SpaceId.app", "0755"
   end
-
-  uninstall login_item: "SpaceId"
 
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall login_item: "SpaceId"
 
   zap trash: "~/Library/Preferences/com.dshnkao.SpaceId.plist"
 end

@@ -25,16 +25,15 @@ cask "secure-pipes" do
     end
   end
 
-
   depends_on :macos
 
   app "Secure Pipes.app"
 
-  caveats do
-    requires_rosetta
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    requires_rosetta
   end
 end

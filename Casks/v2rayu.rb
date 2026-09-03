@@ -1,9 +1,9 @@
 cask "v2rayu" do
   arch arm: "arm64", intel: "64"
 
-  version "5.1.0"
-  sha256 arm:   "af31f080a97a2d4ec2aa22338a59e7f2c28600d9b62cff64c954ad1676dc6b45",
-         intel: "6bc790d1b1dcbb4091d6f96c230784670dab34a9583d516c689662702b6d8029"
+  version "5.2.0"
+  sha256 arm:   "7a9f39702ae6d715e7ed0ccc69a7987a5a35be5c436781c3829c9b47ef945dae",
+         intel: "2ea8663a37e4fce45571b4cc80f7cd57209b95d8dc29aadf0fac4d5f85e29e10"
 
   url "https://github.com/yanue/V2rayU/releases/download/v#{version}/V2rayU-#{arch}.dmg"
   name "V2rayU"
@@ -17,23 +17,23 @@ cask "v2rayu" do
     strategy :github_latest
   end
 
-
   auto_updates true
   depends_on macos: :sonoma
 
   app "V2rayU.app"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall launchctl: [
     "yanue.v2rayu.http",
     "yanue.v2rayu.v2ray-core",
   ]
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
-
   zap trash: [
-    "~/.V2rayU/",
+    "~/.V2rayU",
+    "~/Library/Application Support/net.yanue.V2rayU",
     "~/Library/Caches/net.yanue.V2rayU",
     "~/Library/Containers/net.yanue.V2rayU.Launcher",
     "~/Library/HTTPStorages/net.yanue.V2rayU",

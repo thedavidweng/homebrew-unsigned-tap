@@ -12,16 +12,15 @@ cask "repoz" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   pkg "RepoZ.#{version}.pkg"
 
-  uninstall pkgutil: "net.sodacore.RepoZ"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall pkgutil: "net.sodacore.RepoZ"
 
   zap trash: [
     "~/.config/RepoZ",

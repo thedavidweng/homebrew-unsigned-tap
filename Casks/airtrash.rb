@@ -7,7 +7,6 @@ cask "airtrash" do
   desc "Clone of Apple's Airdrop - easy P2P file transfer"
   homepage "https://github.com/maciejczyzewski/airtrash/"
 
-
   depends_on :macos
 
   app "Airtrash.app"

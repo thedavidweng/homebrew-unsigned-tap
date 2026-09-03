@@ -13,7 +13,6 @@ cask "n1ghtshade" do
     strategy :github_latest
   end
 
-
   depends_on formula: %w[
     libimobiledevice
     libirecovery

@@ -14,7 +14,6 @@ cask "tv-browser" do
     regex(%r{url=.*?/tvbrowser[._-]v?(\d+(?:\.\d+)*)(?:[._-]mac(?:java)?)?\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "TV-Browser.app"

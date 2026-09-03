@@ -7,7 +7,6 @@ cask "yippy" do
   desc "Open source clipboard manager"
   homepage "https://github.com/mattDavo/Yippy"
 
-
   depends_on :macos
 
   app "Yippy.app"

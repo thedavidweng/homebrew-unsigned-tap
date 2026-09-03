@@ -7,7 +7,6 @@ cask "pixel-picker" do
   desc "Menu bar application to pick colours from your screen"
   homepage "https://github.com/acheronfail/pixel-picker"
 
-
   depends_on :macos
 
   app "Pixel Picker.app"

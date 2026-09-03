@@ -14,10 +14,13 @@ cask "irpf2023" do
     end
   end
 
-
   depends_on :macos
 
   installer manual: "IRPF2023.app"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall delete: "/Applications/IRPF2023"
 
@@ -27,8 +30,4 @@ cask "irpf2023" do
     IRPF2023 will store data in ~/Documents/ProgramasRFB/IRPF2023.
     You might want to delete this directory after you finish your tax report.
   EOS
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 end

@@ -7,7 +7,6 @@ cask "protege" do
   desc "Ontology editor"
   homepage "https://protege.stanford.edu/"
 
-
   depends_on macos: :big_sur
 
   app "Protege-#{version}/Protégé.app"

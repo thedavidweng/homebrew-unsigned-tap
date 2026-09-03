@@ -12,7 +12,6 @@ cask "weektodo" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "WeekToDo.app"

@@ -7,7 +7,6 @@ cask "discretescroll" do
   desc "Utility to fix a common scroll wheel problem"
   homepage "https://github.com/emreyolcu/discrete-scroll"
 
-
   depends_on :macos
 
   app "DiscreteScroll.app"

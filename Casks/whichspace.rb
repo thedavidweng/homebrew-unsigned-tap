@@ -12,17 +12,16 @@ cask "whichspace" do
     strategy :sparkle
   end
 
-
   auto_updates true
   depends_on macos: :sonoma
 
   app "WhichSpace.app"
 
-  uninstall quit: "io.gechr.WhichSpace"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "io.gechr.WhichSpace"
 
   zap trash: [
     "~/Library/Caches/io.gechr.WhichSpace",

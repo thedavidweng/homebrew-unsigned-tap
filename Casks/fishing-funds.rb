@@ -15,7 +15,6 @@ cask "fishing-funds" do
     strategy :github_latest
   end
 
-
   depends_on macos: :monterey
 
   app "Fishing Funds.app"

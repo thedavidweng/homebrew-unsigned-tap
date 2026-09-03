@@ -23,7 +23,6 @@ cask "superslicer" do
     end
   end
 
-
   depends_on :macos
   depends_on formula: "zstd"
 

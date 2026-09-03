@@ -7,7 +7,6 @@ cask "machoview" do
   desc "Visual Mach-O file browser"
   homepage "https://sourceforge.net/projects/machoview/"
 
-
   depends_on :macos
 
   app "MachOView.app"

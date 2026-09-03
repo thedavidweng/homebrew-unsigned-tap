@@ -12,17 +12,16 @@ cask "apple-juice" do
     strategy :sparkle, &:short_version
   end
 
-
   auto_updates true
   depends_on :macos
 
   app "Apple Juice.app"
 
-  uninstall quit: "io.raphaelhanneken.applejuice"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "io.raphaelhanneken.applejuice"
 
   zap trash: [
     "~/Library/Caches/io.raphaelhanneken.applejuice",

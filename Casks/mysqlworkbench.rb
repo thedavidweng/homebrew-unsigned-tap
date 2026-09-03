@@ -9,7 +9,6 @@ cask "mysqlworkbench" do
       url "https://downloads.mysql.com/archives/get/p/#{version.major}/file/mysql-workbench-community-#{version}-macos-x86_64.dmg",
           user_agent: :curl
 
-
       caveats do
         requires_rosetta
       end

@@ -29,16 +29,15 @@ cask "olive" do
     end
   end
 
-
   depends_on :macos
 
   app "Olive.app"
 
-  uninstall rmdir: "~/Library/Application Support/olivevideoeditor.org{/Olive,}"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall rmdir: "~/Library/Application Support/olivevideoeditor.org{/Olive,}"
 
   zap trash: [
     "~/Library/Preferences/com.*.Olive.plist",

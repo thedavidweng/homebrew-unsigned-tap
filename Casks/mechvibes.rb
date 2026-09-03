@@ -20,7 +20,6 @@ cask "mechvibes" do
     end
   end
 
-
   depends_on :macos
 
   app "Mechvibes.app"

@@ -15,7 +15,6 @@ cask "transmission@nightly" do
     end
   end
 
-
   conflicts_with cask: [
     "transmission",
     "transmission@beta",

@@ -7,16 +7,15 @@ cask "michaelvillar-timer" do
   desc "Timer application"
   homepage "https://github.com/michaelvillar/timer-app"
 
-
   depends_on macos: :sonoma
 
   app "Timer.app"
 
-  uninstall quit: "com.michaelvillar.Timer"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.michaelvillar.Timer"
 
   zap trash: [
     "~/Library/Preferences/com.michaelvillar.Timer.plist",

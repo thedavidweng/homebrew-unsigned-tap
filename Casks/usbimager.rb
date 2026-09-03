@@ -15,7 +15,6 @@ cask "usbimager" do
     regex(%r{/usbimager[._-]v?(\d+(?:\.\d+)+)[._-][^"' >]*?macosx?[^"' >]*?\.zip}i)
   end
 
-
   depends_on :macos
 
   app "USBImager.app"

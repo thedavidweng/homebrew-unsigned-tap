@@ -12,21 +12,12 @@ cask "sioyek" do
     strategy :github_latest
   end
 
-
   depends_on :macos
   container nested: "build/sioyek.dmg"
 
   app "sioyek.app"
-  # shim script (https://github.com/Homebrew/homebrew-cask/issues/18809)
-  shimscript = "#{staged_path}/sioyek.wrapper.sh"
-  binary shimscript, target: "sioyek"
-
-  preflight do
-    File.write shimscript, <<~EOS
-      #!/bin/sh
-      exec '#{appdir}/sioyek.app/Contents/MacOS/sioyek' "$@"
-    EOS
-  end
+  command_wrapper "sioyek",
+                  executable: "#{appdir}/sioyek.app/Contents/MacOS/sioyek"
 
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]

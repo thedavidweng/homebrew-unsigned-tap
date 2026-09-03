@@ -12,7 +12,6 @@ cask "diffmerge" do
     regex(/href=.*?DiffMerge[._-]v?(\d+(?:\.\d+)+)\.intel\.stable\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "DiffMerge.app"

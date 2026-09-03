@@ -1,16 +1,19 @@
 cask "deepstream" do
-  version "10.1.4"
-  sha256 "6201c2a6894c26dcebb1b4754f9ffcc67b7c623ba07ab24e5471f6a003bbd593"
+  version "10.2.1"
+  sha256 "ba352f1df8002a76d7beb2298fffb30968858e422562eded36205331243d7dc9"
 
   url "https://github.com/deepstreamIO/deepstream.io/releases/download/v#{version}/deepstream.io-mac-#{version}.pkg"
   name "deepstream"
   desc "Data-sync realtime server"
   homepage "https://deepstream.io/"
 
-
   depends_on :macos
 
   pkg "deepstream.io-mac-#{version}.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: "deepstream.io"
 
@@ -18,9 +21,5 @@ cask "deepstream" do
 
   caveats do
     files_in_usr_local
-  end
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
 end

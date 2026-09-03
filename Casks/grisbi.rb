@@ -12,7 +12,6 @@ cask "grisbi" do
     regex(%r{url=.*?/Grisbi[^"' >]*?[._-]v?(\d+(?:[.-]\d+)+)\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "Grisbi.app"

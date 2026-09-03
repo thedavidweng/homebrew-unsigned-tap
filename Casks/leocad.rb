@@ -7,7 +7,6 @@ cask "leocad" do
   desc "CAD program for creating virtual LEGO models"
   homepage "https://github.com/leozide/leocad"
 
-
   depends_on :macos
 
   app "LeoCAD.app"

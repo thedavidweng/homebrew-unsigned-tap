@@ -1,6 +1,6 @@
 cask "keyboardholder" do
-  version "1.14.10"
-  sha256 "4a436c1a1064905f74b7587c716e19b391df06d668e363ba7b1033ea2ea3752a"
+  version "1.14.12"
+  sha256 "346e7983e994e4d5c49a940c3aec3fa2791a5c2344f37c1a3dab4f6817774337"
 
   url "https://github.com/leaves615/KeyboardHolder/releases/download/v#{version}/KeyboardHolder-#{version}.zip"
   name "KeyboardHolder"
@@ -12,8 +12,7 @@ cask "keyboardholder" do
     strategy :github_latest
   end
 
-
-  depends_on macos: :big_sur
+  depends_on macos: :monterey
 
   app "KeyboardHolder.app"
 

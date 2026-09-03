@@ -7,7 +7,6 @@ cask "postbird" do
   desc "Open-source PostgreSQL GUI client"
   homepage "https://github.com/Paxa/postbird"
 
-
   depends_on :macos
 
   app "Postbird.app"

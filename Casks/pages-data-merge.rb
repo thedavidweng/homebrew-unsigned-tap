@@ -16,7 +16,6 @@ cask "pages-data-merge" do
     end
   end
 
-
   depends_on :macos
 
   app "Pages Data Merge.app"

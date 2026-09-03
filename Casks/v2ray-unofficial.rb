@@ -12,7 +12,6 @@ cask "v2ray-unofficial" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "V2Ray-Desktop.app"

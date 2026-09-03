@@ -10,7 +10,6 @@ cask "electronmail" do
   desc "Unofficial ProtonMail Desktop App"
   homepage "https://github.com/vladimiry/ElectronMail"
 
-
   depends_on macos: :monterey
 
   app "electron-mail.app"

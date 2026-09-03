@@ -4,6 +4,7 @@ cask "dyn-updater" do
 
   url "http://cdn.dyn.com/dynupdater/DynUpdater-#{version}.zip"
   name "Dyn Updater"
+  desc "Automatic dynamic DNS update client"
   homepage "https://dyn.com/updater/"
 
   livecheck do
@@ -11,16 +12,15 @@ cask "dyn-updater" do
     strategy :sparkle
   end
 
-
   depends_on :macos
 
   app "Dyn Updater.app"
 
-  caveats do
-    requires_rosetta
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    requires_rosetta
   end
 end

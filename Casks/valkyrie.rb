@@ -12,7 +12,6 @@ cask "valkyrie" do
     regex(%r{/v?(\d+(?:\.\d+)+)$}i)
   end
 
-
   depends_on :macos
 
   app "Valkyrie.app"

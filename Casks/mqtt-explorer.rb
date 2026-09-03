@@ -4,6 +4,7 @@ cask "mqtt-explorer" do
 
   url "https://github.com/thomasnordquist/MQTT-Explorer/releases/download/v#{version}/MQTT-Explorer-#{version}-mac.zip"
   name "MQTT Explorer"
+  desc "Visual client for MQTT brokers"
   homepage "https://mqtt-explorer.com/"
 
   livecheck do
@@ -11,16 +12,15 @@ cask "mqtt-explorer" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "MQTT Explorer.app"
 
-  uninstall quit: "de.t7n.apps.mqtt-explorer"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "de.t7n.apps.mqtt-explorer"
 
   zap trash: [
     "~/Library/Application Scripts/de.t7n.apps.mqtt-explorer",

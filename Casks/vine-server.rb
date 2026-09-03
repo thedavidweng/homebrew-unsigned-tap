@@ -15,7 +15,6 @@ cask "vine-server" do
     end
   end
 
-
   depends_on :macos
 
   app "Vine Server.app"
@@ -23,11 +22,11 @@ cask "vine-server" do
   binary "#{appdir}/Vine Server.app/Contents/MacOS/storepasswd"
   binary "#{appdir}/Vine Server.app/Contents/MacOS/Vine Server"
 
-  uninstall delete: "/Library/Application Support/VineServer"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall delete: "/Library/Application Support/VineServer"
 
   zap trash: "~/Library/Preferences/de.uni-mannheim.VineServer.plist"
 end

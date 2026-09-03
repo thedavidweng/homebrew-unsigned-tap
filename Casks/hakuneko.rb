@@ -12,7 +12,6 @@ cask "hakuneko" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "HakuNeko Desktop.app"

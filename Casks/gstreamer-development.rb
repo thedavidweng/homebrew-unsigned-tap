@@ -1,6 +1,6 @@
 cask "gstreamer-development" do
-  version "1.28.4"
-  sha256 "2758abb2abe10b79ad4cf17cbcf0a75e3cb71ee8ce01724960b8f3e0b715e065"
+  version "1.28.6"
+  sha256 "177b1428d0f47b844e7bff2aeeb22047686d802eba21580dab52f4a6fe1dcf02"
 
   url "https://gstreamer.freedesktop.org/data/pkg/osx/#{version}/gstreamer-1.0-devel-#{version}-universal.pkg"
   name "GStreamer development package"
@@ -12,11 +12,14 @@ cask "gstreamer-development" do
     regex(/gstreamer[._-]1\.0[._-]devel[._-]v?(\d+(?:\.\d+)+)[._-]universal\.pkg/i)
   end
 
-
   depends_on :macos
   depends_on cask: "gstreamer-runtime"
 
   pkg "gstreamer-1.0-devel-#{version}-universal.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall pkgutil: [
     "org.freedesktop.gstreamer.darwin.base-crypto-devel",
@@ -43,10 +46,6 @@ cask "gstreamer-development" do
     "org.freedesktop.gstreamer.darwin.gstreamer-1.0-system-devel",
     "org.freedesktop.gstreamer.darwin.gstreamer-1.0-visualizers-devel",
   ]
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 
   zap trash: "/Library/Frameworks/GStreamer.framework"
 end

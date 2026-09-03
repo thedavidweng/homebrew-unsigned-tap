@@ -12,16 +12,15 @@ cask "opentoonz" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   pkg "OpenToonz.pkg"
 
-  uninstall pkgutil: "io.github.opentoonz"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall pkgutil: "io.github.opentoonz"
 
   zap trash: [
     "~/Library/Caches/OpenToonz",

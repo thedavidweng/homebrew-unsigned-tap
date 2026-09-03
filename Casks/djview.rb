@@ -17,7 +17,6 @@ cask "djview" do
     end
   end
 
-
   depends_on :macos
 
   app "DjView.app"

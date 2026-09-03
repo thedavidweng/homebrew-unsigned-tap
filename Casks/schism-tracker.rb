@@ -12,7 +12,6 @@ cask "schism-tracker" do
     regex(/^v?(\d+(?:\.\d+)*)$/i)
   end
 
-
   depends_on macos: :big_sur
 
   app "Schism Tracker.app"

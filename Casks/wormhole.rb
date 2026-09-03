@@ -12,7 +12,6 @@ cask "wormhole" do
     regex(/<div[^>]*class=["']?version[^>]*>\s*<div[^>]*>\s*v?(\d+(?:\.\d+)+)\s*</i)
   end
 
-
   depends_on :macos
 
   app "Wormhole.app"

@@ -17,7 +17,6 @@ cask "3dgenceslicer" do
     end
   end
 
-
   depends_on :macos
 
   app "3DGence Slicer #{version.csv.second}.app"

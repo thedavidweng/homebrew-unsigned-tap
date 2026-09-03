@@ -7,16 +7,15 @@ cask "igdm" do
   desc "Desktop application for Instagram DMs"
   homepage "https://igdm.me/"
 
-
   depends_on :macos
 
   app "IGdm.app"
 
-  uninstall quit: "com.ifedapoolarewaju.desktop.igdm"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.ifedapoolarewaju.desktop.igdm"
 
   zap trash: [
     "~/Library/Application Support/IGdm",

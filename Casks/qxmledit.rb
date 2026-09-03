@@ -12,7 +12,6 @@ cask "qxmledit" do
     regex(%r{url=.*?/QXmlEdit[._-]v?(\d+(?:\.\d+)+)\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "QXmlEdit.app"

@@ -12,7 +12,6 @@ cask "redream" do
     regex(/redream\.x86_64-mac-v(\d+(?:\.\d+)*)\.t/i)
   end
 
-
   depends_on :macos
 
   app "redream.app"

@@ -7,7 +7,6 @@ cask "via" do
   desc "Keyboard configurator"
   homepage "https://caniusevia.com/"
 
-
   depends_on :macos
 
   app "VIA.app"

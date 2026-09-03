@@ -12,7 +12,6 @@ cask "dmidiplayer" do
     regex(%r{url=.*?/dmidiplayer[._-]v?(\d+(?:\.\d+)+)[^"' >]*?\.dmg}i)
   end
 
-
   depends_on :macos
   depends_on formula: "fluid-synth"
 

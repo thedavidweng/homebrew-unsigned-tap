@@ -12,7 +12,6 @@ cask "sunvox" do
     regex(/href=.*?sunvox[._-]v?(\d+(?:\.\d+)+[a-z]?)\.zip/i)
   end
 
-
   depends_on :macos
 
   app "sunvox/sunvox/macos/SunVox.app"

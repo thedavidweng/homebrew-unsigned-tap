@@ -15,7 +15,6 @@ cask "cljstyle" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   binary "cljstyle"

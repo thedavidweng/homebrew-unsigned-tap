@@ -12,10 +12,13 @@ cask "linkliar" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "LinkLiar.app"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall launchctl: [
               "io.github.halo.linkdaemon",
@@ -28,8 +31,4 @@ cask "linkliar" do
             ]
 
   # No zap stanza required
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 end

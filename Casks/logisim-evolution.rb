@@ -10,7 +10,6 @@ cask "logisim-evolution" do
   desc "Digital logic designer and simulator"
   homepage "https://github.com/logisim-evolution/logisim-evolution"
 
-
   depends_on :macos
 
   app "Logisim-evolution.app"

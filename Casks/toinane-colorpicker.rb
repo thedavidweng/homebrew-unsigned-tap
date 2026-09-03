@@ -10,7 +10,6 @@ cask "toinane-colorpicker" do
   desc "Get and save colour codes"
   homepage "https://colorpicker.fr/"
 
-
   depends_on macos: :monterey
 
   app "Colorpicker.app"

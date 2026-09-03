@@ -29,7 +29,6 @@ cask "opensesame" do
     end
   end
 
-
   depends_on :macos
 
   app "OpenSesame.app"

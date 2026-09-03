@@ -12,7 +12,6 @@ cask "dungeon-crawl-stone-soup-console" do
     strategy :github_latest
   end
 
-
   depends_on :macos
 
   app "Dungeon Crawl Stone Soup - Console.app"

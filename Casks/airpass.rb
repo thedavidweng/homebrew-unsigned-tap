@@ -7,16 +7,15 @@ cask "airpass" do
   desc "Status bar app to overcome time-constrained WiFi networks"
   homepage "https://airpass.tiagoalves.me/"
 
-
   depends_on :macos
 
   app "Airpass.app"
 
-  caveats do
-    requires_rosetta
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    requires_rosetta
   end
 end

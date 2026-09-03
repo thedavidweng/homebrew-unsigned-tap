@@ -12,16 +12,15 @@ cask "strawberry-wallpaper" do
     regex(/^v?(\d+(?:\.\d+)+)$/i)
   end
 
-
   depends_on :macos
 
   app "Strawberry Wallpaper.app"
 
-  caveats do
-    requires_rosetta
-  end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
+
+  caveats do
+    requires_rosetta
   end
 end

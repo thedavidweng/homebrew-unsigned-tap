@@ -7,7 +7,6 @@ cask "qmoji" do
   desc "Like mojibar, but written in reasonml"
   homepage "https://github.com/jaredly/qmoji"
 
-
   depends_on :macos
 
   app "qmoji.app"

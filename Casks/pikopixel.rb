@@ -13,7 +13,6 @@ cask "pikopixel" do
     regex(/PikoPixel[._-]?(\d+(?:\.\d+)*(?:-b\d+)?)\.dmg/i)
   end
 
-
   depends_on :macos
 
   app "PikoPixel.app"

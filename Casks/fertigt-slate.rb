@@ -7,7 +7,6 @@ cask "fertigt-slate" do
   desc "Window management application"
   homepage "https://github.com/fertigt/slate_arm64"
 
-
   depends_on :macos
 
   app "Slate.app"

@@ -7,17 +7,16 @@ cask "gas-mask" do
   desc "Hosts file editor/manager"
   homepage "https://github.com/2ndalpha/gasmask/"
 
-
   auto_updates true
   depends_on :macos
 
   app "Gas Mask.app"
 
-  uninstall quit: "ee.clockwise.gmask"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "ee.clockwise.gmask"
 
   zap trash: [
     "~/Library/Caches/com.apple.helpd/Generated/Gas Mask Help*",

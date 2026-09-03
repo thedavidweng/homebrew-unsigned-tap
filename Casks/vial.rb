@@ -7,7 +7,6 @@ cask "vial" do
   desc "Configurator of compatible keyboards in real time"
   homepage "https://get.vial.today/"
 
-
   depends_on :macos
 
   app "Vial.app"

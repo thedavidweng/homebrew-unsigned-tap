@@ -39,7 +39,6 @@ cask "openoffice" do
   desc "Free and open-source productivity suite"
   homepage "https://www.openoffice.org/"
 
-
   depends_on :macos
 
   app "OpenOffice.app"

@@ -13,7 +13,6 @@ cask "disk-inventory-x" do
     strategy :header_match
   end
 
-
   depends_on :macos
 
   app "Disk Inventory X.app"

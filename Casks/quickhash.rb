@@ -19,7 +19,6 @@ cask "quickhash" do
     end
   end
 
-
   depends_on :macos
   container nested: "Quickhash-GUI_#{version.csv.third}#{version.csv.fourth}#{version.csv.fifth}.dmg"
 

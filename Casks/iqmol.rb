@@ -12,7 +12,6 @@ cask "iqmol" do
     regex(/href=.*?IQmol[._-]v?(\d+(?:\.\d+)*)\.dmg/i)
   end
 
-
   depends_on macos: :ventura
 
   app "IQmol.app"

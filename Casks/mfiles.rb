@@ -20,16 +20,15 @@ cask "mfiles" do
     end
   end
 
-
   depends_on :macos
 
   app "爱传送.app"
 
-  uninstall quit: "com.windtune.itransfer"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
+
+  uninstall quit: "com.windtune.itransfer"
 
   zap trash: "~/Library/Preferences/com.windtune.itransfer.plist"
 end

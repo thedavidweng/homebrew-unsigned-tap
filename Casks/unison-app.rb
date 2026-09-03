@@ -23,16 +23,14 @@ cask "unison-app" do
     end
   end
 
-
   depends_on :macos
 
   app "Unison.app"
   binary "#{appdir}/Unison.app/Contents/MacOS/cltool", target: "unison"
 
-  postflight do
-    system_command "/usr/bin/defaults", args: ["write", "edu.upenn.cis.Unison", "CheckCltool", "-bool", "false"]
+  postflight_steps do
+    run "/usr/bin/defaults", args: ["write", "edu.upenn.cis.Unison", "CheckCltool", "-bool", "false"]
   end
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end

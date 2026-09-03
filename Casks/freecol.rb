@@ -10,7 +10,6 @@ cask "freecol" do
   desc "Turn-based strategy game"
   homepage "https://www.freecol.org/"
 
-
   depends_on :macos
 
   app "FreeCol.app"

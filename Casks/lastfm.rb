@@ -12,7 +12,6 @@ cask "lastfm" do
     strategy :sparkle
   end
 
-
   depends_on :macos
 
   app "Last.fm.app"

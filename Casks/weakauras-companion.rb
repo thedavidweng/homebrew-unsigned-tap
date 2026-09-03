@@ -7,7 +7,6 @@ cask "weakauras-companion" do
   desc "Update your auras from Wago.io and creates regular backups of them"
   homepage "https://github.com/WeakAuras/WeakAuras-Companion/"
 
-
   depends_on macos: :monterey
 
   app "WeakAuras Companion.app"

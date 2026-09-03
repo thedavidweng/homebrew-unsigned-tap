@@ -10,7 +10,6 @@ cask "tiddly" do
   desc "Browser for TiddlyWiki"
   homepage "https://github.com/Jermolene/TiddlyDesktop"
 
-
   depends_on macos: :monterey
 
   app "TiddlyDesktop-mac#{arch}-v#{version}/TiddlyDesktop.app"

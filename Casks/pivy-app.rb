@@ -7,11 +7,14 @@ cask "pivy-app" do
   desc "Client for PIV cards"
   homepage "https://github.com/joyent/pivy"
 
-
   depends_on :macos
 
   # pkg cannot be installed automatically
   installer manual: "pivy-#{version}-macos12.pkg"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  end
 
   uninstall launchctl: "net.cooperi.pivy-agent",
             quit:      "net.cooperi.pivy-agent",
@@ -20,8 +23,4 @@ cask "pivy-app" do
   # No zap stanza required
 
   caveats "The installer will prompt you to insert a YubiKey or other PIV token via a dialog box."
-
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
-  end
 end

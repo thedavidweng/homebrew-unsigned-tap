@@ -7,7 +7,6 @@ cask "wannianli" do
   desc "Chinese lunar calendar on the menu bar"
   homepage "https://github.com/zfdang/chinese-lunar-calendar-for-mac/"
 
-
   depends_on :macos
 
   app "WanNianLi.app"

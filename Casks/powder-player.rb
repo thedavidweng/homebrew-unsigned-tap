@@ -7,7 +7,6 @@ cask "powder-player" do
   desc "Torrent client and streaming media player"
   homepage "https://powder.media/"
 
-
   depends_on :macos
 
   app "Powder Player.app"

@@ -12,7 +12,6 @@ cask "nrlquaker-winbox" do
     strategy :github_latest
   end
 
-
   depends_on macos: :sequoia
 
   app "Winbox-mac.app"

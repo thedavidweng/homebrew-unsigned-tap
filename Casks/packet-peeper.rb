@@ -7,7 +7,6 @@ cask "packet-peeper" do
   desc "Network protocol analyzer"
   homepage "https://github.com/choll/packetpeeper"
 
-
   depends_on :macos
 
   app "Packet Peeper.app"

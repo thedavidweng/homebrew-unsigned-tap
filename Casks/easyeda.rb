@@ -17,7 +17,6 @@ cask "easyeda" do
     end
   end
 
-
   depends_on :macos
 
   app "EasyEDA.app"

@@ -7,7 +7,6 @@ cask "tikzit" do
   desc "PGF/TikZ diagram editor"
   homepage "https://tikzit.github.io/"
 
-
   depends_on :macos
 
   app "TikZiT.app"

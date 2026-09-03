@@ -12,7 +12,6 @@ cask "gitblade" do
     regex(%r{href=.*?/gitblade[._-]v?(\d+(?:\.\d+)*)[._-]darwin[._-]x64\.dmg}i)
   end
 
-
   depends_on :macos
 
   app "GitBlade.app"

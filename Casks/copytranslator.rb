@@ -13,7 +13,6 @@ cask "copytranslator" do
     strategy :page_match
   end
 
-
   depends_on :macos
 
   app "copytranslator.app"

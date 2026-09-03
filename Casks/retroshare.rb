@@ -23,7 +23,6 @@ cask "retroshare" do
     end
   end
 
-
   depends_on :macos
 
   app "retroshare.app"

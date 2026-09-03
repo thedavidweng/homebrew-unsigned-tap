@@ -4,21 +4,21 @@ cask "transmission-remote-gui" do
 
   url "https://github.com/transmission-remote-gui/transgui/releases/download/v#{version}/transgui-#{version}.dmg"
   name "Transmission Remote GUI"
+  desc "Remote control for Transmission downloads"
   homepage "https://github.com/transmission-remote-gui/transgui"
-
 
   depends_on :macos
 
   app "Transmission Remote GUI.app"
 
-  uninstall quit: "com.transgui"
-
   postflight do
     system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
   end
 
+  uninstall quit: "com.transgui"
+
   zap trash: [
-    "~/.config/Transmission Remote GUI/",
+    "~/.config/Transmission Remote GUI",
     "~/Library/Preferences/com.transgui.plist",
     "~/Library/Saved Application State/com.transgui.savedState",
   ]

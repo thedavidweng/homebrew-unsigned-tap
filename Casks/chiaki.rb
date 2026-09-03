@@ -11,7 +11,6 @@ cask "chiaki" do
     url :homepage
   end
 
-
   depends_on :macos
 
   app "Chiaki.app"

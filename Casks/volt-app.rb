@@ -16,7 +16,6 @@ cask "volt-app" do
   desc "Client for Slack, Discord, Skype, Gmail, Twitter, Facebook, and more"
   homepage "https://volt-app.com/"
 
-
   depends_on :macos
 
   app "Volt.app"

@@ -12,7 +12,6 @@ cask "bino" do
     regex(/href=.*?Bino[._-](\d+(?:\.\d+)+)[._-]OSX[._-]Mavericks[._-]GPL\.zip/i)
   end
 
-
   depends_on :macos
 
   app "Bino.app"
