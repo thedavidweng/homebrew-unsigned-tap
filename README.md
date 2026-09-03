@@ -1,12 +1,12 @@
 # homebrew-unsigned-tap
 
+[English](README.md) · [简体中文](README.zh-CN.md)
+
 Restore and auto-update all macOS casks disabled by Homebrew (`fails_gatekeeper_check`). Removes Gatekeeper quarantine on install.
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/thedavidweng/homebrew-unsigned-tap/main/scripts/migrate.sh)"
 ```
-
-[English](README.md) · [简体中文](README.zh-CN.md)
 
 Run the command above to:
 * Tap `thedavidweng/unsigned-tap`

@@ -46,7 +46,8 @@ abort() {
 }
 
 # Environment validation
-if [[ "$(uname)" != "Darwin" ]]
+OS_NAME="$(uname)"
+if [[ "${OS_NAME}" != "Darwin" ]]
 then
   abort "Homebrew unsigned tap is designed for macOS (Darwin) only."
 fi

@@ -1,12 +1,12 @@
 # homebrew-unsigned-tap
 
+[English](README.md) · [简体中文](README.zh-CN.md)
+
 恢复并自动更新所有因 macOS Gatekeeper 限制而被官方禁用的 Homebrew Cask 软件（`fails_gatekeeper_check`），安装时自动解除隔离属性。
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/thedavidweng/homebrew-unsigned-tap/main/scripts/migrate.sh)"
 ```
-
-[English](README.md) · [简体中文](README.zh-CN.md)
 
 运行上方命令即可：
 * 自动添加本 Tap：`thedavidweng/unsigned-tap`
