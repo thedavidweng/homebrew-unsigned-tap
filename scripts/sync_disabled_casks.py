@@ -49,6 +49,12 @@ MANUAL_DESC = {
     "vagrant-manager": "Manage Vagrant development environments",
 }
 
+# Casks that are confirmed dead (repo deleted, server offline) and cannot be installed
+DEAD_CASKS = {
+    "aifun",            # static server SSL certificate expired / domain offline
+    "v2ray-unofficial", # upstream GitHub repo deleted (404)
+}
+
 
 def _normalize(text: str) -> str:
     # Collapse 2+ blank lines to a single blank line.
@@ -174,6 +180,8 @@ def sync_all(limit_files=None, dry_run=False):
     DEST_CASK_DIR.mkdir(parents=True, exist_ok=True)
 
     for src in disabled:
+        if src.stem in DEAD_CASKS:
+            continue
         dest = DEST_CASK_DIR / src.name
         text = src.read_text()
         new_text = transform_content(text)
