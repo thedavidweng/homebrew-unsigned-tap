@@ -46,7 +46,7 @@ jobs:
             exit 0
           fi
           echo "==> Checking for outdated casks via livecheck ..."
-          OUTDATED_JSON=$(brew livecheck --tap=thedavidweng/unsigned-tap --newer-only --json 2>/dev/null || echo "[]")
+          OUTDATED_JSON=$(brew livecheck --tap=thedavidweng/unsigned-tap --newer-only --extract-plist --json 2>/dev/null || echo "[]")
           OUTDATED=$(echo "${OUTDATED_JSON}" | python3 -c "import json,sys; data=json.load(sys.stdin); print(' '.join(d.get('token','') for d in data if d.get('version',{}).get('latest') and d['version']['latest'] != d['version'].get('current')))" || true)
           if [[ -z "${OUTDATED// /}" ]]; then
             echo "No outdated casks found."
