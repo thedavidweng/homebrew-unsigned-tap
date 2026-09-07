@@ -25,18 +25,17 @@ cask "librewolf" do
 
   app "LibreWolf.app"
   # shim script (https://github.com/Homebrew/homebrew-cask/issues/18809)
-  shimscript = "#{staged_path}/librewolf.wrapper.sh"
-  binary shimscript, target: "librewolf"
+  binary "librewolf.wrapper.sh", target: "librewolf"
 
-  preflight do
-    File.write shimscript, <<~EOS
+  preflight_steps do
+    write_file "librewolf.wrapper.sh", <<~EOS
       #!/bin/sh
-      exec '#{appdir}/LibreWolf.app/Contents/MacOS/librewolf' "$@"
+      exec '{{appdir}}/LibreWolf.app/Contents/MacOS/librewolf' "$@"
     EOS
   end
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [
