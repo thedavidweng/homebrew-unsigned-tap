@@ -9,9 +9,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC_CASK_DIR = pathlib.Path(__import__("os").environ.get("SRC_CASK_DIR", str(pathlib.Path.home() / "homebrew-cask" / "Casks")))
 DEST_CASK_DIR = ROOT / "Casks"
 
-# Generic quarantine stripping postflight - covers app/pkg/binary
-QUARANTINE_LINE = '    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s], must_succeed: false'
-POSTFLIGHT_BLOCK = f"""  postflight do
+# Generic quarantine stripping postflight_steps - covers app/pkg/binary
+QUARANTINE_LINE = '    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]'
+POSTFLIGHT_BLOCK = f"""  postflight_steps do
 {QUARANTINE_LINE}
   end
 """
@@ -121,9 +121,9 @@ def transform_content(text: str) -> str:
 
     # If upstream already has a postflight (without quarantine), merge into it
     # instead of adding a second block (audit allows only a single postflight).
-    if re.search(r"^  postflight do\b", text, re.M):
+    if re.search(r"^  postflight(?:_steps)? do\b", text, re.M):
         merged = re.sub(
-            r"(^  postflight do\n)(.*?)(\n  end)",
+            r"(^  postflight(?:_steps)? do\n)(.*?)(\n  end)",
             lambda m: m.group(1) + m.group(2).rstrip() + "\n" + QUARANTINE_LINE + m.group(3),
             text,
             count=1,
