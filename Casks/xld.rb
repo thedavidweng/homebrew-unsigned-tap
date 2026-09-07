@@ -21,8 +21,8 @@ cask "xld" do
                   executable: "#{appdir}/XLD.app/Contents/MacOS/XLD",
                   args:       "--cmdline"
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s], must_succeed: false
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"], must_succeed: false
   end
 
   zap trash: [

@@ -20,8 +20,8 @@ cask "quickapp-studio" do
 
   pkg "QuickApp_Studio_#{arch}-#{version}.pkg"
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall quit:    "cn.quickapp.studio",

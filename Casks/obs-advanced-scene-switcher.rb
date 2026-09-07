@@ -17,8 +17,8 @@ cask "obs-advanced-scene-switcher" do
 
   pkg "advanced-scene-switcher-#{version}-macos-universal.pkg"
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall pkgutil: [

@@ -22,8 +22,8 @@ cask "goneovim" do
   command_wrapper "goneovim",
                   executable: "#{appdir}/goneovim.app/Contents/MacOS/goneovim"
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

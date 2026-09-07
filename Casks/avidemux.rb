@@ -26,8 +26,8 @@ cask "avidemux" do
   binary "#{appdir}/Avidemux_#{version}.app/Contents/MacOS/avidemux_cli", target: "avidemux"
   binary "#{appdir}/Avidemux_#{version}.app/Contents/MacOS/avidemux_jobs"
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

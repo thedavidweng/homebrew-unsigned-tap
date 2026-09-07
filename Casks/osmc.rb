@@ -17,8 +17,8 @@ cask "osmc" do
   # Original discussion: https://github.com/Homebrew/homebrew-cask/pull/9420
   app "qt_host_installer.app", target: "OSMC.app"
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

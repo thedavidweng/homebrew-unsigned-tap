@@ -16,8 +16,8 @@ cask "worldpainter" do
 
   app "WorldPainter.app"
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall quit: "com.install4j.4144-4862-0472-7103.67"

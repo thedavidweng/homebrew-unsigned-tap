@@ -11,8 +11,8 @@ cask "logdna-cli" do
 
   pkg "logdna-cli.pkg"
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall pkgutil: "com.logdna.logdna-cli"

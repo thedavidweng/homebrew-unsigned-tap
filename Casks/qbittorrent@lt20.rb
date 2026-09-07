@@ -54,7 +54,7 @@ cask "qbittorrent@lt20" do
 
   conflicts_with cask: "qbittorrent"
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", staged_path.to_s]
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 end
