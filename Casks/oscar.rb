@@ -1,18 +1,18 @@
 cask "oscar" do
   arch arm: "ARM", intel: "Intel"
 
-  version "2.0.0"
-  sha256 arm:   "26ce5039ee73a10364a09d92ccfbc24720d75ffb57e40ea829129e5817638813",
-         intel: "0a08b55ca66c272b127d9dd1399fd3a18b61abae5d876554d3ee0632f5614e34"
+  version "2.0.1"
+  sha256 arm:   "78cd674ba7755ddcf505dd870c6e1d366c6e658a57482d91593eb191e611c769",
+         intel: "b44aedb2855583457985fd9fc4467983254a24ce51bfb43134e72be64e12194e"
 
-  url "https://www.sleepfiles.com/OSCAR/#{version.major_minor}/OSCAR-#{version}-#{arch}.dmg"
+  url "https://www.sleepfiles.com/OSCAR/#{version}/OSCAR#{version.major_minor.no_dots}-#{version}-#{arch}.dmg"
   name "OSCAR"
   desc "CPAP Analysis Reporter"
   homepage "https://www.sleepfiles.com/OSCAR/"
 
   livecheck do
     url :homepage
-    regex(%r{href=.*?/OSCAR[._-]v?(\d+(?:\.\d+)+)(?:[._-]#{arch})?\.dmg}i)
+    regex(%r{href=.*?/OSCAR.*?v?(\d+(?:\.\d+)+)(?:[._-]#{arch})?\.dmg}i)
   end
 
   depends_on macos: :ventura
@@ -24,7 +24,7 @@ cask "oscar" do
   end
 
   zap trash: [
-    "~/Library/Preferences/org.oscar-team.OSCAR.plist",
+    "~/Library/Preferences/org.oscar-team.OSCAR*.plist",
     "~/Library/Saved Application State/org.oscar-team.OSCAR.savedState",
   ]
 end

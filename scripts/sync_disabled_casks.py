@@ -51,8 +51,10 @@ MANUAL_DESC = {
 
 # Casks that are confirmed dead (repo deleted, server offline) and cannot be installed
 DEAD_CASKS = {
-    "aifun",            # static server SSL certificate expired / domain offline
-    "v2ray-unofficial", # upstream GitHub repo deleted (404)
+    "aifun",                 # static server SSL certificate expired / domain offline
+    "assinador-serpro",      # upstream downloads server offline / unresponsive
+    "teamspeak-client@beta", # Cloudflare anti-bot challenge blocks CLI/curl downloads (429)
+    "v2ray-unofficial",      # upstream GitHub repo deleted (404)
 }
 
 
