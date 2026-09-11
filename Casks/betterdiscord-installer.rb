@@ -7,8 +7,8 @@ cask "betterdiscord-installer" do
   desc "Installer for BetterDiscord"
   homepage "https://betterdiscord.app/"
 
-  depends_on macos: :monterey
   depends_on cask: "discord"
+  depends_on macos: :monterey
 
   app "BetterDiscord Installer.app"
 

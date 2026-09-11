@@ -7,8 +7,8 @@ cask "kiibohd-configurator" do
   desc "Modular community keyboard firmware"
   homepage "https://kiibohd.com/"
 
-  depends_on :macos
   depends_on formula: "dfu-util"
+  depends_on :macos
 
   app "Kiibohd Configurator.app"
 

@@ -54,7 +54,7 @@ cask "cockatrice" do
   desc "Virtual tabletop for multiplayer card games"
   homepage "https://cockatrice.github.io/"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "cockatrice.app"
   app "oracle.app"
