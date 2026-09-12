@@ -7,7 +7,7 @@ cask "profilecreator" do
   desc "Create standard or customised configuration profiles"
   homepage "https://github.com/ProfileCreator/ProfileCreator"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "ProfileCreator.app"
 

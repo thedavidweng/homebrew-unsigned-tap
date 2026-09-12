@@ -22,10 +22,8 @@ cask "tidelift" do
 
   postflight_steps do
     set_permissions "tidelift", "+x"
-  end
-  # No zap stanza required
-
-  postflight_steps do
     run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
+
+  # No zap stanza required
 end
