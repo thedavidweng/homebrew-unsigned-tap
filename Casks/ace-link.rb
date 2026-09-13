@@ -12,8 +12,8 @@ cask "ace-link" do
     strategy :github_latest
   end
 
-  depends_on :macos
   depends_on cask: "docker"
+  depends_on :macos
 
   app "Ace Link.app"
 
