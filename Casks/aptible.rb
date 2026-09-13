@@ -15,8 +15,8 @@ cask "aptible" do
     end
   end
 
-  depends_on :macos
   depends_on formula: "libfido2"
+  depends_on :macos
 
   pkg "aptible-toolbelt-#{version.csv.first}+#{version.csv.second}-mac-os-x.10.15.7-1.pkg"
 

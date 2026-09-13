@@ -7,7 +7,7 @@ cask "mediainfoex" do
   desc "Display file information in Finder contextual menu"
   homepage "https://github.com/sbarex/MediaInfo"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "MediaInfoEx.app"
 

@@ -20,8 +20,8 @@ cask "cilicon" do
     end
   end
 
-  depends_on macos: :ventura
   depends_on arch: :arm64
+  depends_on macos: :ventura
 
   app "Cilicon.app"
 

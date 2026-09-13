@@ -20,7 +20,7 @@ cask "stella-app" do
     end
   end
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "Stella.app"
 

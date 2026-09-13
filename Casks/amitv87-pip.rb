@@ -7,7 +7,7 @@ cask "amitv87-pip" do
   desc "Always on top window preview"
   homepage "https://github.com/amitv87/PiP"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "PiP.app"
 
