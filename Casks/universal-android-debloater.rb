@@ -9,8 +9,8 @@ cask "universal-android-debloater" do
   homepage "https://github.com/0x192/universal-android-debloater"
 
   auto_updates true
-  depends_on :macos
   depends_on cask: "android-platform-tools"
+  depends_on :macos
 
   binary "uad_gui-macos-opengl", target: "uad"
 
