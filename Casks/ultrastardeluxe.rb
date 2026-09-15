@@ -10,7 +10,7 @@ cask "ultrastardeluxe" do
   desc "Karaoke game"
   homepage "https://usdx.eu/"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "UltraStarDeluxe.app"
 

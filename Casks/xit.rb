@@ -52,7 +52,7 @@ cask "xit" do
   desc "GUI for the git version control system"
   homepage "https://github.com/Uncommon/Xit"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   postflight_steps do
     run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
