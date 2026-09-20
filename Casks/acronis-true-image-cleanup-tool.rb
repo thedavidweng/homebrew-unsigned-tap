@@ -12,7 +12,7 @@ cask "acronis-true-image-cleanup-tool" do
     regex(/\x00cleanup_tool_mac_macarm64[._-]v?(\d+(?:\.\d+)*)\x00/i)
   end
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   lib_directory = "#{HOMEBREW_PREFIX}/lib/acronis-true-image"
 
