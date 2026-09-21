@@ -13,7 +13,7 @@ cask "sonic-robo-blast-2" do
     strategy :github_latest
   end
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "Sonic Robo Blast 2.app"
 

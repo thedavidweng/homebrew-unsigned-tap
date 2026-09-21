@@ -7,7 +7,7 @@ cask "brisync" do
   desc "Utility to automatically control the brightness of external displays"
   homepage "https://github.com/czarny/Brisync/"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "Brisync.app"
 
