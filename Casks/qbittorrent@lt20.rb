@@ -52,7 +52,10 @@ cask "qbittorrent@lt20" do
   desc "Edition of qBitorrent based on libtorrent-rasterbar 2.0.x"
   homepage "https://www.qbittorrent.org/"
 
-  conflicts_with cask: "qbittorrent"
+  conflicts_with cask: [
+    "c0re100-qbittorrent",
+    "qbittorrent",
+  ]
 
   postflight_steps do
     run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
