@@ -7,7 +7,7 @@ cask "dteoh-devdocs" do
   desc "API documentation viewer"
   homepage "https://github.com/dteoh/devdocs-macos/"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "DevDocs.app"
 
