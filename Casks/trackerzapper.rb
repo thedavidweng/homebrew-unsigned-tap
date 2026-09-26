@@ -7,7 +7,7 @@ cask "trackerzapper" do
   desc "Menubar app to remove link tracking parameters automatically"
   homepage "https://rknight.me/apps/tracker-zapper"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "TrackerZapper.app"
 
