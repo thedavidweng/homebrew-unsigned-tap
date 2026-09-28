@@ -19,7 +19,7 @@ cask "transmission@nightly" do
     "transmission",
     "transmission@beta",
   ]
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "Transmission.app"
 

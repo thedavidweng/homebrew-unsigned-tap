@@ -15,7 +15,7 @@ cask "retroactive" do
     run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
-  zap delete: "~/Library/Caches/com.retroactive.Retroactive"
+  zap trash: "~/Library/Caches/com.retroactive.Retroactive"
 
   caveats do
     requires_rosetta
