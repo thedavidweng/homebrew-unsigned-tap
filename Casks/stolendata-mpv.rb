@@ -33,7 +33,7 @@ cask "stolendata-mpv" do
     regex(/mpv#{arch}-(\d+(?:\.\d+)+)\.t/i)
   end
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   folder = label&.sub("VERSION", version)
 

@@ -15,7 +15,7 @@ cask "tetrio" do
     regex(%r{href=.*builds/(\d+)/TETR\.IO[. _-]Setup[. _-]#{arch}\.dmg}i)
   end
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "TETR.IO.app"
 
