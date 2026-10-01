@@ -17,10 +17,6 @@ cask "displaycal" do
 
   pkg "DisplayCAL-#{version}.pkg"
 
-  postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
-  end
-
   uninstall pkgutil: "net.displaycal.*.DisplayCAL.*"
 
   zap trash: [

@@ -19,8 +19,12 @@ cask "oscar" do
 
   app "OSCAR#{version.major_minor.no_dots}.app"
 
+  # The installed name embeds a de-dotted major.minor
+  # (`OSCAR#{version.major_minor.no_dots}.app`), which a steps block cannot
+  # interpolate. Match the stable prefix instead; a steps block may only take
+  # literal arguments, so the glob is resolved by /bin/sh.
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/bin/sh", args: ["-c", 'xattr -rd com.apple.quarantine "$1"/OSCAR*.app', "sh", "{{appdir}}"]
   end
 
   zap trash: [

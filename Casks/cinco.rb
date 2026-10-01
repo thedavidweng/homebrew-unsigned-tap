@@ -16,10 +16,6 @@ cask "cinco" do
 
   pkg "Install Cinco.pkg"
 
-  postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
-  end
-
   uninstall quit:    "de.jabc.cinco.meta.product.product",
             pkgutil: "de.jabc.cinco.meta.product.product.cinco.pkg.component"
 

@@ -16,10 +16,6 @@ cask "zenmap" do
 
   pkg "nmap-#{version}.mpkg"
 
-  postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
-  end
-
   uninstall pkgutil: [
               "org.insecure.nmap",
               "org.insecure.nmap.ncat",

@@ -42,7 +42,7 @@ cask "stolendata-mpv" do
   manpage "#{folder}documentation/man/mpv.1"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{appdir}}/mpv.app"]
   end
 
   zap trash: [

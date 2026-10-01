@@ -16,10 +16,6 @@ cask "redquits" do
 
   pkg "RedQuits_v#{version.major}.pkg"
 
-  postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
-  end
-
   uninstall pkgutil: "com.carsten-mielke.RedQuits"
 
   zap trash: "~/Library/Preferences/com.carsten-mielke.RedQuits.plist"

@@ -17,10 +17,6 @@ cask "obs-advanced-scene-switcher" do
 
   pkg "advanced-scene-switcher-#{version}-macos-universal.pkg"
 
-  postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
-  end
-
   uninstall pkgutil: [
               "'com.warmuptill.advanced-scene-switcher'",
               "com.warmuptill.advanced-scene-switcher",

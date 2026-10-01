@@ -17,10 +17,6 @@ cask "skychart" do
 
   pkg "Install Skychart.pkg"
 
-  postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
-  end
-
   uninstall pkgutil: "net.ap-i.pkg.skychart"
 
   zap trash: [

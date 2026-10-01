@@ -19,10 +19,6 @@ cask "pololu-avr-programmer-v2" do
 
   pkg "pololu-usb-avr-programmer-v2-#{version.csv.second}-macos.pkg"
 
-  postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
-  end
-
   uninstall pkgutil: [
     "com.pololu.pavr2.app",
     "com.pololu.pavr2.path",

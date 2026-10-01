@@ -11,10 +11,6 @@ cask "gdisk" do
 
   pkg "gdisk-#{version}.pkg"
 
-  postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
-  end
-
   uninstall pkgutil: "com.rodsbooks.pkg.gdisk"
 
   # No zap stanza required

@@ -17,10 +17,6 @@ cask "lego-mindstorms-ev3" do
 
   pkg "LEGO MINDSTORMS EV3 Home Edition.pkg"
 
-  postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
-  end
-
   uninstall pkgutil: [
     "com.microsoft.silverlight.plugin",
     "com.ni.pkg.lego.ev3.Eng",

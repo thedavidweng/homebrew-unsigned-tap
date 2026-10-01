@@ -30,10 +30,6 @@ cask "duckietv" do
 
   pkg "DuckieTV-#{version}-OSX-x64.pkg"
 
-  postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
-  end
-
   uninstall pkgutil: "tv.duckie.base.pkg",
             delete:  [
               "/Applications/duckieTV.app",
