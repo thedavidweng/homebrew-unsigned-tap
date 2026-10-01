@@ -42,7 +42,7 @@ cask "cinc-workstation" do
   desc "Installer for Chef infrastructure management tools"
   homepage "https://cinc.sh/start/workstation/"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   pkg "cinc-workstation-#{version}-1.#{arch}.pkg"
 

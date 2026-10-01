@@ -15,7 +15,7 @@ cask "whale" do
       skip "Legacy version"
     end
 
-    depends_on macos: :big_sur
+    depends_on :macos
   end
 
   url "https://github.com/1000ch/whale/releases/download/v#{version}/Whale-#{version}#{arch}.dmg"

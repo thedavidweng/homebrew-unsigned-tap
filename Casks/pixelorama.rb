@@ -7,7 +7,7 @@ cask "pixelorama" do
   desc "2D sprite editor made with the Godot Engine"
   homepage "https://orama-interactive.itch.io/pixelorama"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "Pixelorama.app"
 

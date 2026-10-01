@@ -33,7 +33,7 @@ cask "saoimageds9" do
     regex(/href=.*?SAOImageDS9%20v?(\d+(?:\.\d+)+)\.dmg/i)
   end
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "SAOImageDS9.app"
 
