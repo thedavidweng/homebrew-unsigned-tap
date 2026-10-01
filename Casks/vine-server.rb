@@ -23,9 +23,7 @@ cask "vine-server" do
   binary "#{appdir}/Vine Server.app/Contents/MacOS/Vine Server"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Vine Server.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall delete: "/Library/Application Support/VineServer"

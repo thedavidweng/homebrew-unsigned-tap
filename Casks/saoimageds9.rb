@@ -2,7 +2,7 @@ cask "saoimageds9" do
   # NOTE: "9" is not a version number, but an intrinsic part of the product name
   arch arm: "arm64", intel: "x86"
 
-  on_big_sur do
+  on_big_sur :or_older do
     version "8.5"
     sha256 arm:   "b50a92cc729e5054aaf511911a189dea9cd13c4f6685a53c404b77efbc071854",
            intel: "46917bdab7fd22cb4cfd85145e9813c59e03dc1468f961172ad5ca396616fbb4"
@@ -38,9 +38,7 @@ cask "saoimageds9" do
   app "SAOImageDS9.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/SAOImageDS9.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

@@ -12,9 +12,7 @@ cask "discretescroll" do
   app "DiscreteScroll.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/DiscreteScroll.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: "~/Library/Preferences/com.emreyolcu.DiscreteScroll.plist"

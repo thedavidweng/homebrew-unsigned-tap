@@ -16,6 +16,10 @@ cask "isyncer" do
 
   pkg "iSyncer-installer-#{version}.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall pkgutil: "main.ISyncer.*"
 
   caveats do

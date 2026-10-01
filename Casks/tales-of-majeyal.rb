@@ -18,9 +18,7 @@ cask "tales-of-majeyal" do
   app "T-Engine.app", target: "Tales-of-Maj'Eyal.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Tales-of-Maj'Eyal.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [
