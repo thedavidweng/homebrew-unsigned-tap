@@ -28,6 +28,8 @@ cask "koodo-reader" do
   homepage "https://www.koodoreader.com/en"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Koodo Reader.app"],
+        must_succeed: false
   end
 end

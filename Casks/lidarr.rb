@@ -23,7 +23,9 @@ cask "lidarr" do
   app "Lidarr.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Lidarr.app"],
+        must_succeed: false
   end
 
   zap trash: "~/.config/Lidarr"

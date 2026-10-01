@@ -12,7 +12,9 @@ cask "transmission-remote-gui" do
   app "Transmission Remote GUI.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Transmission Remote GUI.app"],
+        must_succeed: false
   end
 
   uninstall quit: "com.transgui"

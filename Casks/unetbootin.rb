@@ -17,7 +17,9 @@ cask "unetbootin" do
   app "unetbootin.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/unetbootin.app"],
+        must_succeed: false
   end
 
   zap trash: "~/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/com.yourcompany.unetbootin.sfl*"

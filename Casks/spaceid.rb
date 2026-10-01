@@ -16,7 +16,9 @@ cask "spaceid" do
   end
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/SpaceId.app"],
+        must_succeed: false
   end
 
   uninstall login_item: "SpaceId"

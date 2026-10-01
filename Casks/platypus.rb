@@ -18,7 +18,9 @@ cask "platypus" do
   app "Platypus.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Platypus.app"],
+        must_succeed: false
   end
 
   zap trash: [

@@ -20,7 +20,9 @@ cask "circuitjs1" do
   app "CircuitJS1.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/CircuitJS1.app"],
+        must_succeed: false
   end
 
   zap trash: [

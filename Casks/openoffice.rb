@@ -44,7 +44,9 @@ cask "openoffice" do
   app "OpenOffice.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/OpenOffice.app"],
+        must_succeed: false
   end
 
   zap trash: "~/Library/Application Support/OpenOffice"

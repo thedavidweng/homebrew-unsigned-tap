@@ -20,7 +20,9 @@ cask "groestlcoin-core" do
   end
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Groestlcoin Core.app"],
+        must_succeed: false
   end
 
   zap trash: "~/Library/Preferences/org.groestlcoin.Groestlcoin-Qt.plist"

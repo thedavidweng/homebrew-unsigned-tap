@@ -18,7 +18,9 @@ cask "dd-utility" do
   app "dd Utility.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/dd Utility.app"],
+        must_succeed: false
   end
 
   zap trash: "~/Library/Saved Application State/co.za.thefanclub.ddUtility.savedState"

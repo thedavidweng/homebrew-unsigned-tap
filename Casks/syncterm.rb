@@ -12,7 +12,9 @@ cask "syncterm" do
   app "SyncTERM.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/SyncTERM.app"],
+        must_succeed: false
   end
 
   zap trash: [

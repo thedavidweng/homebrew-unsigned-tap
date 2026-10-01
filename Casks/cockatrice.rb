@@ -61,7 +61,15 @@ cask "cockatrice" do
   app "servatrice.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/cockatrice.app"],
+        must_succeed: false
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/oracle.app"],
+        must_succeed: false
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/servatrice.app"],
+        must_succeed: false
   end
 
   uninstall quit: [

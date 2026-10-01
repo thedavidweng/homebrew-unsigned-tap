@@ -33,7 +33,9 @@ cask "alex313031-thorium" do
                   executable: "#{appdir}/Thorium Browser.app/Contents/MacOS/Thorium"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Thorium Browser.app"],
+        must_succeed: false
   end
 
   zap trash: [

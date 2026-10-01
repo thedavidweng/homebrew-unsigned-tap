@@ -20,7 +20,9 @@ cask "sioyek" do
                   executable: "#{appdir}/sioyek.app/Contents/MacOS/sioyek"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/sioyek.app"],
+        must_succeed: false
   end
 
   zap trash: [

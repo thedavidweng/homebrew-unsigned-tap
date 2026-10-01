@@ -25,7 +25,9 @@ cask "mfiles" do
   app "爱传送.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/爱传送.app"],
+        must_succeed: false
   end
 
   uninstall quit: "com.windtune.itransfer"

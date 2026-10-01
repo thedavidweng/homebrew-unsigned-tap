@@ -47,7 +47,9 @@ cask "widelands-app" do
   app "Widelands.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Widelands.app"],
+        must_succeed: false
   end
 
   zap trash: "~/.widelands"

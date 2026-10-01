@@ -47,6 +47,8 @@ cask "zoho-mail" do
   end
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Zoho Mail - Desktop.app"],
+        must_succeed: false
   end
 end

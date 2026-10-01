@@ -13,7 +13,9 @@ cask "gas-mask" do
   app "Gas Mask.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Gas Mask.app"],
+        must_succeed: false
   end
 
   uninstall quit: "ee.clockwise.gmask"

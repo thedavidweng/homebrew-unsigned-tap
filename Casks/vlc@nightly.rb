@@ -48,7 +48,9 @@ cask "vlc@nightly" do
                   executable: "#{appdir}/VLC.app/Contents/MacOS/VLC"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/VLC.app"],
+        must_succeed: false
   end
 
   zap trash: [

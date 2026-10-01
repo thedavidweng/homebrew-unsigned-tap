@@ -25,7 +25,9 @@ cask "mediaelch" do
   app "MediaElch.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/MediaElch.app"],
+        must_succeed: false
   end
 
   zap trash: [

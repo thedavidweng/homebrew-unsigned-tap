@@ -17,7 +17,9 @@ cask "dust3d" do
   app "dust3d.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/dust3d.app"],
+        must_succeed: false
   end
 
   zap trash: "~/Library/Saved Application State/com.yourcompany.dust3d.savedState"

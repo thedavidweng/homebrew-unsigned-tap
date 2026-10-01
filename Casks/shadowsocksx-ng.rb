@@ -13,7 +13,9 @@ cask "shadowsocksx-ng" do
   app "ShadowsocksX-NG.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/ShadowsocksX-NG.app"],
+        must_succeed: false
   end
 
   uninstall launchctl: [

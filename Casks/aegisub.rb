@@ -17,7 +17,9 @@ cask "aegisub" do
   app "Aegisub.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Aegisub.app"],
+        must_succeed: false
   end
 
   uninstall quit: "com.aegisub.aegisub"

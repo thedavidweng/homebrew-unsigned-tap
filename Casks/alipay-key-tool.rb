@@ -16,7 +16,9 @@ cask "alipay-key-tool" do
   app "支付宝开放平台密钥工具.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/支付宝开放平台密钥工具.app"],
+        must_succeed: false
   end
 
   zap trash: [

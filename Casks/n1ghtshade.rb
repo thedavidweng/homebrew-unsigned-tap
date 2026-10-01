@@ -27,7 +27,9 @@ cask "n1ghtshade" do
   app "n1ghtshade.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/n1ghtshade.app"],
+        must_succeed: false
   end
 
   zap trash: "~/Library/Application Support/n1ghtshade"

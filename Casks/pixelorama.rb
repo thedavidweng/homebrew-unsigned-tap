@@ -12,7 +12,9 @@ cask "pixelorama" do
   app "Pixelorama.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Pixelorama.app"],
+        must_succeed: false
   end
 
   uninstall quit: "com.orama-interactive.pixelorama"

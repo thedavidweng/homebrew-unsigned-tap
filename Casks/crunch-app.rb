@@ -12,7 +12,9 @@ cask "crunch-app" do
   app "Crunch.app"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Crunch.app"],
+        must_succeed: false
   end
 
   zap trash: [

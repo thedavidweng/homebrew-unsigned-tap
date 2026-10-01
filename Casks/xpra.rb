@@ -32,7 +32,9 @@ cask "xpra" do
   binary "#{appdir}/Xpra.app/Contents/MacOS/Xpra", target: "xpra"
 
   postflight_steps do
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+    run "/usr/bin/xattr",
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Xpra.app"],
+        must_succeed: false
   end
 
   zap delete: "/Library/Application Support/Xpra",

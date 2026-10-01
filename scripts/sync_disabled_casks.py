@@ -9,7 +9,18 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC_CASK_DIR = pathlib.Path(__import__("os").environ.get("SRC_CASK_DIR", str(pathlib.Path.home() / "homebrew-cask" / "Casks")))
 DEST_CASK_DIR = ROOT / "Casks"
 
-# Generic quarantine stripping postflight_steps - covers app/pkg/binary
+# Generic quarantine stripping postflight_steps.
+#
+# The target has to be where the payload actually lands, not the staged
+# directory: `Cask::Artifact::AbstractArtifact#sort_order` runs `App` and
+# `Pkg` *before* `PostflightSteps`, so by the time this step runs an `app` has
+# already been moved to /Applications and the staged directory holds only a
+# symlink. Pointing at `{{staged_path}}` therefore removed nothing and left the
+# installed app quarantined. `binary` casks are unaffected (the binary is
+# symlinked out of the staged directory) and keep that path.
+#
+# `scripts/fix_quarantine_targets.py` rewrites the `app` casks to the correct
+# `{{appdir}}/<name>.app` path; run it after this script.
 QUARANTINE_LINE = '    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]'
 POSTFLIGHT_BLOCK = f"""  postflight_steps do
 {QUARANTINE_LINE}
