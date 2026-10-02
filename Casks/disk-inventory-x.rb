@@ -18,9 +18,7 @@ cask "disk-inventory-x" do
   app "Disk Inventory X.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Disk Inventory X.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: "~/Library/Preferences/com.derlien.DiskInventoryX.plist"

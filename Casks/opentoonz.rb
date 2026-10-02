@@ -16,6 +16,10 @@ cask "opentoonz" do
 
   pkg "OpenToonz.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall pkgutil: "io.github.opentoonz"
 
   zap trash: [

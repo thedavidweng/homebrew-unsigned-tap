@@ -17,9 +17,7 @@ cask "sysdig-inspect" do
   app "Sysdig Inspect-darwin-x64/Sysdig Inspect.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Sysdig Inspect.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

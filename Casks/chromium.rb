@@ -17,9 +17,7 @@ cask "chromium" do
                   executable: "#{appdir}/Chromium.app/Contents/MacOS/Chromium"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Chromium.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

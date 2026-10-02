@@ -15,9 +15,7 @@ cask "texstudio" do
   app "texstudio-#{version}-osx#{arch}.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/texstudio-#{version}-osx#{arch}.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall quit: "texstudio"
