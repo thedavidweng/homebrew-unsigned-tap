@@ -16,5 +16,9 @@ cask "unity-android-support-for-editor" do
 
   pkg "UnitySetup-Android-Support-for-Editor-#{version.csv.first}.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall pkgutil: "com.unity3d.AndroidPlayer-#{version.csv.first}"
 end

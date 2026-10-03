@@ -17,9 +17,7 @@ cask "mqtt-explorer" do
   app "MQTT Explorer.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/MQTT Explorer.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall quit: "de.t7n.apps.mqtt-explorer"

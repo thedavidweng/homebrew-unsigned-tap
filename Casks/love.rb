@@ -13,9 +13,7 @@ cask "love" do
   binary "#{appdir}/love.app/Contents/MacOS/love"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/love.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: "~/Library/Saved Application State/org.love2d.love.savedState"

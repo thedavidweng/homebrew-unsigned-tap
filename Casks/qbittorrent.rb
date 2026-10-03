@@ -52,11 +52,12 @@ cask "qbittorrent" do
   desc "Peer to peer Bitorrent client"
   homepage "https://www.qbittorrent.org/"
 
-  conflicts_with cask: "qbittorrent@lt20"
+  conflicts_with cask: [
+    "c0re100-qbittorrent",
+    "qbittorrent@lt20",
+  ]
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/qBittorrent.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 end

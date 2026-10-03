@@ -24,6 +24,10 @@ cask "asix-ax88179" do
 
   pkg "ASIX_USB_Device_Installer_v#{version.csv.first}.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall early_script: {
               executable:   "/usr/sbin/installer",
               args:         ["-pkg", "#{staged_path}/AX88179_178A_Uninstall.pkg", "-target", "/"],
