@@ -16,6 +16,10 @@ cask "kern" do
 
   pkg "kern_#{version.dots_to_underscores}_mac.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall pkgutil: [
     "de.fullbucket.audiounit.pkg.Kern",
     "de.fullbucket.vst.pkg.Kern",

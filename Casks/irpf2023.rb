@@ -18,6 +18,10 @@ cask "irpf2023" do
 
   installer manual: "IRPF2023.app"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall delete: "/Applications/IRPF2023"
 
   # No zap stanza required

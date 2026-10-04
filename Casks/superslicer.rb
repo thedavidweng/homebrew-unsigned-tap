@@ -29,9 +29,7 @@ cask "superslicer" do
   app "SuperSlicer.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/SuperSlicer.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: "~/Library/Application Support/SuperSlicer"
