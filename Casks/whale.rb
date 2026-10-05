@@ -15,7 +15,7 @@ cask "whale" do
       skip "Legacy version"
     end
 
-    depends_on :macos
+    depends_on macos: :any
   end
 
   url "https://github.com/1000ch/whale/releases/download/v#{version}/Whale-#{version}#{arch}.dmg"
@@ -28,9 +28,7 @@ cask "whale" do
   app "Whale.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Whale.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

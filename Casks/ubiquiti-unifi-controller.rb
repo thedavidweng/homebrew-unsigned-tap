@@ -22,9 +22,7 @@ cask "ubiquiti-unifi-controller" do
   app "UniFi.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/UniFi.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall signal: ["TERM", "com.ubnt.UniFi"]

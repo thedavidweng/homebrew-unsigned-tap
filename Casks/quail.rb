@@ -15,7 +15,7 @@ cask "quail" do
       skip "Legacy version"
     end
 
-    depends_on :macos
+    depends_on macos: :any
   end
 
   url "https://github.com/1000ch/quail/releases/download/v#{version}/Quail-#{version}#{arch}.dmg"
@@ -28,9 +28,7 @@ cask "quail" do
   app "Quail.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Quail.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

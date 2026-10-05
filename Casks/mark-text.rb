@@ -1,30 +1,45 @@
 cask "mark-text" do
-  arch arm: "arm64", intel: "x64"
+  version "0.20.0"
+  sha256 arm:          "c9580e5541ad4efd92c013ec48bb277905773c70f041b14aadbad62d7321b9a3",
+         intel:        "f54dd6e0bc53d8d6e5b0c741ed0f6fdb8f270dca2cb13a6865c1ea8cdfda7a91",
+         x86_64_linux: "970c332822d217dad1667fab45f7c2e22ae0265c17cf9120138eebb3dc98622e"
 
-  version "0.19.1"
-  sha256 arm:   "f5a8630b4ec14f7bf1120a7a17a1ed397430d30c57f2c6c2c6a39410417f66ce",
-         intel: "d1831a5dce3d957d26dcf9710869f4b7e1df1bc9c2dcd0cb6539e29e96f71779"
+  on_macos do
+    arch arm: "arm64", intel: "x64"
 
-  url "https://github.com/marktext/marktext/releases/download/v#{version}/marktext-mac-#{arch}-#{version}.dmg"
+    url "https://github.com/marktext/marktext/releases/download/v#{version}/marktext-mac-#{arch}-#{version}.dmg"
+
+    depends_on macos: :monterey
+
+    app "MarkText.app"
+
+    zap trash: [
+      "~/Library/Application Support/marktext",
+      "~/Library/Logs/marktext",
+      "~/Library/Preferences/com.github.marktext.marktext.plist",
+      "~/Library/Saved Application State/com.github.marktext.marktext.savedState",
+    ]
+  end
+  on_linux do
+    url "https://github.com/marktext/marktext/releases/download/v#{version}/marktext-linux-#{version}.AppImage"
+
+    depends_on arch: :x86_64
+
+    app_image "marktext-linux-#{version}.AppImage", target: "MarkText.AppImage"
+
+    zap trash: [
+      "~/.cache/marktext",
+      "~/.config/marktext",
+    ]
+  end
+
   name "MarkText"
   desc "Markdown editor"
   homepage "https://github.com/marktext/marktext"
 
   auto_updates true
-  depends_on macos: :monterey
-
-  app "MarkText.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/MarkText.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
-
-  zap trash: [
-    "~/Library/Application Support/marktext",
-    "~/Library/Logs/marktext",
-    "~/Library/Preferences/com.github.marktext.marktext.plist",
-    "~/Library/Saved Application State/com.github.marktext.marktext.savedState",
-  ]
 end

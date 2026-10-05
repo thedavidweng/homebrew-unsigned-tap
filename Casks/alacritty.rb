@@ -25,13 +25,11 @@ cask "alacritty" do
   manpage "#{appdir}/Alacritty.app/Contents/Resources/alacritty-msg.1.gz"
   manpage "#{appdir}/Alacritty.app/Contents/Resources/alacritty-bindings.5.gz"
   bash_completion "#{appdir}/Alacritty.app/Contents/Resources/completions/alacritty.bash"
-  fish_completion "#{appdir}/Alacritty.app/Contents/Resources/completions/alacritty.fish"
   zsh_completion "#{appdir}/Alacritty.app/Contents/Resources/completions/_alacritty"
+  fish_completion "#{appdir}/Alacritty.app/Contents/Resources/completions/alacritty.fish"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Alacritty.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

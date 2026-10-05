@@ -12,12 +12,10 @@ cask "isimulator" do
   app "iSimulator.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/iSimulator.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
-  zap delete: [
+  zap trash: [
     "~/Library/Application Support/niels.jin.iSimulator",
     "~/Library/Caches/niels.jin.iSimulator",
     "~/Library/Preferences/niels.jin.iSimulator.plist",
