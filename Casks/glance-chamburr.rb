@@ -12,9 +12,7 @@ cask "glance-chamburr" do
   app "Glance.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Glance.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

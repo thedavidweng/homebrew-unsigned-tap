@@ -12,9 +12,7 @@ cask "macstroke" do
   app "MacStroke.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/MacStroke.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

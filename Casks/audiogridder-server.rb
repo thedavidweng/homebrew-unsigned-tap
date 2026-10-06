@@ -15,6 +15,10 @@ cask "audiogridder-server" do
 
   pkg "AudioGridderServer_#{version}_macOS-universal.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall pkgutil: [
     "com.e47.audiogridder.server",
     "com.e47.pkg.server",

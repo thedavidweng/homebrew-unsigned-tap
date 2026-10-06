@@ -13,9 +13,7 @@ cask "kiibohd-configurator" do
   app "Kiibohd Configurator.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Kiibohd Configurator.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall quit: "club.input.KiibohdConfigurator"

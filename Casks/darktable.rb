@@ -1,38 +1,39 @@
 cask "darktable" do
-  arch arm: "arm64", intel: "x86_64"
+  arch arm: on_system_conditional(macos: "arm64", linux: "aarch64"), intel: "x86_64"
+  os macos: "dmg", linux: "AppImage"
+  url_name = on_system_conditional macos: "darktable", linux: "Darktable"
 
-  version "5.6.1"
-  sha256 arm:   "155c25a48e06023eeeda3640f6f4fc7848bc1ad8e7384ba1d7b63098986fbeda",
-         intel: "ab09e11d548a7028f7bacc2bc4549a272c4e8d385be0e38ecc9e7943914abe61"
+  version "5.6.2"
+  sha256 arm:          "6ff88e58a2a59cb07b0a1502fea7205e68cd783380a33a3ce7bda68ec29def0c",
+         arm64_linux:  "5b8015f8534453cb3bbd6e5a03e362cb7d9d9573f20d3928aadad354df18ad10",
+         x86_64_linux: "4b0d1c737a2a18c7d8afb81aa3daaf25930bbe541dda98e6354dabd5c2e4dc36"
 
-  on_arm do
+  on_macos do
+    depends_on arch: :arm64
     depends_on macos: :sonoma
+
+    app "darktable.app"
+
+    uninstall quit: "org.darktable"
   end
-  on_intel do
-    depends_on macos: :sequoia
+  on_linux do
+    app_image "Darktable-#{version}-#{arch}.AppImage", target: "darktable.AppImage"
   end
 
-  url "https://github.com/darktable-org/darktable/releases/download/release-#{version.major_minor_patch}/darktable-#{version}-#{arch}.dmg"
+  url "https://github.com/darktable-org/darktable/releases/download/release-#{version.major_minor_patch}/#{url_name}-#{version}-#{arch}.#{os}"
   name "darktable"
   desc "Photography workflow application and raw developer"
   homepage "https://www.darktable.org/"
 
   livecheck do
-    url "https://www.darktable.org/install/"
-    regex(/href=.*?darktable[._-]v?(\d+(?:\.\d+)+)[._-]#{arch}\.dmg/i)
+    url :url
+    regex(/^release[._-]v?(\d+(?:\.\d+)+)$/i)
+    strategy :github_latest
   end
-
-  depends_on :macos
-
-  app "darktable.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/darktable.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
-
-  uninstall quit: "org.darktable"
 
   zap trash: [
     "~/.cache/darktable",
