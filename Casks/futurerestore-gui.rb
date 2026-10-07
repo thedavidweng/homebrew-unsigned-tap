@@ -17,9 +17,7 @@ cask "futurerestore-gui" do
   app "FutureRestore GUI.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/FutureRestore GUI.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: "~/FutureRestoreGUI"

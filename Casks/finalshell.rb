@@ -18,6 +18,10 @@ cask "finalshell" do
 
   pkg "finalshell_macos_#{arch}.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall quit:    "finalshellinstall.all",
             pkgutil: [
               "finalshellinstall.all",

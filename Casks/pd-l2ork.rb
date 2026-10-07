@@ -19,9 +19,7 @@ cask "pd-l2ork" do
   binary "#{appdir}/Purr-Data.app/Contents/Resources/app.nw/bin/pd-l2ork"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Purr-Data.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall_preflight_steps do

@@ -19,6 +19,10 @@ cask "fpc-src-laz" do
 
   pkg "fpcsrc-#{version.csv.first}.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall pkgutil: [
     "org.freepascal.fpc.source",
     "org.freepascal.pkg.fpcsrc-320-laz",

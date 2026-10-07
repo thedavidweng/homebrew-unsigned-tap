@@ -27,9 +27,7 @@ cask "lyx" do
   binary "#{appdir}/LyX.app/Contents/MacOS/tex2lyx"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/LyX.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall quit: "org.lyx.lyx"

@@ -2,11 +2,11 @@ cask "koodo-reader" do
   arch arm: "arm64", intel: on_system_conditional(macos: "x64", linux: "x86_64")
   os macos: "dmg", linux: "AppImage"
 
-  version "2.4.3"
-  sha256 arm:          "75dc734f0c1106f04a6e7d091f8ed1ae7eaff56a2af19472214b32ca1cc7936d",
-         intel:        "8992ed229986ea9ce43f1b72be39ba6c6e9d5041dc496479208a313fb19a5a45",
-         arm64_linux:  "386d48ebea6b4b01ce211ff6e8fb7ff8c68c7e5e4eba5d6b18ebab2912e9ff31",
-         x86_64_linux: "d62199c3ffec2c278d42c5bb5633c651688028220bd5876933904e13be5cd88b"
+  version "2.4.6"
+  sha256 arm:          "a4ed495ba090c06fdfe832acdad1af12a3ffcd40725078855c9568092031acac",
+         intel:        "092ff130d48b35141f1e8b542e0cfb18a0bbac3d107255a2830c41b35ef06403",
+         arm64_linux:  "04215f600efe7f5c0ad3a94ae9e5772f59382ba6a0d6ef7595039b58316167b4",
+         x86_64_linux: "c9efb1cb47533a0d7bdafc079363befbb544d187da4e0311cfd1b1e33e139229"
 
   on_macos do
     app "Koodo Reader.app"
@@ -28,8 +28,6 @@ cask "koodo-reader" do
   homepage "https://www.koodoreader.com/en"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Koodo Reader.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 end
