@@ -19,7 +19,7 @@ cask "todometer" do
       skip "Legacy version"
     end
 
-    depends_on :macos
+    depends_on macos: :any
 
     app "mac/todometer.app"
   end
@@ -31,9 +31,7 @@ cask "todometer" do
   depends_on :macos
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/todometer.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

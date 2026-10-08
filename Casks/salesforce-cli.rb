@@ -11,7 +11,8 @@ cask "salesforce-cli" do
   homepage "https://developer.salesforce.com/tools/salesforcecli"
 
   livecheck do
-    url "https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-darwin-#{arch}-buildmanifest"
+    url "https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-darwin-#{arch}-buildmanifest",
+        user_agent: :browser
     strategy :json do |json|
       next if json["version"].blank? || json["sha"].blank?
 
@@ -22,6 +23,10 @@ cask "salesforce-cli" do
   depends_on :macos
 
   pkg "sf-v#{version.csv.first}-#{version.csv.second}-#{arch}.pkg"
+
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
 
   uninstall pkgutil: "com.salesforce.cli",
             delete:  [

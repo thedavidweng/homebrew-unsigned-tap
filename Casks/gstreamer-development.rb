@@ -17,6 +17,10 @@ cask "gstreamer-development" do
 
   pkg "gstreamer-1.0-devel-#{version}-universal.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall pkgutil: [
     "org.freedesktop.gstreamer.darwin.base-crypto-devel",
     "org.freedesktop.gstreamer.darwin.base-system-1.0-devel",

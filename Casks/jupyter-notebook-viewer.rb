@@ -12,9 +12,7 @@ cask "jupyter-notebook-viewer" do
   app "Jupyter Notebook Viewer.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Jupyter Notebook Viewer.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: "~/Library/Saved Application State/com.tinowagner.nbviewer-app.savedState"
