@@ -45,10 +45,10 @@ cask "contour" do
          target: "#{ENV.fetch("TERMINFO", "~/.terminfo")}/63/contour"
   bash_completion "#{appdir}/contour.app/Contents/Resources/shell-integration/shell-integration.bash",
                   target: "contour"
-  fish_completion "#{appdir}/contour.app/Contents/Resources/shell-integration/shell-integration.fish",
-                  target: "contour.fish"
   zsh_completion "#{appdir}/contour.app/Contents/Resources/shell-integration/shell-integration.zsh",
                  target: "_contour"
+  fish_completion "#{appdir}/contour.app/Contents/Resources/shell-integration/shell-integration.fish",
+                  target: "contour.fish"
 
   postflight_steps do
     run "/usr/bin/xattr",
