@@ -24,6 +24,10 @@ cask "pure-writer" do
 
   pkg "Pure Writer-#{version.csv.second}.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall pkgutil: "com.drakeet.purewriter"
 
   zap trash: "~/Library/Preferences/com.drakeet.purewriter.plist"

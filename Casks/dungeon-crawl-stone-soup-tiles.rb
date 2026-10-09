@@ -17,9 +17,7 @@ cask "dungeon-crawl-stone-soup-tiles" do
   app "Dungeon Crawl Stone Soup - Tiles.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Dungeon Crawl Stone Soup - Tiles.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

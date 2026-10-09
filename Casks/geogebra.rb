@@ -23,9 +23,7 @@ cask "geogebra" do
   app "GeoGebra Classic #{version.major}.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/GeoGebra Classic #{version.major}.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   uninstall quit:       "org.geogebra.mathapps",
