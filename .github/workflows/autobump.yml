@@ -50,7 +50,7 @@ jobs:
             CASK_ARGS+=(--tap=thedavidweng/unsigned-tap)
           fi
           echo "==> Checking for outdated casks via livecheck ..."
-          brew livecheck "${CASK_ARGS[@]}" --newer-only --extract-plist --debug --json > outdated-casks.json
+          brew livecheck "${CASK_ARGS[@]}" --newer-only --extract-plist --json > outdated-casks.json
           OUTDATED=$(python3 -c '
           import json,sys
           data=json.load(sys.stdin)
