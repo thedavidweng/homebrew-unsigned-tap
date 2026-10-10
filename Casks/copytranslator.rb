@@ -8,8 +8,8 @@ cask "copytranslator" do
   homepage "https://copytranslator.github.io/"
 
   livecheck do
-    url "https://github.com/CopyTranslator/copytranslator.github.io/blob/master/docs/.vuepress/public/wiki/mac.md"
-    regex(%r{href=.*?/copytranslator[._-]v?(\d+(?:\.\d+)+)\.dmg}i)
+    url "https://raw.githubusercontent.com/CopyTranslator/copytranslator.github.io/master/docs/.vuepress/public/wiki/mac.md"
+    regex(/copytranslator[._-]v?(\d+(?:\.\d+)+)\.dmg/i)
     strategy :page_match
   end
 

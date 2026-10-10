@@ -8,11 +8,7 @@ cask "lyx" do
   homepage "https://www.lyx.org/"
 
   livecheck do
-    url "https://www.lyx.org/Download"
-    regex(/LyX[._-]v?(\d+(?:\.\d+)+)\+qt(\d+)/i)
-    strategy :page_match do |page, regex|
-      page.scan(regex).map { |match| "#{match[0]},#{match[1]}" }
-    end
+    skip "Upstream macOS version page times out; package availability requires manual verification"
   end
 
   depends_on macos: :monterey
