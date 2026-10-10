@@ -29,9 +29,7 @@ cask "nwjs" do
   binary "nwjs-sdk-v#{version}-osx-#{arch}/nwjc"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/nwjs.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

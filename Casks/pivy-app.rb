@@ -12,6 +12,10 @@ cask "pivy-app" do
   # pkg cannot be installed automatically
   installer manual: "pivy-#{version}-macos12.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall launchctl: "net.cooperi.pivy-agent",
             quit:      "net.cooperi.pivy-agent",
             pkgutil:   "net.cooperi.pivy"

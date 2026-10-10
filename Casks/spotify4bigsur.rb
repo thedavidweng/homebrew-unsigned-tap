@@ -13,9 +13,7 @@ cask "spotify4bigsur" do
   app "SpotifyMain.app", target: "Spotify4BigSur.app"
 
   postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Spotify4BigSur.app"],
-        must_succeed: false
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   zap trash: [

@@ -19,6 +19,10 @@ cask "digikam" do
 
   pkg "digiKam-#{version}-#{arch}.pkg"
 
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall pkgutil: [
               "org.digiKam",
               "org.kde.digikam",
