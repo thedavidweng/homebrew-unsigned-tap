@@ -50,7 +50,7 @@ jobs:
             CASK_ARGS+=(--tap=thedavidweng/unsigned-tap)
           fi
           echo "==> Checking for outdated casks via livecheck ..."
-          OUTDATED_JSON=$(brew livecheck "${CASK_ARGS[@]}" --newer-only --extract-plist --json)
+          brew livecheck "${CASK_ARGS[@]}" --newer-only --extract-plist --debug --json > outdated-casks.json
           OUTDATED=$(python3 -c '
           import json,sys
           data=json.load(sys.stdin)
@@ -58,7 +58,7 @@ jobs:
               if d.get("status") == "error":
                   sys.exit(json.dumps(d))
           print("\n".join(d["cask"]+"\t"+d["version"]["latest"] for d in data if "version" in d and d["version"]["outdated"]))
-          ' <<< "${OUTDATED_JSON}")
+          ' < outdated-casks.json)
           if [[ -z "${OUTDATED// /}" ]]; then
             echo "No outdated casks found."
             exit 0
@@ -68,3 +68,12 @@ jobs:
             echo "==> Bumping ${cask} to ${version} ..."
             brew bump-cask-pr --no-fork --version="${version}" "thedavidweng/unsigned-tap/${cask}"
           done <<< "${OUTDATED}"
+
+      - name: Retain livecheck evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: livecheck-casks
+          path: outdated-casks.json
+          if-no-files-found: error
+          retention-days: 7
