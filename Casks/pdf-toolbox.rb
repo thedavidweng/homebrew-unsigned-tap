@@ -8,8 +8,7 @@ cask "pdf-toolbox" do
   homepage "https://www.lightenpdf.com/pdf-toolbox-mac.html"
 
   livecheck do
-    url :homepage
-    regex(/Version\s*(\d+(?:\.\d+)*)/i)
+    skip "Vendor website and download server are unreachable; manual availability verification required"
   end
 
   depends_on :macos

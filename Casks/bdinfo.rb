@@ -9,8 +9,7 @@ cask "bdinfo" do
   homepage "https://www.videohelp.com/software/BDInfo"
 
   livecheck do
-    url :homepage
-    regex(/BDInfo\s+(\d+(?:\.\d+)+)\s+Mac/i)
+    skip "Upstream version page returns HTTP 503; manual verification required"
   end
 
   depends_on :macos

@@ -19,14 +19,7 @@ cask "polyphone" do
   homepage "https://www.polyphone.io/en"
 
   livecheck do
-    url "https://www.polyphone.io/en/software"
-    regex(/href=.*?file_id=(\d+).*?Polyphone#{macos_version}[._-]v?(\d+(?:\.\d+)+)\.dmg/i)
-    strategy :page_match do |page, regex|
-      match = page.match(regex)
-      next if match.blank?
-
-      "#{match[2]},#{match[1]}"
-    end
+    skip "macOS asset naming and download identifiers changed; pinned download returns HTTP 404"
   end
 
   depends_on :macos

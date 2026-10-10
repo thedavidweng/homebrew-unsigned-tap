@@ -33,13 +33,7 @@ cask "widelands-app" do
   homepage "https://www.widelands.org/"
 
   livecheck do
-    url :url
-    regex(/Widelands[._-]v?(\d+(?:\.\d+)+)[._-]MacOS#{arch.gsub(/[._-]/, "[._-]")}\.dmg/i)
-    strategy :github_latest do |json, regex|
-      json["assets"]&.filter_map do |asset|
-        asset["browser_download_url"]&.[](regex, 1)
-      end
-    end
+    skip "Latest release does not provide the pinned macOS variant; manual package migration required"
   end
 
   depends_on :macos

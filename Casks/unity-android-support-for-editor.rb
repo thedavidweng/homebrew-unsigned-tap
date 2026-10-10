@@ -8,7 +8,7 @@ cask "unity-android-support-for-editor" do
   homepage "https://unity.com/products"
 
   livecheck do
-    cask "unity"
+    skip "Referenced external Unity cask uses deprecated metadata; manual verification required"
   end
 
   depends_on cask: "unity"

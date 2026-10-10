@@ -11,8 +11,8 @@ cask "routeconverter" do
   homepage "https://www.routeconverter.com/"
 
   livecheck do
-    url "https://releases.routeconverter.com/previous-releases/"
-    regex(%r{href=["']?v?(\d+(?:\.\d+)+)/?["' >]}i)
+    url "https://www.routeconverter.com/downloads/"
+    regex(/RouteConverter\s+v?(\d+(?:\.\d+)+)\s*[·<]/i)
   end
 
   auto_updates true

@@ -8,16 +8,7 @@ cask "mindforger" do
   homepage "https://www.mindforger.com/"
 
   livecheck do
-    url :url
-    regex(/^mindforger[._-]v?(\d+(?:[.-]\d+)+)-qt(\d+(?:[.-]\d+)*)-intel\.dmg$/i)
-    strategy :github_latest do |json, regex|
-      json["assets"]&.map do |asset|
-        match = asset["name"]&.match(regex)
-        next if match.blank?
-
-        "#{match[1]},#{match[2]}"
-      end
-    end
+    skip "macOS asset naming changed; package URL and checksum migration requires manual review"
   end
 
   depends_on :macos
