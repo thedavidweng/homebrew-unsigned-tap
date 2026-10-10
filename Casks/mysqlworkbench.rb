@@ -34,9 +34,7 @@ cask "mysqlworkbench" do
     url "https://cdn.mysql.com/Downloads/MySQLGUITools/mysql-workbench-community-#{version}-macos-#{arch}.dmg"
 
     livecheck do
-      url "https://dev.mysql.com/downloads/workbench/?tpl=platform&os=33",
-          user_agent: :curl
-      regex(/mysql[._-]workbench[._-]community[._-]v?(\d+(?:\.\d+)+)(?:[._-]macos)?[._-]#{arch}\.dmg/i)
+      skip "Upstream version page blocks automated requests; manual verification required"
     end
   end
 

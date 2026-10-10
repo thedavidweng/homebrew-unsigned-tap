@@ -8,11 +8,7 @@ cask "aptible" do
   homepage "https://www.aptible.com/docs/reference/aptible-cli/overview"
 
   livecheck do
-    url :homepage
-    regex(%r{href=.*?/((?:gh-)?\d+)/pkg/aptible-toolbelt[._-]v?(\d+(?:\.\d+)+)%2B(\d+)[._-]mac}i)
-    strategy :page_match do |page, regex|
-      page.scan(regex).map { |match| "#{match[1]},#{match[2]},#{match[0]}" }
-    end
+    skip "Upstream documentation no longer publishes the macOS package version list"
   end
 
   depends_on formula: "libfido2"

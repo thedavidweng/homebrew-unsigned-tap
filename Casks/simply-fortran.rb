@@ -35,9 +35,10 @@ cask "simply-fortran" do
   homepage "https://simplyfortran.com/"
 
   livecheck do
-    url "https://simplyfortran.com/download/?platform=macos"
-    regex(/href=.*?simplyfortran[._-]v?(\d+(?:\.\d+)+)[._-]#{arch}\.dmg/i)
+    skip "Upstream discontinued macOS support after version 3"
   end
+
+  deprecate! date: "2026-10-10", because: :unmaintained
 
   depends_on :macos
 

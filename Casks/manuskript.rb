@@ -8,8 +8,13 @@ cask "manuskript" do
   homepage "https://www.theologeek.ch/manuskript/"
 
   livecheck do
-    url "https://www.theologeek.ch/manuskript/download/"
-    regex(/href.*?manuskript[._-]v?(\d+(?:\.\d+)+)[._-]osx\.dmg/i)
+    url :url
+    regex(/^manuskript[._-]v?(\d+(?:\.\d+)+)[._-]osx\.dmg$/i)
+    strategy :github_releases do |releases, regex|
+      releases.reject { |release| release["draft"] || release["prerelease"] }.flat_map do |release|
+        release["assets"].filter_map { |asset| asset["name"][regex, 1] }
+      end
+    end
   end
 
   depends_on :macos

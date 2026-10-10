@@ -8,8 +8,7 @@ cask "cinco" do
   homepage "https://cinco.scce.info/"
 
   livecheck do
-    url "https://ls5download.cs.tu-dortmund.de/cinco/releases/"
-    regex(%r{href=["']?v?(\d+(?:\.\d+)+)/?["' >]}i)
+    skip "Upstream download server is unreachable; manual availability verification required"
   end
 
   depends_on :macos
