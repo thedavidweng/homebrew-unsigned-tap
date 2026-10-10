@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       casks:
-        description: Custom list of casks to bump
+        description: Space-separated cask tokens from this tap to bump
         required: false
   schedule:
     - cron: "23 */3 * * *"
@@ -26,11 +26,11 @@ jobs:
       HOMEBREW_DEVELOPER: 1
     runs-on: macos-latest
     steps:
-      - uses: Homebrew/actions/setup-homebrew@fccef3b26268fc4a788fd7ad7c189f3a105cbf13 # main
+      - uses: Homebrew/actions/setup-homebrew@e99025eb970cfa124b8284a35463d87426917478 # 2026.09.28.1
         with:
           core: true
           cask: true
-      - uses: Homebrew/actions/git-user-config@fccef3b26268fc4a788fd7ad7c189f3a105cbf13 # main
+      - uses: Homebrew/actions/git-user-config@e99025eb970cfa124b8284a35463d87426917478 # 2026.09.28.1
         with:
           username: BrewTestBot
       - name: Bump casks
@@ -38,32 +38,33 @@ jobs:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CASKS: ${{ inputs.casks }}
         run: |
-          # NOTE: `brew bump --auto` only works for official taps
-          # (it looks for the autobump list). For third-party taps it always
-          # exits 1 with "No autobumped casks found", failing the check.
-          # Use livecheck + bump-cask-pr instead, and never fail the check
-          # when there is simply nothing to bump.
+          set -euo pipefail
+          CASK_ARGS=()
           if [[ -n "${CASKS-}" ]]; then
-            # Explicit list (e.g. manual dispatch): bump each; failures stop the job.
-            # Word splitting on the list is intentional.
+            # Qualify every requested cask so Homebrew never selects the official tap.
             # shellcheck disable=SC2086
             for cask in ${CASKS}; do
-              echo "==> Bumping ${cask} ..."
-              brew bump-cask-pr --no-fork "${cask}"
+              CASK_ARGS+=("thedavidweng/unsigned-tap/${cask}")
             done
-            exit 0
+          else
+            CASK_ARGS+=(--tap=thedavidweng/unsigned-tap)
           fi
           echo "==> Checking for outdated casks via livecheck ..."
-          OUTDATED_JSON=$(brew livecheck --tap=thedavidweng/unsigned-tap --newer-only --extract-plist --json)
-          OUTDATED=$(echo "${OUTDATED_JSON}" | python3 -c "import json,sys; data=json.load(sys.stdin); print(' '.join(d['cask'] for d in data if d.get('version',{}).get('latest') and d['version']['latest'] != d['version'].get('current')))")
+          OUTDATED_JSON=$(brew livecheck "${CASK_ARGS[@]}" --newer-only --extract-plist --json)
+          OUTDATED=$(python3 -c '
+          import json,sys
+          data=json.load(sys.stdin)
+          for d in data:
+              if d.get("status") == "error":
+                  sys.exit(json.dumps(d))
+          print("\n".join(d["cask"]+"\t"+d["version"]["latest"] for d in data if "version" in d and d["version"]["outdated"]))
+          ' <<< "${OUTDATED_JSON}")
           if [[ -z "${OUTDATED// /}" ]]; then
             echo "No outdated casks found."
             exit 0
           fi
           echo "Outdated: ${OUTDATED}"
-          # Word splitting on the list is intentional.
-          # shellcheck disable=SC2086
-          for cask in ${OUTDATED}; do
-            echo "==> Bumping ${cask} ..."
-            brew bump-cask-pr --no-fork "${cask}"
-          done
+          while IFS=$'\t' read -r cask version; do
+            echo "==> Bumping ${cask} to ${version} ..."
+            brew bump-cask-pr --no-fork --version="${version}" "thedavidweng/unsigned-tap/${cask}"
+          done <<< "${OUTDATED}"
