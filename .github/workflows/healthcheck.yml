@@ -11,9 +11,7 @@ on:
         default: false
         type: boolean
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -21,6 +19,9 @@ concurrency:
 
 jobs:
   healthcheck:
+    permissions:
+      contents: write
+      pull-requests: write
     timeout-minutes: 60
     runs-on: macos-latest
     steps:
