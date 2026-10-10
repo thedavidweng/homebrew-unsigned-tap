@@ -8,7 +8,7 @@ cask "pokemon-reborn" do
   homepage "https://www.rebornevo.com/"
 
   livecheck do
-    url "https://pkmnfan.games/reborn-mac"
+    url "https://pkmnfan.games/reborn-mac", user_agent: :browser
     strategy :header_match
   end
 
