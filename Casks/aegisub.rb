@@ -1,8 +1,11 @@
 cask "aegisub" do
-  version "3.4.2"
-  sha256 "cbbfd3276e0414b540f6b1bc12a69abd6b8a96b0a452de3b08c290d553754ad3"
+  arch arm: "arm64", intel: "x64"
 
-  url "https://github.com/TypesettingTools/Aegisub/releases/download/v#{version}/Aegisub-#{version}.dmg"
+  version "3.5.0"
+  sha256 arm:   "7d0701fbabcbcea1664b50e4f2726ea333721d1fbb313a3cc0c81e2a50b98cb5",
+         intel: "3d4bf3b411b9d0c3cf59a18ab9f5d22039115d542eac459bf00c5e243b0d69e9"
+
+  url "https://github.com/TypesettingTools/Aegisub/releases/download/v#{version}/Aegisub-#{version}-#{arch}.dmg"
   name "Aegisub"
   desc "Create and modify subtitles"
   homepage "https://github.com/TypesettingTools/Aegisub/"
@@ -29,8 +32,4 @@ cask "aegisub" do
     "~/Library/Preferences/com.aegisub.aegisub.plist",
     "~/Library/Saved Application State/com.aegisub.aegisub.savedState",
   ]
-
-  caveats do
-    requires_rosetta
-  end
 end
