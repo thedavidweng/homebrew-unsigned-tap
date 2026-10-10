@@ -1,9 +1,9 @@
 cask "routeconverter" do
   arch arm: "aarch64", intel: "x64"
 
-  version "3.6"
-  sha256 arm:   "fe375a2078588f6e3885cf39363c38abf90d3492d0044e2dbaa9886ab280918a",
-         intel: "6149b8198ad126b5eb91cc810b6a70b90221fab019573c0c00361484c9bf927e"
+  version "3.7"
+  sha256 arm:   "63efa787a06e8cd4c8e2dc3ff233c945d56e0141c6295fb681db57a2ade6da8c",
+         intel: "134563c895a9018921c01d04b5badc5577461656e34c21017de64e103a842077"
 
   url "https://releases.routeconverter.com/previous-releases/#{version}/RouteConverterMac-#{arch}.app.zip"
   name "RouteConverter"
