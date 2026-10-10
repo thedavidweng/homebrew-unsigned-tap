@@ -27,10 +27,11 @@ jobs:
         run: brew tap --custom-remote thedavidweng/unsigned-tap "${GITHUB_WORKSPACE}"
       - name: Audit all casks (offline)
         run: |
+          casks=()
           for cask in Casks/*.rb; do
             token=$(basename "$cask" .rb)
-            echo "Auditing ${token} ..."
-            brew audit --cask --strict "thedavidweng/unsigned-tap/${token}" || exit 1
+            casks+=("thedavidweng/unsigned-tap/${token}")
           done
+          brew audit --cask --strict "${casks[@]}"
       - name: Style
         run: brew style thedavidweng/unsigned-tap
