@@ -12,17 +12,25 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
 jobs:
   autobump:
+    permissions:
+      contents: write
+      pull-requests: write
+    timeout-minutes: 60
     env:
       HOMEBREW_DEVELOPER: 1
     runs-on: macos-latest
     steps:
-      - uses: Homebrew/actions/setup-homebrew@9ffcbcc2c89631400988e8d4b1e3ac17dbbe3fe9 # main
+      - uses: Homebrew/actions/setup-homebrew@fccef3b26268fc4a788fd7ad7c189f3a105cbf13 # main
         with:
           core: true
           cask: true
-      - uses: Homebrew/actions/git-user-config@9ffcbcc2c89631400988e8d4b1e3ac17dbbe3fe9 # main
+      - uses: Homebrew/actions/git-user-config@fccef3b26268fc4a788fd7ad7c189f3a105cbf13 # main
         with:
           username: BrewTestBot
       - name: Bump casks
@@ -36,18 +44,18 @@ jobs:
           # Use livecheck + bump-cask-pr instead, and never fail the check
           # when there is simply nothing to bump.
           if [[ -n "${CASKS-}" ]]; then
-            # Explicit list (e.g. manual dispatch): bump each, continue on error.
+            # Explicit list (e.g. manual dispatch): bump each; failures stop the job.
             # Word splitting on the list is intentional.
             # shellcheck disable=SC2086
             for cask in ${CASKS}; do
               echo "==> Bumping ${cask} ..."
-              brew bump-cask-pr --no-fork "${cask}" || echo "::warning::bump failed for ${cask}"
+              brew bump-cask-pr --no-fork "${cask}"
             done
             exit 0
           fi
           echo "==> Checking for outdated casks via livecheck ..."
-          OUTDATED_JSON=$(brew livecheck --tap=thedavidweng/unsigned-tap --newer-only --extract-plist --json 2>/dev/null || echo "[]")
-          OUTDATED=$(echo "${OUTDATED_JSON}" | python3 -c "import json,sys; data=json.load(sys.stdin); print(' '.join(d.get('token','') for d in data if d.get('version',{}).get('latest') and d['version']['latest'] != d['version'].get('current')))" || true)
+          OUTDATED_JSON=$(brew livecheck --tap=thedavidweng/unsigned-tap --newer-only --extract-plist --json)
+          OUTDATED=$(echo "${OUTDATED_JSON}" | python3 -c "import json,sys; data=json.load(sys.stdin); print(' '.join(d.get('token','') for d in data if d.get('version',{}).get('latest') and d['version']['latest'] != d['version'].get('current')))")
           if [[ -z "${OUTDATED// /}" ]]; then
             echo "No outdated casks found."
             exit 0
@@ -57,5 +65,5 @@ jobs:
           # shellcheck disable=SC2086
           for cask in ${OUTDATED}; do
             echo "==> Bumping ${cask} ..."
-            brew bump-cask-pr --no-fork "${cask}" || echo "::warning::bump failed for ${cask}"
+            brew bump-cask-pr --no-fork "${cask}"
           done
