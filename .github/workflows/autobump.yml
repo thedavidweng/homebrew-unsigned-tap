@@ -52,21 +52,39 @@ jobs:
             CASK_ARGS+=(--tap=thedavidweng/unsigned-tap)
           fi
           echo "==> Checking for outdated casks via livecheck ..."
-          brew livecheck "${CASK_ARGS[@]}" --newer-only --extract-plist --json > outdated-casks.json
+          for architecture in arm intel; do
+            brew ruby -e 'require "dev-cmd/livecheck"; require "simulate_system"; Homebrew::SimulateSystem.with(arch: ARGV.shift.to_sym) { Homebrew::DevCmd::LivecheckCmd.new(ARGV).run }' \
+              -- "${architecture}" "${CASK_ARGS[@]}" --newer-only --extract-plist --json > "outdated-casks-${architecture}.json"
+          done
           OUTDATED=$(python3 -c '
           import json,sys
-          data=json.load(sys.stdin)
-          for d in data:
-              if d.get("status") == "error":
-                  sys.exit(json.dumps(d))
-          print("\n".join(d["cask"]+"\t"+d["version"]["latest"] for d in data if "version" in d and d["version"]["outdated"]))
-          ' < outdated-casks.json)
+          data={arch:json.load(open("outdated-casks-"+arch+".json")) for arch in ("arm","intel")}
+          with open("outdated-casks.json","w") as evidence:
+              json.dump(data,evidence,indent=2)
+          versions={}
+          for arch,results in data.items():
+              for d in results:
+                  if d.get("status") == "error":
+                      sys.exit(json.dumps(d))
+                  if "version" in d and d["version"]["outdated"]:
+                      versions.setdefault(d["cask"],{})[arch]=d["version"]["latest"]
+          for cask,latest in sorted(versions.items()):
+              if len(latest)==2 and latest["arm"]==latest["intel"]:
+                  version_args=["--version="+latest["arm"]]
+                  branch_version=latest["arm"]
+              else:
+                  version_args=["--version-"+arch+"="+version for arch,version in latest.items()]
+                  branch_version=latest["arm"] if "arm" in latest else latest["intel"]
+                  if len(latest)==1:
+                      branch_version+="-"+next(iter(latest))+"-only"
+              print(cask+"\t"+branch_version+"\t"+" ".join(version_args))
+          ')
           if [[ -z "${OUTDATED// /}" ]]; then
             echo "No outdated casks found."
             exit 0
           fi
           echo "Outdated: ${OUTDATED}"
-          while IFS=$'\t' read -r cask version; do
+          while IFS=$'\t' read -r cask version version_args; do
             BUMP_BRANCH="bump-${cask}-${version//[,:]/-}"
             EXISTING_PR=$(gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
               -f state=open -f base="${DEFAULT_BRANCH}" \
@@ -78,7 +96,8 @@ jobs:
               continue
             fi
             echo "==> Bumping ${cask} to ${version} ..."
-            brew bump-cask-pr --no-fork --version="${version}" "thedavidweng/unsigned-tap/${cask}"
+            read -r -a BUMP_ARGS <<< "${version_args}"
+            brew bump-cask-pr --no-fork "${BUMP_ARGS[@]}" "thedavidweng/unsigned-tap/${cask}"
           done <<< "${OUTDATED}"
 
       - name: Retain livecheck evidence
