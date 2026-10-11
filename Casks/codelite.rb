@@ -37,14 +37,7 @@ cask "codelite" do
       sha256 "395e227230446d8274767ef274f67a7ca087da2af1b61366b0548259b7949a11"
 
       livecheck do
-        url "https://downloads.codelite.org/"
-        regex(/CodeLite\s*(\d+\.\d+)((?:\.\d+)*)\s*-\s*(?:Latest|Stable)/i)
-        strategy :page_match do |page, regex|
-          match = page.match(regex)
-          next if match.blank?
-
-          "#{match[1]}#{match[2].presence || ".0"}"
-        end
+        skip "Latest release page does not identify a matching macOS versioned artifact"
       end
     end
   end
