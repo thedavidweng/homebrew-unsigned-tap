@@ -5,7 +5,7 @@ cask "mysqlworkbench" do
   url "https://cdn.mysql.com/Downloads/MySQLGUITools/mysql-workbench-#{version}-macos-arm64.dmg"
   name "MySQL Workbench"
   desc "Visual tool to design, develop and administer MySQL servers"
-  homepage "https://dev.mysql.com/downloads/workbench/"
+  homepage "https://github.com/mysql/mysql-shell-plugins"
 
   livecheck do
     url "https://dev.mysql.com/downloads/workbench/?tpl=platform&os=33",
@@ -15,7 +15,7 @@ cask "mysqlworkbench" do
 
   conflicts_with cask: "mysqlworkbench@legacy"
   depends_on arch: :arm64
-  depends_on macos: :sonoma
+  depends_on macos: :monterey
 
   app "MySQL Workbench.app"
 
@@ -31,4 +31,8 @@ cask "mysqlworkbench" do
     "~/Library/Preferences/com.oracle.mysqlworkbench.plist",
     "~/Library/Saved Application State/com.oracle.mysqlworkbench.savedState",
   ]
+
+  caveats do
+    "Oracle lists macOS 14 or later as supported for this release; the binary minimum is macOS 12."
+  end
 end
