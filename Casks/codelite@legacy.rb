@@ -50,6 +50,7 @@ cask "codelite@legacy" do
   end
 
   conflicts_with cask: "codelite"
+  depends_on :macos
 
   app "codelite.app"
 
