@@ -9,12 +9,12 @@ cask "unity-android-support-for-editor" do
 
   livecheck do
     url "https://services.api.unity.com/unity/editor/release/v1/releases?platform=MAC_OS&stream=SUPPORTED&architecture=ARM64&limit=1&offset=0"
-    regex(%r{/(\h+)/MacEditorTargetInstaller/UnitySetup-Android-Support-for-Editor[._-]v?(\d+(?:\.\d+)+(?:f\d+)?)\.pkg}i)
+    regex(%r{/(\h+)/MacEditorTargetInstaller/UnitySetup-Android-Support-for-Editor-(\d+(?:\.\d+)+(?:f\d+)?)\.pkg}i)
     strategy :json do |json, regex|
       json["results"].flat_map do |release|
         release["downloads"].flat_map do |download|
           download["modules"].filter_map do |mod|
-            next unless mod["id"] == "android"
+            next if mod["id"] != "android"
 
             match = mod["url"].match(regex)
             "#{match[2]},#{match[1]}" if match
