@@ -8,8 +8,9 @@ cask "rocks-n-diamonds" do
   homepage "https://www.artsoft.org/rocksndiamonds/"
 
   livecheck do
-    url "https://www.artsoft.org/rocksndiamonds/download/"
-    regex(/href=["'][^"']*rocksndiamonds[._-]v?(\d+(?:\.\d+)+)-mac\.dmg["']/i)
+    url "https://github.com/ArtsoftEntertainment/rocksndiamonds.git"
+    regex(/^(\d+(?:\.\d+){3})$/i)
+    strategy :git
   end
 
   depends_on :macos
