@@ -1,13 +1,13 @@
 cask "macstroke" do
-  version "2.0.5"
-  sha256 "113116367df18a2d3278d9540afdb0476f6b45dd6fbd09a565c9c038bb5e1a88"
+  version "3.0.2"
+  sha256 "8ee585d7529073e1736c1c2c22104805ec112a47e218630e177c0795b519f64b"
 
   url "https://github.com/mtjo/MacStroke/releases/download/#{version}/MacStroke.zip"
   name "MacStroke"
   desc "Configurable global mouse gestures"
   homepage "https://github.com/mtjo/MacStroke/"
 
-  depends_on :macos
+  depends_on macos: :ventura
 
   app "MacStroke.app"
 
