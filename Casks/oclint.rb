@@ -1,4 +1,6 @@
 cask "oclint" do
+  minimum_macos = :monterey
+
   arch arm: "arm64", intel: "x86_64"
 
   on_sonoma :or_older do
@@ -15,8 +17,6 @@ cask "oclint" do
     livecheck do
       skip "Legacy Monterey-to-Sonoma packages are pinned; newer ARM packages use the maintained channel"
     end
-
-    depends_on macos: :monterey
   end
   on_sequoia :or_newer do
     version "24.11,16.0.5,15.1.1,16.1"
@@ -40,18 +40,21 @@ cask "oclint" do
     end
 
     depends_on arch: :arm64
-    depends_on macos: :sequoia
+    minimum_macos = :sequoia
+  end
+  on_macos do
+    binary "oclint-#{version.csv.first}/bin/oclint-json-compilation-database"
+    binary "oclint-#{version.csv.first}/bin/oclint-xcodebuild"
+    binary "oclint-#{version.csv.first}/bin/oclint"
+    binary "oclint-#{version.csv.first}/lib/clang", target: "#{HOMEBREW_PREFIX}/lib/clang"
+    binary "oclint-#{version.csv.first}/lib/oclint", target: "#{HOMEBREW_PREFIX}/lib/oclint"
   end
 
   name "OCLint"
   desc "Static source code analysis tool"
   homepage "https://github.com/oclint/oclint/"
 
-  binary "oclint-#{version.csv.first}/bin/oclint-json-compilation-database"
-  binary "oclint-#{version.csv.first}/bin/oclint-xcodebuild"
-  binary "oclint-#{version.csv.first}/bin/oclint"
-  binary "oclint-#{version.csv.first}/lib/clang", target: "#{HOMEBREW_PREFIX}/lib/clang"
-  binary "oclint-#{version.csv.first}/lib/oclint", target: "#{HOMEBREW_PREFIX}/lib/oclint"
+  depends_on macos: minimum_macos
 
   # No zap stanza required
 
