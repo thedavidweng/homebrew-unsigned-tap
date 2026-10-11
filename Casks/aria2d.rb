@@ -1,17 +1,15 @@
 cask "aria2d" do
-  version "1.4.2,484"
+  version "1.4.2"
   sha256 "5ca7e037d934eac8d6b545db375e23fec1cbfacd99705f0b8d08eb0f98643e17"
 
-  url "https://github.com/xjbeta/Aria2D/releases/download/#{version.csv.first}/Aria2D.zip"
+  url "https://github.com/xjbeta/Aria2D/releases/download/#{version}/Aria2D.zip"
   name "Aria2D"
   desc "Aria2 GUI"
   homepage "https://github.com/xjbeta/Aria2D"
 
   livecheck do
     url "https://raw.githubusercontent.com/xjbeta/AppUpdaterAppcasts/master/Aria2D/Appcast.xml"
-    strategy :sparkle do |items|
-      items.map(&:nice_version)
-    end
+    strategy :sparkle, &:short_version
   end
 
   depends_on macos: :monterey
