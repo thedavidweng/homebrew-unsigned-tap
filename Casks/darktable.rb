@@ -18,8 +18,7 @@ cask "darktable" do
   homepage "https://www.darktable.org/"
 
   livecheck do
-    url "https://www.darktable.org/install/"
-    regex(/href=.*?darktable[._-]v?(\d+(?:\.\d+)+)[._-]#{arch}\.dmg/i)
+    skip "Upstream no longer publishes Intel macOS binaries; shared-version updates require both architectures"
   end
 
   depends_on :macos
