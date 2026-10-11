@@ -8,14 +8,26 @@ cask "dosbox-x-app" do
   url "https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v#{version.csv.first}/dosbox-x-macosx-#{arch}-#{version.csv.second || version.csv.first}.zip"
   name "DOSBox-X"
   desc "Fork of the DOSBox project"
-  homepage "https://dosbox-x.com/"
+  homepage "https://github.com/joncampbell123/dosbox-x"
 
   livecheck do
-    url :homepage
-    regex(%r{href=.*?v?(\d+(?:\.\d+)+)/dosbox-x-macosx?-#{arch}[._-]v?(\d+(?:\.\d+)+)\.zip}i)
-    strategy :page_match do |page, regex|
-      page.scan(regex).map do |match|
-        (match[0] == match[1]) ? match[0] : "#{match[0]},#{match[1]}"
+    url :url
+    regex(/^dosbox-x-v?(\d+(?:\.\d+)+)$/i)
+    strategy :github_releases do |json, regex|
+      file_regex = /^dosbox-x-macosx?-#{arch}[._-]v?(\d+(?:\.\d+)+)\.zip$/i
+
+      json.filter_map do |release|
+        next if release["draft"] || release["prerelease"]
+
+        tag_match = release["tag_name"].match(regex)
+        next unless tag_match
+
+        asset = release["assets"].find { |item| item["name"].match?(file_regex) }
+        next unless asset
+
+        file_version = asset["name"].match(file_regex)[1]
+        tag_version = tag_match[1]
+        (tag_version == file_version) ? tag_version : "#{tag_version},#{file_version}"
       end
     end
   end
