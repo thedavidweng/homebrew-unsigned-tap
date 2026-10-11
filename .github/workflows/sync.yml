@@ -44,14 +44,15 @@ jobs:
         run: |
           set -euo pipefail
           SRC_CASK_DIR=/tmp/homebrew-cask/Casks python3 scripts/sync_disabled_casks.py
-          new_casks=()
-          while IFS= read -r path; do
-            new_casks+=("$path")
-          done < <(git ls-files --others --exclude-standard Casks/)
-          if [[ ${#new_casks[@]} -eq 0 ]]; then
+          new_paths=$(git ls-files --others --exclude-standard Casks/)
+          if [[ -z "$new_paths" ]]; then
             echo "No new disabled casks"
             exit 0
           fi
+          new_casks=()
+          while IFS= read -r path; do
+            new_casks+=("$path")
+          done <<< "$new_paths"
           python3 scripts/fix_quarantine_targets.py "${new_casks[@]}"
           python3 scripts/drop_noop_quarantine_step.py "${new_casks[@]}"
           brew style --fix "${new_casks[@]}"
@@ -65,7 +66,10 @@ jobs:
           # push 前用 GITHUB_TOKEN 重写 origin，保证认证一定存在。
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push --force-with-lease origin "$branch"
-          existing_pr=$(gh pr list --head "$branch" --base main --state open --json url --jq '.[].url')
+          existing_pr=$(gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
+            -f state=open -f base=main -f head="${GITHUB_REPOSITORY_OWNER}:${branch}" \
+            | jq -r --arg repo "$GITHUB_REPOSITORY" \
+              '.[] | select(.head.repo.full_name == $repo) | .html_url')
           if [[ -n "$existing_pr" ]]; then
             echo "Updated existing sync PR: $existing_pr"
           else
