@@ -5,7 +5,7 @@ cask "mysqlworkbench" do
   url "https://cdn.mysql.com/Downloads/MySQLGUITools/mysql-workbench-#{version}-macos-arm64.dmg"
   name "MySQL Workbench"
   desc "Visual tool to design, develop and administer MySQL servers"
-  homepage "https://www.mysql.com/products/workbench/"
+  homepage "https://dev.mysql.com/downloads/workbench/"
 
   livecheck do
     url "https://dev.mysql.com/downloads/workbench/?tpl=platform&os=33",
