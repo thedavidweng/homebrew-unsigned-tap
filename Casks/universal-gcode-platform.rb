@@ -1,9 +1,9 @@
 cask "universal-gcode-platform" do
   arch arm: "aarch64", intel: "x64"
 
-  version "2.1.26"
-  sha256 arm:   "14dece222cc60495edb7bcde64a8af21ad821bad25f79bfd60af0f0b1a4d3847",
-         intel: "1d298e446123caf654e23fe155c73eb17e5bc80a073d58544aace61615e5fa30"
+  version "2.1.27"
+  sha256 arm:   "19c0dbc7db1c3f5572c78500e1cf1d58291b18d268b0d4519f993f40cea8416f",
+         intel: "2205da00008f5c836e8a54e28bc63b1f481aca9003abfa784b6b347ad546da9b"
 
   url "https://github.com/winder/Universal-G-Code-Sender/releases/download/v#{version}/macosx-#{arch}-ugs-platform-app-#{version}.dmg"
   name "Universal G-code Sender (Platform version)"
