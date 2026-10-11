@@ -40,7 +40,7 @@ cask "mysqlworkbench@legacy" do
 
   name "MySQL Workbench"
   desc "Visual tool to design, develop and administer MySQL servers"
-  homepage "https://www.mysql.com/products/workbench/"
+  homepage "https://dev.mysql.com/downloads/workbench/"
 
   conflicts_with cask: "mysqlworkbench"
   depends_on :macos
