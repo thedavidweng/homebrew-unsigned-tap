@@ -1,11 +1,12 @@
 cask "oscar" do
   arch arm: "ARM", intel: "Intel"
+  url_start = on_arch_conditional arm: "OSCAR-", intel: "oscar20_"
 
-  version "2.0.1"
-  sha256 arm:   "78cd674ba7755ddcf505dd870c6e1d366c6e658a57482d91593eb191e611c769",
-         intel: "b44aedb2855583457985fd9fc4467983254a24ce51bfb43134e72be64e12194e"
+  version "2.1.0"
+  sha256 arm:   "84abe85da8b75d2ea66840c3c8cbc43547f14420f062d79efa07e4e81fd8f296",
+         intel: "6201904ce62ed05e223c3bd205c7bd3c16806af2ed0acb852124a7c78830a5b6"
 
-  url "https://www.sleepfiles.com/OSCAR/#{version}/OSCAR#{version.major_minor.no_dots}-#{version}-#{arch}.dmg"
+  url "https://www.sleepfiles.com/OSCAR/#{version.major_minor}/#{url_start}#{version}-#{arch}.dmg"
   name "OSCAR"
   desc "CPAP Analysis Reporter"
   homepage "https://www.sleepfiles.com/OSCAR/"
@@ -15,14 +16,10 @@ cask "oscar" do
     regex(%r{href=.*?/OSCAR.*?v?(\d+(?:\.\d+)+)(?:[._-]#{arch})?\.dmg}i)
   end
 
-  depends_on macos: :ventura
+  depends_on macos: :sonoma
 
-  app "OSCAR#{version.major_minor.no_dots}.app"
+  app "OSCAR20.app"
 
-  # The installed name embeds a de-dotted major.minor
-  # (`OSCAR#{version.major_minor.no_dots}.app`), which a steps block cannot
-  # interpolate. Match the stable prefix instead; a steps block may only take
-  # literal arguments, so the glob is resolved by /bin/sh.
   postflight_steps do
     run "/bin/sh", args: ["-c", 'xattr -rd com.apple.quarantine "$1"/OSCAR*.app', "sh", "{{appdir}}"]
   end
@@ -31,4 +28,11 @@ cask "oscar" do
     "~/Library/Preferences/org.oscar-team.OSCAR*.plist",
     "~/Library/Saved Application State/org.oscar-team.OSCAR.savedState",
   ]
+
+  caveats do
+    <<~EOS
+      OSCAR requires macOS 14.4 or later.
+      The publisher recommends macOS 15.7 or later on Intel Macs.
+    EOS
+  end
 end

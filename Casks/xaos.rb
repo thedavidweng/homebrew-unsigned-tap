@@ -10,6 +10,13 @@ cask "xaos" do
   livecheck do
     url :url
     regex(/^release[._-]v?(\d+(?:\.\d+)+)$/i)
+    strategy :github_releases do |json, regex|
+      json.reject { |release| release["draft"] || release["prerelease"] }.filter_map do |release|
+        next unless release["assets"].any? { |asset| asset["name"] == "XaoS.dmg" }
+
+        release["tag_name"][regex, 1]
+      end
+    end
   end
 
   depends_on macos: :ventura
