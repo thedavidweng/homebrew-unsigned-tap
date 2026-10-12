@@ -18,7 +18,7 @@ cask "chromedriver@beta" do
   end
 
   conflicts_with cask: "chromedriver"
-  depends_on :macos
+  depends_on macos: ">= :ventura"
 
   binary "chromedriver-mac-#{arch}/chromedriver"
 
