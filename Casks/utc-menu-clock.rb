@@ -1,6 +1,6 @@
 cask "utc-menu-clock" do
-  version "1.5"
-  sha256 "3caf9c44e65fe93da7083b58bb792974c44d9c6d12b934d19370b0003305bf87"
+  version "1.6"
+  sha256 "8d8446c98cbee454b3960e4f598122719861fa463eb5265793a6a9b75fe56385"
 
   url "https://github.com/netik/UTCMenuClock/raw/master/downloads/UTCMenuClock_v#{version}_universal.zip"
   name "UTCMenuClock"
