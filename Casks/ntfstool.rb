@@ -7,6 +7,10 @@ cask "ntfstool" do
   desc "Utility that provides NTFS read and write support"
   homepage "https://github.com/ntfstool/ntfstool"
 
+  livecheck do
+    skip "Open-source 3.5.1 edition is pinned; newer closed-source releases are not included"
+  end
+
   auto_updates true
   depends_on :macos
 
