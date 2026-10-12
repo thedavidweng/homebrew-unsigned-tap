@@ -12,7 +12,7 @@ cask "operadriver" do
     regex(/^v?\.?(\d+(?:\.\d+)+)$/i)
   end
 
-  depends_on macos: ">= :ventura"
+  depends_on macos: :ventura
 
   binary "operadriver_mac64/operadriver"
 
