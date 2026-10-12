@@ -1,14 +1,20 @@
 cask "mindforger" do
-  version "2.0.0-20240217.170738,5152"
-  sha256 "8fa3b483ad8a0b6dea49a6e227d87922504de101d4f0c80c8c3310149925b423"
+  version "2.5.0,20260926.191335"
+  sha256 "4b01c0e84a8d1aea7b94348d39142620bae982af3bf9c97dda55543453bbfa89"
 
-  url "https://github.com/dvorka/mindforger/releases/download/#{version.csv.first.split("-").first}/mindforger-#{version.csv.first}-qt#{version.csv.second}-intel.dmg"
+  url "https://github.com/dvorka/mindforger/releases/download/#{version.csv.first}/mindforger-#{version.csv.first}-#{version.csv.second}-intel.dmg"
   name "MindForger"
   desc "Thinking notebook and Markdown IDE"
   homepage "https://www.mindforger.com/"
 
   livecheck do
-    skip "macOS asset naming changed; package URL and checksum migration requires manual review"
+    url :url
+    regex(/^mindforger[._-]v?(\d+(?:\.\d+)+)[._-](\d{8}\.\d{6})[._-]intel\.dmg$/i)
+    strategy :github_releases do |releases, regex|
+      releases.reject { |release| release["draft"] || release["prerelease"] }.flat_map do |release|
+        release["assets"].flat_map { |asset| asset["name"].scan(regex).map { |match| match.join(",") } }
+      end
+    end
   end
 
   depends_on :macos
