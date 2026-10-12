@@ -1,21 +1,21 @@
 cask "treesheets" do
-  version "3333"
-  sha256 "4f4a05011d3d3c0256d3f97bee49a28c1bd6a4e7253cb296b6f73f392695e90e"
+  version "2.8.1"
+  sha256 "14cf370beb9859b2a0049381c9710dfdde456748c3cc0b963eb075480172a065"
 
-  url "https://github.com/aardappel/treesheets/releases/download/#{version.csv.second || version.csv.first}/TreeSheets-#{version.csv.first}-Darwin.dmg"
+  url "https://github.com/aardappel/treesheets/releases/download/v#{version}/TreeSheets-#{version}-Darwin.dmg"
   name "TreeSheets"
   desc "Hierarchical spreadsheet and outline application"
   homepage "https://strlen.com/treesheets/"
 
   livecheck do
     url :url
-    regex(%r{/v?(\d+(?:\.\d+)*)/TreeSheets[._-]v?(\d+(?:\.\d+)*)(?:[._-]Darwin)?\.dmg$}i)
+    regex(/TreeSheets[._-]v?(\d+(?:\.\d+)*)[._-]Darwin\.dmg$/i)
     strategy :github_latest do |json, regex|
       json["assets"]&.map do |asset|
         match = asset["browser_download_url"]&.match(regex)
         next if match.blank?
 
-        (match[2] == match[1]) ? match[1] : "#{match[2]},#{match[1]}"
+        match[1]
       end
     end
   end
