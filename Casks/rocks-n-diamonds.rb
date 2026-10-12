@@ -1,15 +1,16 @@
 cask "rocks-n-diamonds" do
-  version "4.3.2.1"
-  sha256 "6499fe6382eec6506cc625b0f372a29918640cfb6ebdca3ee3e6b97d83ff458c"
+  version "4.4.2.4"
+  sha256 "03a334a6617f14dd2c980c3cb7e82779cd90dbbb8d08cce4850ed2f8d1ef67ef"
 
-  url "https://www.artsoft.org/RELEASES/mac/rocksndiamonds/rocksndiamonds-#{version}.dmg"
+  url "https://www.artsoft.org/RELEASES/mac/rocksndiamonds/rocksndiamonds-#{version}-mac.dmg"
   name "Rocks'n'Diamonds"
   desc "Arcade-style game"
   homepage "https://www.artsoft.org/rocksndiamonds/"
 
   livecheck do
-    url "https://www.artsoft.org/RELEASES/mac/rocksndiamonds/"
-    regex(/href=.*?rocksndiamonds[._-]?v?(\d+(?:\.\d+)+)\.dmg/i)
+    url "https://github.com/ArtsoftEntertainment/rocksndiamonds.git"
+    regex(/^(\d+(?:\.\d+){3})$/i)
+    strategy :git
   end
 
   depends_on :macos
@@ -26,8 +27,4 @@ cask "rocks-n-diamonds" do
     "~/Documents/Rocks'n'Diamonds",
     "~/Library/Saved Application State/org.artsoft.rocksndiamonds.savedState",
   ]
-
-  caveats do
-    requires_rosetta
-  end
 end
