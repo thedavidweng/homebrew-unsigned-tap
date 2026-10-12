@@ -1,61 +1,38 @@
 cask "mysqlworkbench" do
-  arch arm: "arm64", intel: "x86_64"
+  version "26.7.0"
+  sha256 "063cd888335ba81343092f9fe6568c786f02aa9e82fb1752688738d534fb2004"
 
-  on_monterey :or_older do
-    on_big_sur :or_older do
-      version "8.0.31"
-      sha256 "6807ac1138c424c57d7e912c08301a838a90935dd0fc7a5658d3ded23f98a865"
-
-      url "https://downloads.mysql.com/archives/get/p/#{version.major}/file/mysql-workbench-community-#{version}-macos-x86_64.dmg",
-          user_agent: :curl
-
-      caveats do
-        requires_rosetta
-      end
-    end
-    on_monterey do
-      version "8.0.34"
-      sha256 arm:   "aea67c39354d76c38f2e9aca4390dbe4f75ecc3f12110ff598bf2fc46f48bf8c",
-             intel: "9fba65a06db4c67e353014b49c41d7cd0e915dd6584df43d6cb099f38cf841e2"
-
-      url "https://downloads.mysql.com/archives/get/p/#{version.major}/file/mysql-workbench-community-#{version}-macos-#{arch}.dmg",
-          user_agent: :curl
-    end
-
-    livecheck do
-      skip "Legacy version"
-    end
-  end
-  on_ventura :or_newer do
-    version "8.0.47"
-    sha256 arm:   "90b177034b3e2c64b822f44920cb11996ec1323f4c49e2fa0224748103fb4844",
-           intel: "9fb82446b8c89a5326f9c4b2ab59ab6ac76b389713f1f13553743f34952639a8"
-
-    url "https://cdn.mysql.com/Downloads/MySQLGUITools/mysql-workbench-community-#{version}-macos-#{arch}.dmg"
-
-    livecheck do
-      skip "Upstream version page blocks automated requests; manual verification required"
-    end
-  end
-
+  url "https://cdn.mysql.com/Downloads/MySQLGUITools/mysql-workbench-#{version}-macos-arm64.dmg"
   name "MySQL Workbench"
   desc "Visual tool to design, develop and administer MySQL servers"
-  homepage "https://www.mysql.com/products/workbench/"
+  homepage "https://github.com/mysql/mysql-shell-plugins"
 
-  depends_on :macos
+  livecheck do
+    url "https://dev.mysql.com/downloads/workbench/?tpl=platform&os=33",
+        user_agent: :curl
+    regex(/mysql[._-]workbench[._-]v?(\d+(?:\.\d+)+)[._-]macos[._-]arm64\.dmg/i)
+  end
 
-  app "MySQLWorkbench.app"
+  conflicts_with cask: "mysqlworkbench@legacy"
+  depends_on arch: :arm64
+  depends_on macos: :monterey
+
+  app "MySQL Workbench.app"
 
   postflight_steps do
     run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/MySQLWorkbench.app"],
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/MySQL Workbench.app"],
         must_succeed: false
   end
 
   zap trash: [
-    "~/Library/Application Support/MySQL/Workbench",
-    "~/Library/Caches/com.oracle.workbench.MySQLWorkbench",
-    "~/Library/Preferences/com.oracle.workbench.MySQLWorkbench.plist",
-    "~/Library/Saved Application State/com.oracle.workbench.MySQLWorkbench.savedState",
+    "~/Library/Application Support/MySQL Workbench",
+    "~/Library/Caches/com.oracle.mysqlworkbench",
+    "~/Library/Preferences/com.oracle.mysqlworkbench.plist",
+    "~/Library/Saved Application State/com.oracle.mysqlworkbench.savedState",
   ]
+
+  caveats do
+    "Oracle lists macOS 14 or later as supported for this release; the binary minimum is macOS 12."
+  end
 end
