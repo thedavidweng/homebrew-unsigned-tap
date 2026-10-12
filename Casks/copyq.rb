@@ -1,16 +1,9 @@
 cask "copyq" do
-  arch arm: "12-m1", intel: "13"
+  arch arm: "13-m1", intel: "13"
 
-  version "16.0.0"
-  sha256 arm:   "57563fb2ca24751974c35b744ca7ea2c5c171bc5c00f59b3c8379912876ae4b1",
-         intel: "817a35cc5e143207496d78ccc0d8dd62a9858fece8099d1f4591d00b24dbca27"
-
-  on_arm do
-    depends_on macos: :monterey
-  end
-  on_intel do
-    depends_on macos: :ventura
-  end
+  version "17.0.0"
+  sha256 arm:   "d14ceb215821be1d127a4153f27b914b41d542749d92beb21e9446896db89346",
+         intel: "ab5b10a799741fd6c750ba5ef8dd9c6d8ff8804ff8d93a68d3facf3150f0a6b8"
 
   url "https://github.com/hluk/CopyQ/releases/download/v#{version}/CopyQ-#{version}-macos-#{arch}.dmg"
   name "CopyQ"
@@ -22,7 +15,7 @@ cask "copyq" do
     strategy :github_latest
   end
 
-  depends_on :macos
+  depends_on macos: :ventura
 
   app "CopyQ.app"
 

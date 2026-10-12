@@ -1,8 +1,11 @@
 cask "pyfa" do
-  version "2.68.0"
-  sha256 "12b5cea9fac84e05c4e6329399a650e6c78e9cced8b79eb73669e0805143ab77"
+  arch arm: "arm64", intel: "x86_64"
 
-  url "https://github.com/pyfa-org/Pyfa/releases/download/v#{version}/pyfa-v#{version}-mac.zip"
+  version "2.69.2"
+  sha256 arm:   "a6c669ff75b7ec2c09616fe408ecec65938c2392e4235a9adb021bf3224507bf",
+         intel: "768c0f48e9218b917cac5a0ed3c37c47eae6cdfb724b7dfd902755134fe11ce7"
+
+  url "https://github.com/pyfa-org/Pyfa/releases/download/v#{version}/pyfa-v#{version}-mac-#{arch}.zip"
   name "pyfa"
   desc "Fitting tool for EVE Online"
   homepage "https://github.com/pyfa-org/Pyfa"
@@ -27,8 +30,4 @@ cask "pyfa" do
     "~/Library/Preferences/org.pyfaorg.pyfa.plist",
     "~/Library/Saved Application State/org.pyfaorg.pyfa.savedState",
   ]
-
-  caveats do
-    requires_rosetta
-  end
 end
