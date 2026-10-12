@@ -1,22 +1,18 @@
 cask "openrgb" do
   arch arm: "ARM64", intel: "Intel"
 
-  version "1.0rc3,6fbcf62"
-  sha256 arm:   "d90ec7045a54acfeb00b230ce5c173eb915234e032f9c9c98f1a5172dc7d1746",
-         intel: "050222f6a0740977980e59dd849182180faa6c6a8f19ffe4ea51a98451415c20"
+  version "1.0,81bbe18"
+  sha256 arm:   "ee5e5da7cfa5d79b6604b81d791e3a7a7f2941025ca5de59d974d7a04d498be0",
+         intel: "65e9c704eb0fd4ff941c08b183123fe7f9376ca82b5e2ae1f164abe55214fec8"
 
-  # TODO: Remove the `candidate` part of this url when updating to the next
-  # stable version, so we only match stable versions going forward.
-  url "https://codeberg.org/OpenRGB/OpenRGB/releases/download/release_candidate_#{version.csv.first}/OpenRGB_#{version.csv.first}_MacOS_#{arch}_#{version.csv.second}.zip"
+  url "https://codeberg.org/OpenRGB/OpenRGB/releases/download/release_#{version.csv.first}/OpenRGB_#{version.csv.first}_MacOS_#{arch}_#{version.csv.second}.zip"
   name "OpenRGB"
   desc "Open source RGB lighting control that doesn't depend on manufacturer software"
   homepage "https://openrgb.org/"
 
-  # TODO: Remove the `(?:rc\d*)?` part of this regex when updating to the next
-  # stable version, so we only match stable versions going forward.
   livecheck do
     url "https://openrgb.org/releases.html"
-    regex(/href=.*?OpenRGB[._-]v?(\d+(?:\.\d+)+(?:rc\d*)?)[._-]MacOS[._-]#{arch}[._-](\h+)\.zip/i)
+    regex(/href=.*?OpenRGB[._-]v?(\d+(?:\.\d+)+)[._-]MacOS[._-]#{arch}[._-](\h+)\.zip/i)
     strategy :page_match do |page, regex|
       page.scan(regex).map { |match| "#{match[0]},#{match[1]}" }
     end
