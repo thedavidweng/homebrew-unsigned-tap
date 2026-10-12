@@ -1,20 +1,25 @@
 cask "aptible" do
-  version "0.26.8,20260608224702,gh-89"
-  sha256 "0abe0783430ea31172064535eb9a79bd3ecbab1f4a4aacb59f257eee251ef554"
+  arch arm: "arm64", intel: "amd64"
 
-  url "https://omnibus-aptible-toolbelt.s3.amazonaws.com/aptible/omnibus-aptible-toolbelt/master/#{version.csv.third}/pkg/aptible-toolbelt-#{version.csv.first}%2B#{version.csv.second}-mac-os-x.10.15.7-1.pkg"
+  version "1.0.3"
+  sha256 arm:   "f6f9967313476d6d1542c2aed7fdea12e6556b411df32627c14ef2a0436a15ee",
+         intel: "50ed2ec14eae0c4f2a7c214be5e5361091dca2458ab80d4d92b4187ad77b37e9"
+
+  url "https://omnibus-aptible-toolbelt.s3.amazonaws.com/release/aptible-cli-go/aptible-cli-go_#{version}_darwin_#{arch}.pkg"
   name "Aptible Toolbelt"
   desc "Command-line tool for Aptible Deploy, an audit-ready App Deployment Platform"
   homepage "https://www.aptible.com/docs/reference/aptible-cli/overview"
 
   livecheck do
-    skip "Upstream documentation no longer publishes the macOS package version list"
+    url :homepage
+    regex(%r{/release/aptible-cli-go/aptible-cli-go[._-]v?(\d+(?:\.\d+)+)_darwin[._-]arm64\.pkg}i)
   end
 
+  conflicts_with cask: "aptible@legacy"
   depends_on formula: "libfido2"
-  depends_on :macos
+  depends_on macos: :monterey
 
-  pkg "aptible-toolbelt-#{version.csv.first}+#{version.csv.second}-mac-os-x.10.15.7-1.pkg"
+  pkg "aptible-cli-go_#{version}_darwin_#{arch}.pkg"
 
   uninstall pkgutil: "com.aptible.toolbelt"
 
