@@ -8,11 +8,10 @@ cask "ntfstool" do
   homepage "https://github.com/ntfstool/ntfstool"
 
   livecheck do
-    skip "Open-source 3.5.1 edition is pinned; use ntfstool-commercial for maintained closed-source releases"
+    skip "Open-source 3.5.1 edition is pinned; newer closed-source releases are not included"
   end
 
   auto_updates true
-  conflicts_with cask: "ntfstool-commercial"
   depends_on :macos
 
   app "Ntfstool.app"
