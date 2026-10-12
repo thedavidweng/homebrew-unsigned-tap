@@ -1,30 +1,47 @@
 cask "xpra" do
   arch arm: "arm64", intel: "x86_64"
 
-  sha256 arm:   "b7ea123c84d5348812262c7898e73a50831751fc63b6b3b4e72b97833135e65e",
-         intel: "b7093666863a366391e699bede3a24d1e0280f31039d89779955c0277072fdd3"
-
   on_arm do
     version "6.5.4,0"
+    sha256 "b7ea123c84d5348812262c7898e73a50831751fc63b6b3b4e72b97833135e65e"
+    livecheck do
+      url "https://xpra.org/dists/MacOS/#{arch}/"
+      regex(/href=.*?Xpra-#{arch}[._-]v?(\d+(?:\.\d+)+)(?:[._-]r(\d+))?\.dmg/i)
+      strategy :page_match do |page, regex|
+        page.scan(regex).map do |match|
+          match[1] ? "#{match[0]},#{match[1]}" : match[0]
+        end
+      end
+    end
   end
   on_intel do
-    version "6.5.4,0"
+    on_sonoma :or_older do
+      version "6.5.3,0"
+      sha256 "5bfaff0d6e7f6d107f8be676fdb5497f101446deed74d4a797db5fe8394af529"
+
+      livecheck do
+        skip "Legacy Intel release for macOS Sonoma and older"
+      end
+    end
+    on_sequoia :or_newer do
+      version "6.5.4,0"
+      sha256 "b7093666863a366391e699bede3a24d1e0280f31039d89779955c0277072fdd3"
+      livecheck do
+        url "https://xpra.org/dists/MacOS/#{arch}/"
+        regex(/href=.*?Xpra-#{arch}[._-]v?(\d+(?:\.\d+)+)(?:[._-]r(\d+))?\.dmg/i)
+        strategy :page_match do |page, regex|
+          page.scan(regex).map do |match|
+            match[1] ? "#{match[0]},#{match[1]}" : match[0]
+          end
+        end
+      end
+    end
   end
 
   url "https://xpra.org/dists/MacOS/#{arch}/Xpra-#{arch}-#{version.csv.first}-r#{version.csv.second}.dmg"
   name "Xpra"
   desc "Screen and application forwarding system"
   homepage "https://github.com/Xpra-org/xpra/"
-
-  livecheck do
-    url "https://xpra.org/dists/MacOS/#{arch}/"
-    regex(/href=.*?Xpra-#{arch}[._-]v?(\d+(?:\.\d+)+)(?:[._-]r(\d+))?\.dmg/i)
-    strategy :page_match do |page, regex|
-      page.scan(regex).map do |match|
-        match[1] ? "#{match[0]},#{match[1]}" : match[0]
-      end
-    end
-  end
 
   depends_on macos: :monterey
 
