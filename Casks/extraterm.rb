@@ -9,7 +9,12 @@ cask "extraterm" do
 
   livecheck do
     url :url
-    strategy :github_latest
+    regex(/^ExtratermQt[._-]v?(\d+(?:\.\d+)+)\.dmg$/i)
+    strategy :github_releases do |releases, regex|
+      releases.reject { |release| release["draft"] || release["prerelease"] }.flat_map do |release|
+        release["assets"].filter_map { |asset| asset["name"][regex, 1] }
+      end
+    end
   end
 
   depends_on :macos

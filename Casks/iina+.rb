@@ -1,8 +1,8 @@
 cask "iina+" do
-  version "0.8.30"
-  sha256 "408ca29f3f4a1da6f1033721750eecdb1bbdee81030ad84772a8d635d76c0627"
+  version "0.8.34"
+  sha256 "2e108f92c7ecf10f0c773bec0f8b76b4bb0dca65b7b024c556a4146d0b650f70"
 
-  url "https://github.com/xjbeta/iina-plus/releases/download/#{version}/IINA+.#{version}.dmg"
+  url "https://github.com/xjbeta/iina-plus/releases/download/#{version}/IINA+.#{version}.zip"
   name "IINA+"
   desc "Extra danmaku support for iina (iina 弹幕支持)"
   homepage "https://github.com/xjbeta/iina-plus"
@@ -24,4 +24,8 @@ cask "iina+" do
     "~/Library/Preferences/com.xjbeta.iina-plus.plist",
     "~/Library/WebKit/com.xjbeta.iina-plus",
   ]
+
+  caveats do
+    "This IINA+ binary requires macOS 13.5 or later."
+  end
 end
