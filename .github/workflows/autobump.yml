@@ -19,6 +19,7 @@ concurrency:
 jobs:
   autobump:
     permissions:
+      actions: write
       contents: write
       pull-requests: write
     timeout-minutes: 60
@@ -26,6 +27,9 @@ jobs:
       HOMEBREW_DEVELOPER: 1
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: Homebrew/actions/setup-homebrew@e99025eb970cfa124b8284a35463d87426917478 # 2026.09.28.1
         with:
           core: true
@@ -37,6 +41,8 @@ jobs:
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CASKS: ${{ inputs.casks }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
           CASK_ARGS=()
@@ -50,23 +56,22 @@ jobs:
             CASK_ARGS+=(--tap=thedavidweng/unsigned-tap)
           fi
           echo "==> Checking for outdated casks via livecheck ..."
-          brew livecheck "${CASK_ARGS[@]}" --newer-only --extract-plist --json > outdated-casks.json
-          OUTDATED=$(python3 -c '
-          import json,sys
-          data=json.load(sys.stdin)
-          for d in data:
-              if d.get("status") == "error":
-                  sys.exit(json.dumps(d))
-          print("\n".join(d["cask"]+"\t"+d["version"]["latest"] for d in data if "version" in d and d["version"]["outdated"]))
-          ' < outdated-casks.json)
+          for architecture in arm intel; do
+            brew ruby -e 'require "dev-cmd/livecheck"; require "simulate_system"; Homebrew::SimulateSystem.with(arch: ARGV.shift.to_sym) { Homebrew::DevCmd::LivecheckCmd.new(ARGV).run }' \
+              -- "${architecture}" "${CASK_ARGS[@]}" --newer-only --extract-plist --json > "outdated-casks-${architecture}.json"
+          done
+          OUTDATED=$(python3 "$GITHUB_WORKSPACE/scripts/autobump.py" plan)
           if [[ -z "${OUTDATED// /}" ]]; then
             echo "No outdated casks found."
             exit 0
           fi
           echo "Outdated: ${OUTDATED}"
-          while IFS=$'\t' read -r cask version; do
-            echo "==> Bumping ${cask} to ${version} ..."
-            brew bump-cask-pr --no-fork --version="${version}" "thedavidweng/unsigned-tap/${cask}"
+          gh auth setup-git
+          gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
+            -f state=open -f base="${DEFAULT_BRANCH}" --paginate --slurp | jq add > open-cask-prs.json
+          while IFS=$'\t' read -r cask _version version_args; do
+            read -r -a BUMP_ARGS <<< "${version_args}"
+            python3 "$GITHUB_WORKSPACE/scripts/autobump.py" bump "$cask" "${BUMP_ARGS[@]}"
           done <<< "${OUTDATED}"
 
       - name: Retain livecheck evidence
