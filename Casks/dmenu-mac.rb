@@ -10,17 +10,17 @@ cask "dmenu-mac" do
   on_ventura :or_newer do
     version "0.8.0"
     sha256 "e922338acc509a35882026fb66f6b94679e588cd867fa4eb5729420b6c59a8b0"
+
+    livecheck do
+      url :url
+      strategy :github_latest
+    end
   end
 
   url "https://github.com/oNaiPs/dmenu-mac/releases/download/#{version}/dmenu-mac.zip"
   name "dmenu-mac"
   desc "Keyboard-only application launcher"
   homepage "https://github.com/oNaiPs/dmenu-mac"
-
-  livecheck do
-    url :url
-    strategy :github_latest
-  end
 
   depends_on :macos
 
