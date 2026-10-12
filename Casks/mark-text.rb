@@ -1,14 +1,19 @@
 cask "mark-text" do
   arch arm: "arm64", intel: "x64"
 
-  version "0.19.1"
-  sha256 arm:   "f5a8630b4ec14f7bf1120a7a17a1ed397430d30c57f2c6c2c6a39410417f66ce",
-         intel: "d1831a5dce3d957d26dcf9710869f4b7e1df1bc9c2dcd0cb6539e29e96f71779"
+  version "0.21.2"
+  sha256 arm:   "6c07b697ba3262e8b130ab3ee85bdc621077cf4035c8cc339098cdb2892142c1",
+         intel: "597e09bd3d350e1535fb5df00e59e328fb618aac915e19db8e00ed6e4f2e800a"
 
   url "https://github.com/marktext/marktext/releases/download/v#{version}/marktext-mac-#{arch}-#{version}.dmg"
   name "MarkText"
   desc "Markdown editor"
   homepage "https://github.com/marktext/marktext"
+
+  livecheck do
+    url :url
+    strategy :github_latest
+  end
 
   auto_updates true
   depends_on macos: :monterey

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Sync disabled casks (fails_gatekeeper_check) from Homebrew/homebrew-cask
-into this tap, stripping disable! and injecting quarantine removal.
+Import new disabled casks (fails_gatekeeper_check) from Homebrew/homebrew-cask
+into this tap, preserving existing maintained definitions.
 """
 import pathlib, re, sys
 
@@ -176,9 +176,7 @@ def sync_all(limit_files=None, dry_run=False):
     src_files = sorted(SRC_CASK_DIR.rglob("*.rb"))
     disabled = []
     for p in src_files:
-        try:
-            txt = p.read_text()
-        except: continue
+        txt = p.read_text()
         if "fails_gatekeeper_check" in txt:
             disabled.append(p)
 
@@ -196,6 +194,9 @@ def sync_all(limit_files=None, dry_run=False):
         if src.stem in DEAD_CASKS:
             continue
         dest = DEST_CASK_DIR / src.name
+        if dest.exists():
+            print(f"Retained maintained cask {dest.name}")
+            continue
         text = src.read_text()
         new_text = transform_content(text)
         if dry_run:
