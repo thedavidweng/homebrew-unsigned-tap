@@ -15,7 +15,7 @@ cask "pktriot" do
     regex(/href=.*?pktriot[._-](\d+(?:\.\d+)+)[._-]macos[._-]?#{arch}\.(?:t|zip)/i)
   end
 
-  depends_on macos: ">= :ventura"
+  depends_on macos: :ventura
 
   binary "pktriot-#{version}/pktriot"
 
