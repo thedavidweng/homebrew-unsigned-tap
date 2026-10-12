@@ -1,9 +1,9 @@
 cask "forkgram" do
   arch arm: "arm64", intel: "x86"
 
-  version "7.1.3"
-  sha256 arm:   "17426a3b813c37941f69c0d29c901237848acfe033d92846f06be968f97d00bb",
-         intel: "2904089155278d8d370d6a7f186addec2ff535e9671a9340b06f37e8055dc859"
+  version "7.3.1"
+  sha256 arm:   "8e798755049d131f6ea0378c1b2e365a534199da575610d44d342ee88049d48d",
+         intel: "075c44e39a4c5faf08fe5aa95dba8b86b3c40b9cde40500b7302b079796cd41d"
 
   url "https://github.com/Forkgram/tdesktop/releases/download/v#{version}/Forkgram.macOS.no.auto-update_#{arch}.zip"
   name "Forkgram"
@@ -30,7 +30,8 @@ cask "forkgram" do
     end
   end
 
-  depends_on :macos
+  conflicts_with cask: "forkgram@legacy"
+  depends_on macos: :monterey
 
   app "Forkgram.app"
 
