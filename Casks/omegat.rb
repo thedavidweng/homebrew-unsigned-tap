@@ -9,6 +9,7 @@ cask "omegat" do
 
   livecheck do
     url "https://sourceforge.net/projects/omegat/rss?path=/OmegaT%20-%20Standard"
+    regex(/OmegaT[._-]v?(\d+(?:\.\d+)+)_Mac\.zip/i)
   end
 
   conflicts_with cask: "omegat@latest"
