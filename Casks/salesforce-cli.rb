@@ -19,7 +19,7 @@ cask "salesforce-cli" do
     end
   end
 
-  depends_on :macos
+  depends_on macos: ">= :ventura"
 
   pkg "sf-v#{version.csv.first}-#{version.csv.second}-#{arch}.pkg"
 
