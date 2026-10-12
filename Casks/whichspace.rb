@@ -8,8 +8,8 @@ cask "whichspace" do
   homepage "https://github.com/gechr/WhichSpace"
 
   livecheck do
-    url "https://raw.githubusercontent.com/gechr/WhichSpace/updates/appcast.xml"
-    strategy :sparkle
+    url :url
+    strategy :github_latest
   end
 
   auto_updates true
