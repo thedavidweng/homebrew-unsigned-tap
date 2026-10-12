@@ -14,6 +14,12 @@ def run(*args):
     subprocess.run(args, check=True)
 
 
+def verify_head(repo, branch, cask):
+    run("gh", "workflow", "run", "ci.yml", "--repo", repo, "--ref", branch,
+        "-f", "casks=" + cask, "-f", "skip_install=true")
+    run("gh", "workflow", "run", "workflow-lint.yml", "--repo", repo, "--ref", branch)
+
+
 def plan(data):
     versions = {}
     for arch, results in data.items():
@@ -111,14 +117,19 @@ def bump(cask, version, args, prs, repo, default_branch):
             if rows:
                 run("gh", "pr", "edit", str(pr["number"]), "--repo", repo, "--title", cask + " " + version)
             # GITHUB_TOKEN pushes need explicit workflows to verify the refreshed head.
-            run("gh", "workflow", "run", "ci.yml", "--repo", repo, "--ref", branch,
-                "-f", "casks=" + cask, "-f", "skip_install=true")
-            run("gh", "workflow", "run", "workflow-lint.yml", "--repo", repo, "--ref", branch)
+            verify_head(repo, branch, cask)
         print(f"Checked existing PR #{pr['number']} for {cask}: {sorted(scope)}")
         run("git", "checkout", default_branch)
     if uncovered:
         new_args = args if uncovered == architectures else ["--version-" + arch + "=" + versions[arch] for arch in sorted(uncovered)]
         run("brew", "bump-cask-pr", "--no-fork", *new_args, qualified)
+        pages = json.loads(output("gh", "api", f"repos/{repo}/pulls", "--method", "GET",
+                                  "-f", "state=open", "-f", "base=" + default_branch, "--paginate", "--slurp"))
+        created, remaining = pending_prs(cask, [pr for page in pages for pr in page], repo, tap, default_branch, uncovered)
+        if remaining:
+            raise ValueError(f"No created update PR covers {cask}: {sorted(remaining)}")
+        for pr, scope in created:
+            verify_head(repo, pr["head"]["ref"], cask)
 
 
 if __name__ == "__main__":
