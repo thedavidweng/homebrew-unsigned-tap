@@ -43,6 +43,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Test cask maintenance scripts
+        run: python3 -m unittest discover -s tests -v
       - name: Generate matrix
         id: generate-matrix
         env:
