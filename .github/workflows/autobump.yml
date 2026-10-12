@@ -69,9 +69,9 @@ jobs:
           gh auth setup-git
           gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
             -f state=open -f base="${DEFAULT_BRANCH}" --paginate --slurp | jq add > open-cask-prs.json
-          while IFS=$'\t' read -r cask version version_args; do
+          while IFS=$'\t' read -r cask _version version_args; do
             read -r -a BUMP_ARGS <<< "${version_args}"
-            python3 "$GITHUB_WORKSPACE/scripts/autobump.py" bump "$cask" "$version" "${BUMP_ARGS[@]}"
+            python3 "$GITHUB_WORKSPACE/scripts/autobump.py" bump "$cask" "${BUMP_ARGS[@]}"
           done <<< "${OUTDATED}"
 
       - name: Retain livecheck evidence

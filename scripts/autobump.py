@@ -83,7 +83,7 @@ def pending_prs(cask, prs, repo, tap, default_branch, architectures):
     return pending, architectures - covered
 
 
-def bump(cask, version, args, prs, repo, default_branch):
+def bump(cask, args, prs, repo, default_branch):
     qualified = "thedavidweng/unsigned-tap/" + cask
     tap = output("brew", "--repository", "thedavidweng/unsigned-tap").strip()
     versions = ({arch: args[0].split("=", 1)[1] for arch in ("arm", "intel")}
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         for cask, version, args in plan(data):
             print(cask + "\t" + version + "\t" + " ".join(args))
     elif sys.argv[1] == "bump":
-        bump(sys.argv[2], sys.argv[3], sys.argv[4:], json.loads(Path("open-cask-prs.json").read_text()),
+        bump(sys.argv[2], sys.argv[3:], json.loads(Path("open-cask-prs.json").read_text()),
              os.environ["GITHUB_REPOSITORY"], os.environ["DEFAULT_BRANCH"])
     else:
         raise ValueError("Expected plan or bump")

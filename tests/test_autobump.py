@@ -77,7 +77,7 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "output", side_effect=["/tap", json.dumps([[pr()]])])
     @patch.object(autobump, "pending_prs", side_effect=[([], {"arm", "intel"}), ([(pr(), {"arm", "intel"})], set())])
     def test_fresh_candidate_dispatches_checks(self, pending, output, run, chdir):
-        autobump.bump("sample", "2.0", ["--version=2.0"], [], REPO, "main")
+        autobump.bump("sample", ["--version=2.0"], [], REPO, "main")
         calls = [c.args for c in run.call_args_list]
         self.assertIn(("brew", "bump-cask-pr", "--no-fork", "--version=2.0", "thedavidweng/unsigned-tap/sample"), calls)
         self.assertIn(("gh", "workflow", "run", "ci.yml", "--repo", REPO, "--ref", "bump-sample-1.0", "-f", "casks=sample", "-f", "skip_install=true"), calls)
@@ -88,7 +88,7 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "pending_prs", side_effect=[([(pr(), {"arm"})], {"intel"}), ([(pr(2, "bump-sample-intel"), {"intel"})], set())])
     def test_refresh_dispatches_new_head_and_keeps_uncovered_intel_version(self, pending, output, run, chdir):
         output.side_effect = ["/tap", "old-head", json.dumps(result("4.0")), "new-head", json.dumps([[pr(2, "bump-sample-intel")]])]
-        autobump.bump("sample", "3.0", ["--version-arm=3.0", "--version-intel=2.0"], [], REPO, "main")
+        autobump.bump("sample", ["--version-arm=3.0", "--version-intel=2.0"], [], REPO, "main")
         calls = [c.args for c in run.call_args_list]
         self.assertIn(("brew", "bump-cask-pr", "--write-only", "--commit", "--version-arm=4.0", "thedavidweng/unsigned-tap/sample"), calls)
         self.assertIn(("brew", "bump-cask-pr", "--no-fork", "--version-intel=2.0", "thedavidweng/unsigned-tap/sample"), calls)
@@ -102,7 +102,7 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "pending_prs", return_value=([(pr(), {"arm"})], set()))
     def test_unchanged_pending_head_does_not_push_or_create_pr(self, pending, output, run, chdir):
         output.side_effect = ["/tap", "same-head", json.dumps(result("2.0", False)), "same-head"]
-        autobump.bump("sample", "2.0", ["--version-arm=2.0"], [], REPO, "main")
+        autobump.bump("sample", ["--version-arm=2.0"], [], REPO, "main")
         self.assertFalse(any(c.args[0] in ("brew", "gh") or c.args[:2] == ("git", "push") for c in run.call_args_list))
 
     @patch.object(autobump.os, "chdir")
@@ -112,7 +112,7 @@ class AutobumpTests(unittest.TestCase):
     def test_livecheck_failure_does_not_push(self, pending, output, run, chdir):
         output.side_effect = ["/tap", "old-head", json.dumps([{"status": "error"}])]
         with self.assertRaises(ValueError):
-            autobump.bump("sample", "2.0", ["--version-arm=2.0"], [], REPO, "main")
+            autobump.bump("sample", ["--version-arm=2.0"], [], REPO, "main")
         self.assertFalse(any(c.args[:2] == ("git", "push") for c in run.call_args_list))
 
 
