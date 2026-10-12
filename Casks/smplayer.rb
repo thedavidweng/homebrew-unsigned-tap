@@ -1,8 +1,11 @@
 cask "smplayer" do
-  version "25.6.0"
-  sha256 "de88cc07f128f4e99cb36fa0dc5ae38dea261e4d8f51cd0235eca427cb23672e"
+  arch arm: "arm64", intel: "x86_64"
 
-  url "https://github.com/smplayer-dev/smplayer/releases/download/v#{version}/smplayer-#{version}.dmg"
+  version "26.8.29"
+  sha256 arm:   "2fcbe6045c26d43ee25da58b539cc941430f05af499eef02df157c19d732659f",
+         intel: "f2b0eae87cd5462135da680b7222161b8f409f8afa6512e507f6ca6ea5ddf65e"
+
+  url "https://github.com/smplayer-dev/smplayer/releases/download/v#{version}/smplayer-#{version}-#{arch}-qt5.dmg"
   name "SMPlayer"
   desc "Media player with built-in codecs"
   homepage "https://www.smplayer.info/"
@@ -26,8 +29,4 @@ cask "smplayer" do
     "~/Library/Preferences/info.smplayer.SMPlayer.plist",
     "~/Library/Saved Application State/info.smplayer.SMPlayer.savedState",
   ]
-
-  caveats do
-    requires_rosetta
-  end
 end

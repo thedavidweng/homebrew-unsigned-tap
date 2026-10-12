@@ -1,6 +1,6 @@
 cask "leocad" do
-  version "25.09"
-  sha256 "6e4664f6d5a9c2ffe3855c2bfcdffc32f666efe759076d976818b28a911eb9d8"
+  version "26.09"
+  sha256 "ff11940f01ed171165927dbe69c3e38fe04a8a7127c7176fd25e7e76303cae97"
 
   url "https://github.com/leozide/leocad/releases/download/v#{version}/LeoCAD-macOS-#{version}.dmg"
   name "LeoCAD"
@@ -22,8 +22,4 @@ cask "leocad" do
     "~/Library/Preferences/org.leocad.LeoCAD.plist",
     "~/Library/Saved Application State/org.leozide.LeoCAD.savedState",
   ]
-
-  caveats do
-    requires_rosetta
-  end
 end
