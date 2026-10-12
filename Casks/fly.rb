@@ -10,7 +10,7 @@ cask "fly" do
   desc "Official CLI tool for Concourse CI"
   homepage "https://github.com/concourse/concourse"
 
-  depends_on :macos
+  depends_on macos: ">= :ventura"
 
   binary "fly"
 
