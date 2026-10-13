@@ -8,7 +8,7 @@ cask "tales-of-majeyal" do
   homepage "https://te4.org/"
 
   livecheck do
-    url "https://te4.org/download"
+    url "https://te4.org/download", user_agent: :browser
     regex(/href=.*?t-engine4[._-]osx[._-]v?(\d+(?:\.\d+)+)\.zip/i)
   end
 
