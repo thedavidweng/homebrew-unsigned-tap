@@ -2,8 +2,8 @@ cask "xpra" do
   arch arm: "arm64", intel: "x86_64"
 
   on_arm do
-    version "6.5.4,0"
-    sha256 "b7ea123c84d5348812262c7898e73a50831751fc63b6b3b4e72b97833135e65e"
+    version "6.5.5,0"
+    sha256 "b98262da8c3a74234d755123b064200f737c11c720a5d6380ab638bb1f309af0"
     livecheck do
       url "https://xpra.org/dists/MacOS/#{arch}/"
       regex(/href=.*?Xpra-#{arch}[._-]v?(\d+(?:\.\d+)+)(?:[._-]r(\d+))?\.dmg/i)
