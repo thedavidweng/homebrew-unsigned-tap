@@ -7,6 +7,19 @@ cask "whoozle-android-file-transfer" do
   desc "Android File Transfer for Linux"
   homepage "https://whoozle.github.io/android-file-transfer-linux/"
 
+  livecheck do
+    url :url
+    regex(/^v?(\d+(?:\.\d+)+)$/i)
+    strategy :github_releases do |json, regex|
+      json.filter_map do |release|
+        next if release["draft"] || release["prerelease"]
+        next unless release["assets"].any? { |asset| asset["name"] == "AndroidFileTransferForLinux.dmg" }
+
+        release["tag_name"][regex, 1]
+      end
+    end
+  end
+
   depends_on :macos
 
   app "Android File Transfer for Linux.app"
