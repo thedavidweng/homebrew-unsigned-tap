@@ -13,27 +13,40 @@ cask "cockatrice" do
       requires_rosetta
     end
   end
+  on_monterey :or_older do
+    # Renamed for consistency with the current release.
+    app "cockatrice.app", target: "Cockatrice.app"
+  end
   on_ventura :or_newer do
-    version "3.0.2,2026-06-26,Graduation-Day,3.0.2"
+    on_arm do
+      on_ventura do
+        version "3.1.1,2026-10-10,Reality-Check,3.1.1"
+        sha256 "4ff6498a42ea4b9bd37e7ab36f5d07076e3fa322ae9c3b1e44448789b52f82d5"
 
-    on_ventura do
-      sha256 "4137a2021c97ef47f514b44898bc3897c1448698962dcad1f4d8482632e57bb8"
+        url "https://github.com/Cockatrice/Cockatrice/releases/download/#{version.csv.second}-Release-#{version.csv.first}/Cockatrice-#{version.csv.third}-#{version.csv.fourth}-macOS13_Intel.dmg"
 
-      url "https://github.com/Cockatrice/Cockatrice/releases/download/#{version.csv.second}-Release-#{version.csv.first}/Cockatrice-#{version.csv.third}-#{version.csv.fourth}-macOS13_Intel.dmg"
+        caveats do
+          requires_rosetta
+        end
+      end
+      on_sonoma do
+        version "3.1.1,2026-10-10,Reality-Check,3.1.1"
+        sha256 "4f48059bc823542c4282d6397ac4cec6ec9b1f3dc68615d36f5ded05771a5cec"
 
-      caveats do
-        requires_rosetta
+        url "https://github.com/Cockatrice/Cockatrice/releases/download/#{version.csv.second}-Release-#{version.csv.first}/Cockatrice-#{version.csv.third}-#{version.csv.fourth}-macOS14.dmg"
+      end
+      on_sequoia :or_newer do
+        version "3.1.1,2026-10-10,Reality-Check,3.1.1"
+        sha256 "b7460d315d28c533670db41341b367c3900b33368d80ff1cc887d308c37076f7"
+
+        url "https://github.com/Cockatrice/Cockatrice/releases/download/#{version.csv.second}-Release-#{version.csv.first}/Cockatrice-#{version.csv.third}-#{version.csv.fourth}-macOS15.dmg"
       end
     end
-    on_sonoma do
-      sha256 "53bc76f1e0291af6e53c6989c6811561a7fe3f64aea574e4826ae00e370da98d"
+    on_intel do
+      version "3.1.1,2026-10-10,Reality-Check,3.1.1"
+      sha256 "4ff6498a42ea4b9bd37e7ab36f5d07076e3fa322ae9c3b1e44448789b52f82d5"
 
-      url "https://github.com/Cockatrice/Cockatrice/releases/download/#{version.csv.second}-Release-#{version.csv.first}/Cockatrice-#{version.csv.third}-#{version.csv.fourth}-macOS14.dmg"
-    end
-    on_sequoia :or_newer do
-      sha256 "51705bcd11211ab1beb19ebb41931e64c16c1f2ec8d530473de57fdc0a9b764b"
-
-      url "https://github.com/Cockatrice/Cockatrice/releases/download/#{version.csv.second}-Release-#{version.csv.first}/Cockatrice-#{version.csv.third}-#{version.csv.fourth}-macOS15.dmg"
+      url "https://github.com/Cockatrice/Cockatrice/releases/download/#{version.csv.second}-Release-#{version.csv.first}/Cockatrice-#{version.csv.third}-#{version.csv.fourth}-macOS13_Intel.dmg"
     end
 
     livecheck do
@@ -49,6 +62,25 @@ cask "cockatrice" do
       end
     end
   end
+  on_ventura :or_newer do
+    on_arm do
+      on_ventura do
+        depends_on macos: :ventura
+      end
+      on_sonoma do
+        depends_on macos: :sonoma
+      end
+      on_sequoia :or_newer do
+        depends_on macos: :sequoia
+      end
+    end
+    on_intel do
+      depends_on macos: :ventura
+    end
+  end
+  on_ventura :or_newer do
+    app "Cockatrice.app"
+  end
 
   name "Cockatrice"
   desc "Virtual tabletop for multiplayer card games"
@@ -56,13 +88,12 @@ cask "cockatrice" do
 
   depends_on :macos
 
-  app "cockatrice.app"
   app "oracle.app"
   app "servatrice.app"
 
   postflight_steps do
     run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/cockatrice.app"],
+        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Cockatrice.app"],
         must_succeed: false
     run "/usr/bin/xattr",
         args:         ["-rd", "com.apple.quarantine", "{{appdir}}/oracle.app"],
