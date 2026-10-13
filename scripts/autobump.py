@@ -125,7 +125,24 @@ def bump(cask, args, prs, repo, default_branch):
         print(f"Checked existing PR #{pr['number']} for {cask}: {sorted(scope)}")
         run("git", "checkout", default_branch)
     if uncovered:
-        new_args = args if uncovered == architectures else ["--version-" + arch + "=" + versions[arch] for arch in sorted(uncovered)]
+        run("git", "fetch", "origin", default_branch)
+        run("git", "checkout", default_branch)
+        run("git", "merge", "--ff-only", "origin/" + default_branch)
+        data = {}
+        for arch in ("arm", "intel"):
+            if arch not in uncovered:
+                continue
+            data[arch] = json.loads(output(
+                "brew", "ruby", "-e",
+                'require "dev-cmd/livecheck"; require "simulate_system"; Homebrew::SimulateSystem.with(arch: ARGV.shift.to_sym) { Homebrew::DevCmd::LivecheckCmd.new(ARGV).run }',
+                "--", arch, qualified, "--newer-only", "--extract-plist", "--json"))
+        rows = plan(data)
+        if not rows:
+            print(f"No remaining update for {cask} on latest {default_branch}")
+            return
+        token, _version, new_args = rows[0]
+        assert len(rows) == 1 and token == cask
+        uncovered = {arch for arch, results in data.items() if plan({arch: results})}
         run("brew", "bump-cask-pr", "--no-fork", *new_args, qualified)
         pages = json.loads(output("gh", "api", f"repos/{repo}/pulls", "--method", "GET",
                                   "-f", "state=open", "-f", "base=" + default_branch, "--paginate", "--slurp"))
