@@ -1,6 +1,6 @@
 cask "operadriver" do
-  version "150.0.7871.212"
-  sha256 "6e11b896cbd19848717847792e90dd0600b5cb69aec93dc187480bedd14016be"
+  version "153.0.8010.55"
+  sha256 "c7cf02b4628903457b2540a61b8e743822bcc3d927d5f75424fe456d0deb9495"
 
   url "https://github.com/operasoftware/operachromiumdriver/releases/download/v.#{version}/operadriver_mac64.zip"
   name "OperaChromiumDriver"
@@ -12,7 +12,7 @@ cask "operadriver" do
     regex(/^v?\.?(\d+(?:\.\d+)+)$/i)
   end
 
-  depends_on :macos
+  depends_on macos: :ventura
 
   binary "operadriver_mac64/operadriver"
 

@@ -1,9 +1,9 @@
 cask "lemonlime" do
   arch arm: "arm64", intel: "x86_64"
 
-  version "0.3.6.2,6.9.3"
-  sha256 arm:   "165c2f8268041f473c035493c3e5403c01e82ce22eb38fcfa3befa0017944ca1",
-         intel: "4eeb11cf7c7a039959e5e30bf4f2a97522ed0ca70eceb2d4296039903f52059d"
+  version "0.3.7,6.12.0"
+  sha256 arm:   "2e2345c97d629f8ae18607a77fa987961f8c8a14de9d71911523cfb4d92526fb",
+         intel: "b68a24a76780cc445988ea72a3504ebe29318ddb990e4d0deba7c1dc77b605b5"
 
   url "https://github.com/Project-LemonLime/Project_LemonLime/releases/download/#{version.csv.first}/lemon-Qt#{version.csv.second}-Release-#{arch}.dmg"
   name "lemonlime"

@@ -74,7 +74,7 @@ class AutobumpTests(unittest.TestCase):
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
-    @patch.object(autobump, "output", side_effect=["/tap", json.dumps([[pr()]])])
+    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0")), json.dumps(result("2.0")), json.dumps([[pr()]])])
     @patch.object(autobump, "pending_prs", side_effect=[([], {"arm", "intel"}), ([(pr(), {"arm", "intel"})], set())])
     def test_fresh_candidate_dispatches_checks(self, pending, output, run, chdir):
         autobump.bump("sample", ["--version=2.0"], [], REPO, "main")
@@ -87,7 +87,7 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "output")
     @patch.object(autobump, "pending_prs", side_effect=[([(pr(), {"arm"})], {"intel"}), ([(pr(2, "bump-sample-intel"), {"intel"})], set())])
     def test_refresh_dispatches_new_head_and_keeps_uncovered_intel_version(self, pending, output, run, chdir):
-        output.side_effect = ["/tap", "old-head", json.dumps(result("4.0")), "new-head", json.dumps([[pr(2, "bump-sample-intel")]])]
+        output.side_effect = ["/tap", "old-head", json.dumps(result("4.0")), "new-head", json.dumps(result("2.0")), json.dumps([[pr(2, "bump-sample-intel")]])]
         autobump.bump("sample", ["--version-arm=3.0", "--version-intel=2.0"], [], REPO, "main")
         calls = [c.args for c in run.call_args_list]
         self.assertIn(("brew", "bump-cask-pr", "--write-only", "--commit", "--version-arm=4.0", "thedavidweng/unsigned-tap/sample"), calls)
@@ -95,6 +95,26 @@ class AutobumpTests(unittest.TestCase):
         self.assertIn(("gh", "workflow", "run", "ci.yml", "--repo", REPO, "--ref", "bump-sample-1.0", "-f", "casks=sample", "-f", "skip_install=true"), calls)
         self.assertIn(("gh", "workflow", "run", "ci.yml", "--repo", REPO, "--ref", "bump-sample-intel", "-f", "casks=sample", "-f", "skip_install=true"), calls)
         self.assertFalse(any("--force" in c for c in calls))
+
+    @patch.object(autobump.os, "chdir")
+    @patch.object(autobump, "run")
+    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)), json.dumps(result("2.0", False))])
+    @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
+    def test_update_merged_during_scan_does_not_create_duplicate(self, pending, output, run, chdir):
+        autobump.bump("sample", ["--version=2.0"], [], REPO, "main")
+        calls = [c.args for c in run.call_args_list]
+        self.assertIn(("git", "merge", "--ff-only", "origin/main"), calls)
+        self.assertFalse(any(c[0] in ("brew", "gh") for c in calls))
+
+    @patch.object(autobump.os, "chdir")
+    @patch.object(autobump, "run")
+    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("3.0")), json.dumps(result("2.0", False)), json.dumps([[pr()]])])
+    @patch.object(autobump, "pending_prs", side_effect=[([], {"arm", "intel"}), ([(pr(), {"arm"})], set())])
+    def test_fresh_release_and_architecture_replace_stale_scan_versions(self, pending, output, run, chdir):
+        autobump.bump("sample", ["--version=2.0"], [], REPO, "main")
+        calls = [c.args for c in run.call_args_list]
+        self.assertIn(("brew", "bump-cask-pr", "--no-fork", "--version-arm=3.0", "thedavidweng/unsigned-tap/sample"), calls)
+        self.assertEqual(pending.call_args_list[-1].args[-1], {"arm"})
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
@@ -114,6 +134,34 @@ class AutobumpTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             autobump.bump("sample", ["--version-arm=2.0"], [], REPO, "main")
         self.assertFalse(any(c.args[:2] == ("git", "push") for c in run.call_args_list))
+
+
+class ChannelCoverageTests(unittest.TestCase):
+    BASE = 'cask "sample" do\n  version "1.0"\n  sha256 "' + "a" * 64 + '"\n  url "https://example.com/#{version}.zip"\nend'
+
+    def coverage(self, head):
+        def execute(*args):
+            if args[0] == "brew":
+                # Reproduce the macOS 26 runner even on a newer development host.
+                script = args[3].replace("< MacOS.version", '< MacOSVersion.new("26")')
+                return autobump.subprocess.check_output((*args[:3], script, *args[4:]), text=True)
+            if args[3] == "merge-base":
+                return "base"
+            return self.BASE if args[4].startswith("base:") else head
+        with patch.object(autobump, "run"), patch.object(autobump, "output", side_effect=execute):
+            return autobump.channel_coverage(pr(), "sample", "/tap", "main")
+
+    def test_future_arm_update_is_pending_on_tahoe_runner(self):
+        head = self.BASE.replace("\nend", '\n  on_arm do\n    on_golden_gate :or_newer do\n      version "2.0"\n    end\n  end\nend')
+        self.assertEqual(self.coverage(head), {"arm"})
+
+    def test_intel_pin_is_covered_even_when_version_is_unchanged(self):
+        head = self.BASE.replace("\nend", '\n  on_intel do\n    livecheck do\n      skip "Last Intel release"\n    end\n  end\nend')
+        self.assertEqual(self.coverage(head), {"intel"})
+
+    def test_old_os_only_update_stays_separate(self):
+        head = self.BASE.replace("\nend", '\n  on_monterey :or_older do\n    version "2.0"\n  end\nend')
+        self.assertEqual(self.coverage(head), set())
 
 
 if __name__ == "__main__":
