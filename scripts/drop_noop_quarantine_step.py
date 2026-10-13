@@ -48,7 +48,7 @@ QUARANTINE_BLOCK = re.compile(
 )
 
 # Artifact stanzas, at any indentation.
-ARTIFACT = re.compile(r"^[ ]{0,4}(?P<kind>app|app_image|pkg|binary|artifact|installer|suite|command_wrapper|generated_script|stage_only)\b", re.M)
+ARTIFACT = re.compile(r"^[ ]+(?P<kind>app|app_image|pkg|binary|artifact|installer|suite|screen_saver|colorpicker|service|audio_unit_plugin|vst_plugin|vst3_plugin|prefpane|qlplugin|dictionary|font|input_method|internet_plugin|mdimporter|command_wrapper|generated_script|stage_only)\b", re.M)
 
 
 def artifact_kinds(text):
@@ -56,9 +56,9 @@ def artifact_kinds(text):
 
 
 def needs_step(text):
-    """True when a `binary` or `app` artifact makes the step meaningful."""
+    """Keep the step unless every artifact is a package or installer."""
     kinds = artifact_kinds(text)
-    return bool(kinds & {"binary", "app"})
+    return not kinds or not kinds <= {"pkg", "installer"}
 
 
 def transform(text):

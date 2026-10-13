@@ -1,0 +1,24 @@
+cask "cinder" do
+  version "0.9.3"
+  sha256 "bccb59585f22f28b300c07962e06f9c73abf7ea78839cb202821b10bc34a184c"
+
+  url "https://github.com/cinder/Cinder/releases/download/v#{version}/cinder_#{version}_mac.zip"
+  name "Cinder"
+  desc "C++ library for creative coding"
+  homepage "https://libcinder.org/"
+
+  livecheck do
+    url "https://libcinder.org/download"
+    regex(/href=.*?cinder[._-]v?(\d+(?:\.\d+)+)[._-]mac\.zip/i)
+  end
+
+  depends_on :macos
+
+  suite "cinder_#{version}_mac"
+
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
+  zap trash: "~/Library/Preferences/org.libcinder.TinderBox.plist"
+end
