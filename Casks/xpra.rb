@@ -2,14 +2,25 @@ cask "xpra" do
   arch arm: "arm64", intel: "x86_64"
 
   on_arm do
-    version "6.5.4,0"
-    sha256 "b7ea123c84d5348812262c7898e73a50831751fc63b6b3b4e72b97833135e65e"
-    livecheck do
-      url "https://xpra.org/dists/MacOS/#{arch}/"
-      regex(/href=.*?Xpra-#{arch}[._-]v?(\d+(?:\.\d+)+)(?:[._-]r(\d+))?\.dmg/i)
-      strategy :page_match do |page, regex|
-        page.scan(regex).map do |match|
-          match[1] ? "#{match[0]},#{match[1]}" : match[0]
+    on_sonoma :or_older do
+      version "6.5.4,0"
+      sha256 "b7ea123c84d5348812262c7898e73a50831751fc63b6b3b4e72b97833135e65e"
+
+      livecheck do
+        skip "Legacy ARM release for macOS Sonoma and older"
+      end
+    end
+    on_sequoia :or_newer do
+      version "6.5.5,0"
+      sha256 "b98262da8c3a74234d755123b064200f737c11c720a5d6380ab638bb1f309af0"
+
+      livecheck do
+        url "https://xpra.org/dists/MacOS/#{arch}/"
+        regex(/href=.*?Xpra-#{arch}[._-]v?(\d+(?:\.\d+)+)(?:[._-]r(\d+))?\.dmg/i)
+        strategy :page_match do |page, regex|
+          page.scan(regex).map do |match|
+            match[1] ? "#{match[0]},#{match[1]}" : match[0]
+          end
         end
       end
     end
@@ -24,8 +35,8 @@ cask "xpra" do
       end
     end
     on_sequoia :or_newer do
-      version "6.5.4,0"
-      sha256 "b7093666863a366391e699bede3a24d1e0280f31039d89779955c0277072fdd3"
+      version "6.5.5,0"
+      sha256 "da4637d6470c82dddb68c6e29695a1fc65ef68d2c472a95adaf78206362e3b1a"
       livecheck do
         url "https://xpra.org/dists/MacOS/#{arch}/"
         regex(/href=.*?Xpra-#{arch}[._-]v?(\d+(?:\.\d+)+)(?:[._-]r(\d+))?\.dmg/i)
