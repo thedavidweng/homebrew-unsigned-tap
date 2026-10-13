@@ -2,7 +2,7 @@ cask "quakespasm" do
   version "0.96.3"
   sha256 "8d5114bf8a25563c7bcdf9315acee9538281479ff34fd9c1240a6c4e4fad7df0"
 
-  url "https://netix.dl.sourceforge.net/project/quakespasm/Mac/QuakeSpasm-#{version}-osx-SDL2.zip"
+  url "https://downloads.sourceforge.net/quakespasm/Mac/QuakeSpasm-#{version}-osx-SDL2.zip"
   name "QuakeSpasm"
   desc "Engine for iD software's Quake"
   homepage "https://quakespasm.sourceforge.net/"
