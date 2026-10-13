@@ -8,8 +8,8 @@ cask "macstroke" do
     end
   end
   on_ventura :or_newer do
-    version "3.1.0"
-    sha256 "8f300f5679237ff754ae585f391ba05ab39e628bfaa5136b245d6efe8dc7e53d"
+    version "3.1.1"
+    sha256 "e566b77854d085c991062348009a5d456c652221182c99dc4eb2216b97cd708a"
 
     livecheck do
       url :url
