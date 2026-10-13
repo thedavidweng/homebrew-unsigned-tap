@@ -22,7 +22,7 @@ cask "rnnoise" do
   desc "Real-time Noise Suppression Plugin"
   homepage "https://github.com/werman/noise-suppression-for-voice"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   audio_unit_plugin "macos-rnnoise/rnnoise.component"
   vst_plugin "macos-rnnoise/vst/rnnoise_mono.vst"
