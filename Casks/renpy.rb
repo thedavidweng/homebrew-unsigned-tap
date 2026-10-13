@@ -16,6 +16,10 @@ cask "renpy" do
 
   suite "renpy-#{version}-sdk"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap trash: [
     "~/Library/RenPy",
     "~/Library/Saved Application State/org.renpy.sdk.savedState",

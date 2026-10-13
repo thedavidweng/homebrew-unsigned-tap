@@ -23,6 +23,10 @@ cask "openforis-collect" do
     ],
   }
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall quit:   "OpenForisCollect-launcher.app",
             signal: [
               ["TERM", "OpenForisCollect-launcher.app"],

@@ -11,6 +11,10 @@ cask "enigma-game" do
 
   suite "Enigma"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap trash: [
     "~/.enigmarc.xml",
     "~/Library/Application Support/Enigma",

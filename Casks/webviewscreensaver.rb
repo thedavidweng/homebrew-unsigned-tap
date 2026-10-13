@@ -16,6 +16,10 @@ cask "webviewscreensaver" do
 
   screen_saver "WebViewScreenSaver.saver"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap trash: [
     "~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Preferences/ByHost/WebViewScreenSaver.*",
     "~/Library/Preferences/ByHost/WebViewScreenSaver.*",

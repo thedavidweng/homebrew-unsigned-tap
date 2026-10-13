@@ -12,4 +12,8 @@ cask "epoch-flip-clock" do
   screen_saver "Epoch Flip Clock.saver"
 
   # No zap stanza required
+
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
 end

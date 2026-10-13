@@ -17,6 +17,10 @@ cask "dwarf-fortress-lmp" do
   # Renamed for clarity: suite name is inconsistent with branding
   suite "Lazy Mac Pack v#{version.sub("+", " ")}", target: "Dwarf Fortress LMP"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap trash: [
     "~/Library/Preferences/com.phoenix-dev.setresx.plist",
     "~/Library/Preferences/Lazy Mac Pack.plist",

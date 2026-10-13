@@ -19,6 +19,10 @@ cask "rnnoise" do
   vst_plugin "macos-rnnoise/vst/rnnoise_stereo.vst"
   vst3_plugin "macos-rnnoise/rnnoise.vst3"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap rmdir: [
     "~/Library/Audio/Plug-Ins/VST",
     "~/Library/Audio/Plug-Ins/VST3",

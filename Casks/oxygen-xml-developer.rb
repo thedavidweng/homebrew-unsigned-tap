@@ -31,6 +31,10 @@ cask "oxygen-xml-developer" do
 
   suite "Oxygen XML Developer"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap trash: "~/Library/Preferences/com.oxygenxml.developer"
 
   caveats do

@@ -21,5 +21,9 @@ cask "jameica" do
   #  Contents/MacOS directory, so mitigate it by use of `artifact`.
   artifact "jameica.app", target: "#{appdir}/jameica.app"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap trash: "~/.jameica.properties"
 end

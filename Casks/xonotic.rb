@@ -16,5 +16,9 @@ cask "xonotic" do
 
   suite "Xonotic"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap trash: "~/Library/Application Support/xonotic"
 end

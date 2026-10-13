@@ -46,6 +46,10 @@ cask "j" do
     binary "j#{version.major_minor}/bin/#{b}.command", target: b
   end
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   postflight_steps do
     # Use `readlink` to get full path of symlinked commands.
     inreplace "j{{version.major_minor}}/bin/jbrk.command", "$0", '$(/usr/bin/readlink "$0" || /bin/echo "$0")'
@@ -59,7 +63,6 @@ cask "j" do
               "{{staged_path}}/j{{version.major_minor}}/bin", base: :appdir
     inreplace "jqt.app/Contents/MacOS/apprun", %r{`dirname "\$0"`.*?/bin},
               "{{staged_path}}/j{{version.major_minor}}/bin", base: :appdir
-    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
 
   # Not actually necessary, since it would be deleted anyway.

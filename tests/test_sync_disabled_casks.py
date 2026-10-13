@@ -52,10 +52,25 @@ class SyncTests(unittest.TestCase):
         self.assertEqual({p.name for p in self.dest.iterdir()}, {"existing.rb", "fresh.rb"})
         imported = (self.dest / "fresh.rb").read_text()
         self.assertNotIn("disable!", imported)
-        self.assertIn("postflight_steps", imported)
+        self.assertIn("preflight_steps", imported)
+        self.assertNotIn("postflight_steps", imported)
         before = {p.name: p.read_bytes() for p in self.dest.iterdir()}
         self.run_sync()
         self.assertEqual({p.name: p.read_bytes() for p in self.dest.iterdir()}, before)
+
+    def test_quarantine_runs_before_moved_plugin_payload(self):
+        imported = self.module.transform_content(DISABLED.replace('app "Fresh.app"', 'screen_saver "Fresh.saver"'))
+        self.assertIn('preflight_steps do', imported)
+        self.assertNotIn('postflight_steps do', imported)
+
+    def test_merges_into_existing_preflight_without_duplicate_block(self):
+        source = DISABLED.replace('end\n', '  preflight_steps do\n    move_contents ".", "Fresh"\n  end\nend\n')
+        imported = self.module.transform_content(source)
+        self.assertEqual(imported.count('preflight_steps do'), 1)
+        self.assertIn('move_contents', imported)
+        self.assertIn('com.apple.quarantine', imported)
+        self.assertLess(imported.index('com.apple.quarantine'), imported.index('move_contents'))
+        self.assertIn('on_macos do', imported)
 
     def test_limit_does_not_overwrite_existing_definition(self):
         (self.src / "existing.rb").write_text(DISABLED.replace("fresh", "existing"))

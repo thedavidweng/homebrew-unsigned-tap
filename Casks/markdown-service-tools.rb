@@ -56,4 +56,8 @@ cask "markdown-service-tools" do
   service "MarkdownServiceTools#{version}/md - Wrap - Backticks.workflow"
   service "MarkdownServiceTools#{version}/md - Wrap - Parenthesis.workflow"
   service "MarkdownServiceTools#{version}/md - Wrap - Square Brackets.workflow"
+
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
 end

@@ -9,30 +9,18 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC_CASK_DIR = pathlib.Path(__import__("os").environ.get("SRC_CASK_DIR", str(pathlib.Path.home() / "homebrew-cask" / "Casks")))
 DEST_CASK_DIR = ROOT / "Casks"
 
-# Generic quarantine stripping postflight_steps.
-#
-# The target has to be where the payload actually lands, not the staged
-# directory: `Cask::Artifact::AbstractArtifact#sort_order` runs `App` and
-# `Pkg` *before* `PostflightSteps`, so by the time this step runs an `app` has
-# already been moved to /Applications and the staged directory holds only a
-# symlink. Pointing at `{{staged_path}}` therefore removed nothing and left the
-# installed app quarantined. `binary` casks are unaffected (the binary is
-# symlinked out of the staged directory) and keep that path.
-#
-# `scripts/fix_quarantine_targets.py` rewrites the `app` casks to the correct
-# `{{appdir}}/<name>.app` path; run it after this script.
-QUARANTINE_LINE = '    run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]'
-POSTFLIGHT_BLOCK = f"""  postflight_steps do
+# Clear the extracted payload before installers execute or artifacts move it.
+# This also respects configured destination directories for suites and plugins.
+QUARANTINE_LINE = '    on_macos do\n      run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]\n    end'
+PREFLIGHT_BLOCK = f"""  preflight_steps do
 {QUARANTINE_LINE}
   end
 """
 
-# postflight must come before these (per RuboCop Cask stanza order):
-# postflight < uninstall_preflight(_steps) < uninstall_postflight(_steps)
-#   < uninstall < zap < caveats
-# NOTE: include *_steps variants (new DSL); preflight(_steps) comes *before*
-# postflight so must NOT be listed here.
-POSTFLIGHT_FOLLOWERS = (
+# Preflight precedes postflight and uninstall hooks in cask stanza order.
+PREFLIGHT_FOLLOWERS = (
+    "postflight_steps",
+    "postflight",
     "uninstall_preflight_steps",
     "uninstall_preflight",
     "uninstall_postflight_steps",
@@ -138,23 +126,22 @@ def transform_content(text: str) -> str:
     if "com.apple.quarantine" in text or "remove_quarantine" in text:
         return _normalize(text)
 
-    # If upstream already has a postflight (without quarantine), merge into it
-    # instead of adding a second block (audit allows only a single postflight).
-    if re.search(r"^  postflight(?:_steps)? do\b", text, re.M):
+    # If upstream already has a preflight (without quarantine), merge into it
+    # instead of adding a second block (audit allows only a single preflight).
+    if re.search(r"^  preflight(?:_steps)? do\b", text, re.M):
         merged = re.sub(
-            r"(^  postflight(?:_steps)? do\n)(.*?)(\n  end)",
-            lambda m: m.group(1) + m.group(2).rstrip() + "\n" + QUARANTINE_LINE + m.group(3),
+            r"(^  preflight(?:_steps)? do\n)(.*?)(\n  end)",
+            lambda m: m.group(1) + QUARANTINE_LINE + "\n" + m.group(2).rstrip() + m.group(3),
             text,
             count=1,
             flags=re.M | re.S,
         )
         return _normalize(merged)
 
-    # Inject new postflight respecting stanza order:
-    # postflight < uninstall_preflight < uninstall_postflight < uninstall < zap < caveats
+    # Inject preflight before later hooks.
     follower_pat = re.compile(
         r"^  (?:"
-        + "|".join(POSTFLIGHT_FOLLOWERS)
+        + "|".join(PREFLIGHT_FOLLOWERS)
         + r")\b",
         re.M,
     )
@@ -162,15 +149,15 @@ def transform_content(text: str) -> str:
     if m:
         before = text[: m.start()].rstrip()
         after = text[m.start() :].lstrip("\n")
-        injected = before + "\n\n" + POSTFLIGHT_BLOCK.rstrip() + "\n\n" + after
+        injected = before + "\n\n" + PREFLIGHT_BLOCK.rstrip() + "\n\n" + after
         return _normalize(injected)
     parts = text.rsplit("\nend", 1)
     if len(parts) == 2:
         before, after = parts
-        injected = before.rstrip() + "\n\n" + POSTFLIGHT_BLOCK.rstrip() + "\nend" + after
+        injected = before.rstrip() + "\n\n" + PREFLIGHT_BLOCK.rstrip() + "\nend" + after
         return _normalize(injected)
     else:
-        return _normalize(text.rstrip() + "\n\n" + POSTFLIGHT_BLOCK + "\n")
+        return _normalize(text.rstrip() + "\n\n" + PREFLIGHT_BLOCK + "\n")
 
 def sync_all(limit_files=None, dry_run=False):
     src_files = sorted(SRC_CASK_DIR.rglob("*.rb"))

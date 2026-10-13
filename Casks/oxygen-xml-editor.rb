@@ -31,6 +31,10 @@ cask "oxygen-xml-editor" do
 
   suite "Oxygen XML Editor"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap trash: "~/Library/Preferences/com.oxygenxml"
 
   caveats do

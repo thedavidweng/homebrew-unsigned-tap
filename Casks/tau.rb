@@ -18,6 +18,10 @@ cask "tau" do
 
   suite "TAU"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall delete: "#{staged_path}/TAU/tau/"
 
   zap trash: "~/.ParaProf"

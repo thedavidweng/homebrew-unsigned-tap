@@ -74,6 +74,17 @@ class DropNoopQuarantineStepTest(unittest.TestCase):
         self.assertFalse(changed)
         self.assertIn("{{staged_path}}", out)
 
+    def test_preserves_moved_payloads_and_nested_artifacts(self):
+        for kind in ("suite", "artifact", "screen_saver", "colorpicker", "service",
+                     "audio_unit_plugin", "vst_plugin", "vst3_plugin"):
+            with self.subTest(kind=kind):
+                text = cask(f'      {kind} "Probe"\n{STEP}')
+                self.assertEqual(self.mod.transform(text), (text, False))
+
+    def test_does_not_remove_step_when_no_artifact_is_recognised(self):
+        text = cask(STEP)
+        self.assertEqual(self.mod.transform(text), (text, False))
+
     def test_is_idempotent(self):
         text = cask('  pkg "Probe.pkg"\n' + STEP)
         once, _ = self.mod.transform(text)

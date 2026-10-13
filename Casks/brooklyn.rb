@@ -11,5 +11,9 @@ cask "brooklyn" do
 
   screen_saver "Brooklyn.saver"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap trash: "~/Library/Screen Savers/Brooklyn.saver"
 end

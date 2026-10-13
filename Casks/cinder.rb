@@ -16,5 +16,9 @@ cask "cinder" do
 
   suite "cinder_#{version}_mac"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap trash: "~/Library/Preferences/org.libcinder.TinderBox.plist"
 end

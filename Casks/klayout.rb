@@ -10,7 +10,7 @@ cask "klayout" do
       version "0.29.6"
       sha256 "2c324dc95d77a0167d6c56608d2beca5f78b5190259480d97ef1500b19bc7389"
 
-      url "https://www.klayout.org/downloads/MacOS/HW-klayout-#{version}-macOS-Monterey-1-qt5MP-RsysPhb311.dmg"
+      url "https://www.dropbox.com/scl/fo/zso92bsyddj6ao6vjnguq/AIOTaa4vKdY8VvnYt0yZbcw/HW-klayout-#{version}-macOS-Monterey-1-qt5MP-RsysPhb311.dmg?rlkey=htm6ntwffwchrcax3s4ba5s8x&dl=1"
     end
     on_ventura do
       version "0.30.4"
@@ -79,6 +79,7 @@ cask "klayout" do
   suite "KLayout"
 
   preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
     # There is no sub-folder in the DMG; the root *is* the folder
     move_contents ".", "KLayout"
   end

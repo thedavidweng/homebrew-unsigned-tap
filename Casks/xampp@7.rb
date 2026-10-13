@@ -2,7 +2,7 @@ cask "xampp@7" do
   version "7.4.33-0"
   sha256 "25e198875d734f510dde7a3d3b85762b6a8b7bf50c2272a116a68a6acb9b19f8"
 
-  url "https://downloads.sourceforge.net/xampp/xampp-osx-#{version}-installer.dmg"
+  url "https://netix.dl.sourceforge.net/project/xampp/xampp-osx-#{version}-installer.dmg"
   name "XAMPP"
   desc "Apache distribution containing MySQL, PHP 7, and Perl"
   homepage "https://www.apachefriends.org/index.html"
@@ -20,6 +20,10 @@ cask "xampp@7" do
     args:       ["--mode", "unattended"],
     sudo:       true,
   }
+
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
 
   uninstall quit:   "com.bitnami.manager",
             script: {

@@ -21,6 +21,10 @@ cask "aladin" do
     args:       ["-q"],
   }
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall script: {
     executable: "/Applications/Aladin Sky Atlas/Aladin Sky Atlas Uninstaller.app/Contents/MacOS/JavaApplicationStub",
     args:       ["-q"],

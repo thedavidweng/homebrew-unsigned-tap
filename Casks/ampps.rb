@@ -17,6 +17,10 @@ cask "ampps" do
 
   suite "AMPPS"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   uninstall_preflight_steps do
     set_permissions "AMPPS", "0777", base: :appdir
   end

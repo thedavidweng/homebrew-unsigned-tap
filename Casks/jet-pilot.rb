@@ -12,6 +12,10 @@ cask "jet-pilot" do
   on_macos do
     app "JET Pilot.app"
 
+    preflight_steps do
+      run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+    end
+
     zap trash: "~/Library/Application Support/com.unxsist.jetpilot"
   end
   on_linux do
@@ -31,10 +35,4 @@ cask "jet-pilot" do
   end
 
   auto_updates true
-
-  postflight_steps do
-    run "/usr/bin/xattr",
-        args:         ["-rd", "com.apple.quarantine", "{{appdir}}/JET Pilot.app"],
-        must_succeed: false
-  end
 end

@@ -33,6 +33,10 @@ cask "magicavoxel" do
 
   suite staged_path, target: "MagicaVoxel"
 
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
+
   zap trash: [
     "~/Library/Preferences/EPH.MagicaVoxel.plist",
     "~/Library/Saved Application State/EPH.MagicaVoxel.savedState",

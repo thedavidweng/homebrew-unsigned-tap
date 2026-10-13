@@ -12,4 +12,8 @@ cask "colorpicker-materialdesign" do
   colorpicker "MaterialDesignColorPicker.colorPicker"
 
   # No zap stanza required
+
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
+  end
 end
