@@ -49,14 +49,18 @@ def channel_coverage(pr, cask, tap, default_branch):
     sources = [output("git", "-C", tap, "show", ref + ":Casks/" + cask + ".rb")
                for ref in (base, "origin/" + branch)]
     return set(json.loads(output("brew", "ruby", "-e", '''
-require "cask/cask_loader"; require "simulate_system"
+require "cask/cask_loader"; require "simulate_system"; require "macos_version"
 puts JSON.generate([:arm, :intel].select do |arch|
-  Homebrew::SimulateSystem.with(arch: arch) do
-    values = ARGV.map do |source|
-      c = Cask::CaskLoader::FromContentLoader.new(source).load(config: nil)
-      [c.version.to_s, c.sha256.to_s, c.url.to_s]
+  MacOSVersion::SYMBOLS.any? do |os, version|
+    next false if MacOSVersion.new(version) < MacOS.version
+
+    Homebrew::SimulateSystem.with(os: os, arch: arch) do
+      values = ARGV.map do |source|
+        c = Cask::CaskLoader::FromContentLoader.new(source).load(config: nil)
+        [c.version.to_s, c.sha256.to_s, c.url.to_s, c.livecheck.skip?]
+      end
+      values[0] != values[1]
     end
-    values[0] != values[1]
   end
 end)
 ''', "--", *sources)))

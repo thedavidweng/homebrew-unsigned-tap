@@ -116,5 +116,33 @@ class AutobumpTests(unittest.TestCase):
         self.assertFalse(any(c.args[:2] == ("git", "push") for c in run.call_args_list))
 
 
+class ChannelCoverageTests(unittest.TestCase):
+    BASE = 'cask "sample" do\n  version "1.0"\n  sha256 "' + "a" * 64 + '"\n  url "https://example.com/#{version}.zip"\nend'
+
+    def coverage(self, head):
+        def execute(*args):
+            if args[0] == "brew":
+                # Reproduce the macOS 26 runner even on a newer development host.
+                script = args[3].replace("< MacOS.version", '< MacOSVersion.new("26")')
+                return autobump.subprocess.check_output((*args[:3], script, *args[4:]), text=True)
+            if args[3] == "merge-base":
+                return "base"
+            return self.BASE if args[4].startswith("base:") else head
+        with patch.object(autobump, "run"), patch.object(autobump, "output", side_effect=execute):
+            return autobump.channel_coverage(pr(), "sample", "/tap", "main")
+
+    def test_future_arm_update_is_pending_on_tahoe_runner(self):
+        head = self.BASE.replace("\nend", '\n  on_arm do\n    on_golden_gate :or_newer do\n      version "2.0"\n    end\n  end\nend')
+        self.assertEqual(self.coverage(head), {"arm"})
+
+    def test_intel_pin_is_covered_even_when_version_is_unchanged(self):
+        head = self.BASE.replace("\nend", '\n  on_intel do\n    livecheck do\n      skip "Last Intel release"\n    end\n  end\nend')
+        self.assertEqual(self.coverage(head), {"intel"})
+
+    def test_old_os_only_update_stays_separate(self):
+        head = self.BASE.replace("\nend", '\n  on_monterey :or_older do\n    version "2.0"\n  end\nend')
+        self.assertEqual(self.coverage(head), set())
+
+
 if __name__ == "__main__":
     unittest.main()
