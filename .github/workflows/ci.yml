@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   merge_group:
   workflow_dispatch:
     inputs:
@@ -22,14 +23,15 @@ env:
   HOMEBREW_NO_INSTALL_FROM_API: 1
 
 concurrency:
-  group: "${{ github.ref }}"
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
   generate-matrix:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     timeout-minutes: 10
     outputs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
@@ -61,6 +63,7 @@ jobs:
           fi
 
   test:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     timeout-minutes: 60
     name: ${{ matrix.name }}
     needs: generate-matrix
@@ -93,6 +96,6 @@ jobs:
     timeout-minutes: 10
     needs: test
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ (github.event_name != 'pull_request' || !github.event.pull_request.draft) && (always()) }}
     steps:
       - run: ${{ needs.test.result == 'success' }}
