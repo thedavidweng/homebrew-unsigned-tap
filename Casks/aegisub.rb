@@ -1,9 +1,9 @@
 cask "aegisub" do
   arch arm: "arm64", intel: "x64"
 
-  version "3.5.0"
-  sha256 arm:   "7d0701fbabcbcea1664b50e4f2726ea333721d1fbb313a3cc0c81e2a50b98cb5",
-         intel: "3d4bf3b411b9d0c3cf59a18ab9f5d22039115d542eac459bf00c5e243b0d69e9"
+  version "3.5.1"
+  sha256 arm:   "593ecfec16e9d318677bb123cb382eace1b81e75f58716f0f3e3b1df31e752e6",
+         intel: "54b1e56a7f496b723f4fac6110e692775281864244de4fb918d71cc48463864e"
 
   url "https://github.com/TypesettingTools/Aegisub/releases/download/v#{version}/Aegisub-#{version}-#{arch}.dmg"
   name "Aegisub"
