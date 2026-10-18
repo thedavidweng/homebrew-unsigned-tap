@@ -15,6 +15,17 @@ cask "dmenu-mac" do
       url :url
       strategy :github_latest
     end
+
+    preflight_steps do
+      run "/bin/sh", args: ["-c", <<~EOS]
+        case "$(/usr/bin/sw_vers -productVersion)" in
+          13.[0-4]|13.[0-4].*)
+            echo "dmenu-mac requires macOS 13.5 or later." >&2
+            exit 1
+            ;;
+        esac
+      EOS
+    end
   end
 
   url "https://github.com/oNaiPs/dmenu-mac/releases/download/#{version}/dmenu-mac.zip"
