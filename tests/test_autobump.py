@@ -34,9 +34,26 @@ class AutobumpTests(unittest.TestCase):
     def test_no_downgrade_after_version_format_changes(self):
         self.assertEqual(autobump.plan({"arm": result("2.8.1", False), "intel": result("2.8.1", False)}), [])
 
-    def test_livecheck_errors_fail(self):
-        with self.assertRaises(ValueError):
-            autobump.plan({"arm": [{"status": "error", "messages": ["Unable to get versions"]}]})
+    def test_livecheck_error_skips_only_that_cask(self):
+        data = {
+            "arm": [
+                {"status": "error", "cask": "broken", "messages": ["curl: (22) 503"]},
+                {"cask": "healthy", "version": {"latest": "2.0", "outdated": True}},
+            ],
+            "intel": [
+                {"status": "error", "cask": "broken", "messages": ["curl: (22) 503"]},
+                {"cask": "healthy", "version": {"latest": "2.0", "outdated": True}},
+            ],
+        }
+        self.assertEqual(autobump.plan(data), [("healthy", "2.0", ["--version=2.0"])])
+        self.assertEqual([e["cask"] for e in autobump.livecheck_errors(data)], ["broken", "broken"])
+
+    def test_partial_architecture_error_skips_the_cask(self):
+        data = {
+            "arm": [{"cask": "sample", "version": {"latest": "2.0", "outdated": True}}],
+            "intel": [{"status": "error", "cask": "sample", "messages": ["timeout"]}],
+        }
+        self.assertEqual(autobump.plan(data), [])
 
     @patch.object(autobump, "channel_coverage", return_value={"arm", "intel"})
     @patch.object(autobump, "output")

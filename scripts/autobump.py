@@ -20,12 +20,25 @@ def verify_head(repo, branch, cask):
     run("gh", "workflow", "run", "workflow-lint.yml", "--repo", repo, "--ref", branch)
 
 
+def livecheck_errors(data):
+    """Return per-cask livecheck errors without aborting the whole run.
+
+    One upstream 503 used to fail every scheduled bump, including unrelated
+    casks. Errors are reported to the caller and the affected cask is skipped;
+    a cask is only bumped when every architecture resolved cleanly.
+    """
+    return [result for results in data.values() for result in results
+            if result.get("status") == "error"]
+
+
 def plan(data):
+    errors = livecheck_errors(data)
+    failed_casks = {result.get("cask") for result in errors}
     versions = {}
     for arch, results in data.items():
         for result in results:
-            if result.get("status") == "error":
-                raise ValueError(json.dumps(result))
+            if result.get("status") == "error" or result.get("cask") in failed_casks:
+                continue
             if "version" in result and result["version"]["outdated"]:
                 versions.setdefault(result["cask"], {})[arch] = result["version"]["latest"]
     rows = []
@@ -110,6 +123,10 @@ def bump(cask, args, prs, repo, default_branch):
                 "brew", "ruby", "-e",
                 'require "dev-cmd/livecheck"; require "simulate_system"; Homebrew::SimulateSystem.with(arch: ARGV.shift.to_sym) { Homebrew::DevCmd::LivecheckCmd.new(ARGV).run }',
                 "--", arch, qualified, "--newer-only", "--extract-plist", "--json"))
+        # A bump must never be produced from an incomplete livecheck result.
+        errors = livecheck_errors(data)
+        if errors:
+            raise ValueError(json.dumps(errors))
         rows = plan(data)
         if rows:
             token, version, new_args = rows[0]
@@ -136,6 +153,10 @@ def bump(cask, args, prs, repo, default_branch):
                 "brew", "ruby", "-e",
                 'require "dev-cmd/livecheck"; require "simulate_system"; Homebrew::SimulateSystem.with(arch: ARGV.shift.to_sym) { Homebrew::DevCmd::LivecheckCmd.new(ARGV).run }',
                 "--", arch, qualified, "--newer-only", "--extract-plist", "--json"))
+        # A bump must never be produced from an incomplete livecheck result.
+        errors = livecheck_errors(data)
+        if errors:
+            raise ValueError(json.dumps(errors))
         rows = plan(data)
         if not rows:
             print(f"No remaining update for {cask} on latest {default_branch}")
@@ -157,6 +178,14 @@ if __name__ == "__main__":
     if sys.argv[1] == "plan":
         data = {arch: json.loads(Path(f"outdated-casks-{arch}.json").read_text()) for arch in ("arm", "intel")}
         Path("outdated-casks.json").write_text(json.dumps(data, indent=2))
+        errors = livecheck_errors(data)
+        for error in errors:
+            messages = "; ".join(error.get("messages") or [])
+            print(f"::warning::livecheck failed for {error.get('cask')}: {messages}", file=sys.stderr)
+        resolved = [result for results in data.values() for result in results
+                    if result.get("status") != "error"]
+        if errors and not resolved:
+            raise SystemExit("all livecheck results failed; nothing could be evaluated")
         for cask, version, args in plan(data):
             print(cask + "\t" + version + "\t" + " ".join(args))
     elif sys.argv[1] == "bump":
