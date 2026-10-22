@@ -69,10 +69,19 @@ jobs:
           gh auth setup-git
           gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
             -f state=open -f base="${DEFAULT_BRANCH}" --paginate --slurp | jq add > open-cask-prs.json
+          FAILED=()
           while IFS=$'\t' read -r cask _version version_args; do
             read -r -a BUMP_ARGS <<< "${version_args}"
-            python3 "$GITHUB_WORKSPACE/scripts/autobump.py" bump "$cask" "${BUMP_ARGS[@]}"
+            # One broken cask (upstream 404, audit verdict, network) must not
+            # block the remaining bumps; it is reported and retried next run.
+            if ! python3 "$GITHUB_WORKSPACE/scripts/autobump.py" bump "$cask" "${BUMP_ARGS[@]}"; then
+              echo "::warning::bump failed for ${cask}; skipping this run"
+              FAILED+=("${cask}")
+            fi
           done <<< "${OUTDATED}"
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo "::warning::${#FAILED[@]} cask(s) failed to bump: ${FAILED[*]}"
+          fi
 
       - name: Retain livecheck evidence
         if: always()
