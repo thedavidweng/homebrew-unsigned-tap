@@ -1,9 +1,9 @@
 cask "openrgb" do
   arch arm: "ARM64", intel: "Intel"
 
-  version "1.0,81bbe18"
-  sha256 arm:   "ee5e5da7cfa5d79b6604b81d791e3a7a7f2941025ca5de59d974d7a04d498be0",
-         intel: "65e9c704eb0fd4ff941c08b183123fe7f9376ca82b5e2ae1f164abe55214fec8"
+  version "1.1,8e16de2"
+  sha256 arm:   "b370d3365eaae8b6a9217e7d1b1ffd5fb6ddffaaff3395fd3cac3673df83191f",
+         intel: "5b30d3c97bced335a40593319cb4c045f1ad818a0e0ddefd92350a695a7a6fc4"
 
   url "https://codeberg.org/OpenRGB/OpenRGB/releases/download/release_#{version.csv.first}/OpenRGB_#{version.csv.first}_MacOS_#{arch}_#{version.csv.second}.zip"
   name "OpenRGB"
