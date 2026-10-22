@@ -93,22 +93,26 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "run")
     @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0")), json.dumps(result("2.0")), json.dumps([[pr()]])])
     @patch.object(autobump, "pending_prs", side_effect=[([], {"arm", "intel"}), ([(pr(), {"arm", "intel"})], set())])
-    def test_fresh_candidate_dispatches_checks(self, pending, output, run, chdir):
+    @patch.object(autobump, "bump_cask_pr", return_value=True)
+    def test_fresh_candidate_dispatches_checks(self, bump, pending, output, run, chdir):
         autobump.bump("sample", ["--version=2.0"], [], REPO, "main")
+        self.assertIn(("--no-fork", "--version=2.0", "thedavidweng/unsigned-tap/sample"),
+                      [c.args for c in bump.call_args_list])
         calls = [c.args for c in run.call_args_list]
-        self.assertIn(("brew", "bump-cask-pr", "--no-fork", "--version=2.0", "thedavidweng/unsigned-tap/sample"), calls)
         self.assertIn(("gh", "workflow", "run", "ci.yml", "--repo", REPO, "--ref", "bump-sample-1.0", "-f", "casks=sample", "-f", "skip_install=true"), calls)
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
     @patch.object(autobump, "output")
     @patch.object(autobump, "pending_prs", side_effect=[([(pr(), {"arm"})], {"intel"}), ([(pr(2, "bump-sample-intel"), {"intel"})], set())])
-    def test_refresh_dispatches_new_head_and_keeps_uncovered_intel_version(self, pending, output, run, chdir):
+    @patch.object(autobump, "bump_cask_pr", return_value=True)
+    def test_refresh_dispatches_new_head_and_keeps_uncovered_intel_version(self, bump, pending, output, run, chdir):
         output.side_effect = ["/tap", "old-head", json.dumps(result("4.0")), "new-head", json.dumps(result("2.0")), json.dumps([[pr(2, "bump-sample-intel")]])]
         autobump.bump("sample", ["--version-arm=3.0", "--version-intel=2.0"], [], REPO, "main")
+        bumped = [c.args for c in bump.call_args_list]
+        self.assertIn(("--write-only", "--commit", "--version-arm=4.0", "thedavidweng/unsigned-tap/sample"), bumped)
+        self.assertIn(("--no-fork", "--version-intel=2.0", "thedavidweng/unsigned-tap/sample"), bumped)
         calls = [c.args for c in run.call_args_list]
-        self.assertIn(("brew", "bump-cask-pr", "--write-only", "--commit", "--version-arm=4.0", "thedavidweng/unsigned-tap/sample"), calls)
-        self.assertIn(("brew", "bump-cask-pr", "--no-fork", "--version-intel=2.0", "thedavidweng/unsigned-tap/sample"), calls)
         self.assertIn(("gh", "workflow", "run", "ci.yml", "--repo", REPO, "--ref", "bump-sample-1.0", "-f", "casks=sample", "-f", "skip_install=true"), calls)
         self.assertIn(("gh", "workflow", "run", "ci.yml", "--repo", REPO, "--ref", "bump-sample-intel", "-f", "casks=sample", "-f", "skip_install=true"), calls)
         self.assertFalse(any("--force" in c for c in calls))
@@ -127,10 +131,11 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "run")
     @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("3.0")), json.dumps(result("2.0", False)), json.dumps([[pr()]])])
     @patch.object(autobump, "pending_prs", side_effect=[([], {"arm", "intel"}), ([(pr(), {"arm"})], set())])
-    def test_fresh_release_and_architecture_replace_stale_scan_versions(self, pending, output, run, chdir):
+    @patch.object(autobump, "bump_cask_pr", return_value=True)
+    def test_fresh_release_and_architecture_replace_stale_scan_versions(self, bump, pending, output, run, chdir):
         autobump.bump("sample", ["--version=2.0"], [], REPO, "main")
-        calls = [c.args for c in run.call_args_list]
-        self.assertIn(("brew", "bump-cask-pr", "--no-fork", "--version-arm=3.0", "thedavidweng/unsigned-tap/sample"), calls)
+        self.assertIn(("--no-fork", "--version-arm=3.0", "thedavidweng/unsigned-tap/sample"),
+                      [c.args for c in bump.call_args_list])
         self.assertEqual(pending.call_args_list[-1].args[-1], {"arm"})
 
     @patch.object(autobump.os, "chdir")
@@ -183,3 +188,19 @@ class ChannelCoverageTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BumpCaskPrTests(unittest.TestCase):
+    def test_prerelease_only_result_is_skipped(self):
+        from types import SimpleNamespace
+        proc = SimpleNamespace(returncode=1, stdout="", stderr="152.0.7977.169 is a GitHub pre-release.")
+        with patch.object(autobump.subprocess, "run", return_value=proc):
+            self.assertFalse(autobump.bump_cask_pr("--no-fork", "sample"))
+
+    def test_unrelated_bump_failure_still_raises(self):
+        import subprocess
+        from types import SimpleNamespace
+        proc = SimpleNamespace(returncode=1, args=("brew", "bump-cask-pr"), stdout="", stderr="download failed")
+        with patch.object(autobump.subprocess, "run", return_value=proc):
+            with self.assertRaises(subprocess.CalledProcessError):
+                autobump.bump_cask_pr("--no-fork", "sample")
