@@ -2,11 +2,11 @@ cask "tidelift" do
   arch arm: "_arm"
   os macos: "darwin", linux: "linux"
 
-  version "1.16.75"
-  sha256 arm:          "5564f8ec8fb0093140c2ddbc8e2d8ed25e09ceffdd3f57106ebc65688bd1b273",
-         intel:        "224b8cfe825737b7f2cc79b58080cadbefad88ceb3dc6981299359f2427c397c",
-         arm64_linux:  "0200268d148af4973854d8147abca144984d2259552b3dab027c319bbe9de980",
-         x86_64_linux: "32f924a46a2329a77a6a1458f806b9eb50baeabb99ce57d88ee407a39c3935de"
+  version "1.16.78"
+  sha256 arm:          "62b770313a279e8beee75537f3a9eabd745d0d6142d9338275e80ff1493ecb34",
+         intel:        "5066c7ee35982906c07a388c2042c68143e2c34c44901ffb60b2e50a09fa4334",
+         arm64_linux:  "0185a1dcee055a8cdac7088d9e8b0e50625c24857eb67723bccd59cad0f4aba2",
+         x86_64_linux: "bce4fdcdacec7c5e39801827931d0452ff0ed8efff22d6fddcd2bd0e8f4f4f25"
 
   url "https://download.tidelift.com/cli/#{version}/#{os}#{arch}/tidelift"
   name "Tidelift CLI"
