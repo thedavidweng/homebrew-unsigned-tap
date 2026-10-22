@@ -16,9 +16,9 @@ cask "drawpile" do
     end
   end
   on_monterey :or_newer do
-    version "2.3.0"
-    sha256 arm:   "d6ba02a723b57ca83a523ea61b192b349005c8c3f8a10579877477d5b652409c",
-           intel: "09eeff8bacc62200f810c8be89dcb595e0a069efd9ca9659b6f97f50c1244573"
+    version "2.3.1"
+    sha256 arm:   "37ee88585585b9149e4dbc679e3a821f785814aaa85054591955e53ef0999fad",
+           intel: "09fd02d7bcfb3cffbaab3dca4ef0c51c3fc7d02ca2e59d1ae9bf6642bc6e6de9"
 
     url "https://github.com/drawpile/Drawpile/releases/download/#{version}/Drawpile-#{version}-#{arch}.dmg"
 
