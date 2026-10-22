@@ -3,11 +3,11 @@ cask "jet-pilot" do
        intel: on_system_conditional(macos: "x64", linux: "amd64")
   os macos: "dmg", linux: "AppImage"
 
-  version "2.1.1"
-  sha256 arm:          "5bbffa2043bbe13938c1b14ca94fcd93eeaacd70d8b4af22f52e7a346915974d",
-         intel:        "02e550eb606f34ca265fa3fa99902e7b762a773772938223f36f830acd8688df",
-         arm64_linux:  "7516e15776b53929821f8a320efe05106e1e87ad4a8a50119a02296b65c2d41a",
-         x86_64_linux: "038945cae3a851b45024d473bfa9186d15f0cf6fd809327ae857f4193a4d86c6"
+  version "2.2.3"
+  sha256 arm:          "61a0a5f498b7d44eb9e5b5af1326dd3978086af5c0d116f4e3e9df4163c490cf",
+         intel:        "0197ef5d7f156841f9e10b798d34428418e578f6260d09bd9f89bb167ac0e2c9",
+         arm64_linux:  "e81ba2c8e2567543699aff062b9dfc9ce9e6c91016e2207a04f96cd07d801cf1",
+         x86_64_linux: "f3447f8bb0cda73586c0d48728f514c674c685aa1d1e8083a32e1637e549390e"
 
   on_macos do
     app "JET Pilot.app"
