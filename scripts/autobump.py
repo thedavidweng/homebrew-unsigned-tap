@@ -27,6 +27,7 @@ def bump_cask_pr(*args):
         if "is a GitHub pre-release" in output:
             print(f"::warning::skipping pre-release bump: {' '.join(args)}", file=sys.stderr)
             return False
+        print(output.strip() or f"brew bump-cask-pr exited {proc.returncode}", file=sys.stderr)
         raise subprocess.CalledProcessError(proc.returncode, proc.args, proc.stdout, proc.stderr)
     if proc.stdout:
         print(proc.stdout, end="")
