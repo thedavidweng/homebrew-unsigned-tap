@@ -14,6 +14,25 @@ def run(*args):
     subprocess.run(args, check=True)
 
 
+def bump_cask_pr(*args):
+    """Run brew bump-cask-pr, tolerating a pre-release-only livecheck result.
+
+    `livecheck` with :github_latest can still surface a tag that audit rejects
+    as a GitHub pre-release. That is not a reason to fail every other cask in
+    the run, so it is reported and skipped.
+    """
+    proc = subprocess.run(("brew", "bump-cask-pr", *args), text=True, capture_output=True)
+    output = (proc.stdout or "") + (proc.stderr or "")
+    if proc.returncode != 0:
+        if "is a GitHub pre-release" in output:
+            print(f"::warning::skipping pre-release bump: {' '.join(args)}", file=sys.stderr)
+            return False
+        raise subprocess.CalledProcessError(proc.returncode, proc.args, proc.stdout, proc.stderr)
+    if proc.stdout:
+        print(proc.stdout, end="")
+    return True
+
+
 def verify_head(repo, branch, cask):
     run("gh", "workflow", "run", "ci.yml", "--repo", repo, "--ref", branch,
         "-f", "casks=" + cask, "-f", "skip_install=true")
@@ -128,10 +147,15 @@ def bump(cask, args, prs, repo, default_branch):
         if errors:
             raise ValueError(json.dumps(errors))
         rows = plan(data)
+        skipped = False
         if rows:
             token, version, new_args = rows[0]
             assert len(rows) == 1 and token == cask
-            run("brew", "bump-cask-pr", "--write-only", "--commit", *new_args, qualified)
+            skipped = not bump_cask_pr("--write-only", "--commit", *new_args, qualified)
+        if skipped:
+            print(f"Skipped pre-release refresh for PR #{pr['number']} ({cask})")
+            run("git", "checkout", default_branch)
+            continue
         after = output("git", "rev-parse", "HEAD").strip()
         if after != before:
             run("git", "push", "origin", "HEAD:" + branch)
@@ -164,7 +188,8 @@ def bump(cask, args, prs, repo, default_branch):
         token, _version, new_args = rows[0]
         assert len(rows) == 1 and token == cask
         uncovered = {arch for arch, results in data.items() if plan({arch: results})}
-        run("brew", "bump-cask-pr", "--no-fork", *new_args, qualified)
+        if not bump_cask_pr("--no-fork", *new_args, qualified):
+            return
         pages = json.loads(output("gh", "api", f"repos/{repo}/pulls", "--method", "GET",
                                   "-f", "state=open", "-f", "base=" + default_branch, "--paginate", "--slurp"))
         created, remaining = pending_prs(cask, [pr for page in pages for pr in page], repo, tap, default_branch, uncovered)
