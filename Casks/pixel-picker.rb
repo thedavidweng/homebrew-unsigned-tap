@@ -12,8 +12,8 @@ cask "pixel-picker" do
     end
   end
   on_sonoma :or_newer do
-    version "1.7.0"
-    sha256 "c09f654018ae52701858e990576e87c32ebcd73c89721f59e280e6b81a61fcdd"
+    version "1.7.1"
+    sha256 "31584144fc66cafdcd3d6689a69b9ab311621dbe1ee0713f2820a1a2a271903e"
 
     url "https://github.com/acheronfail/pixel-picker/releases/download/v#{version}/PixelPicker-#{version}-universal.dmg"
     minimum_macos = :sonoma
