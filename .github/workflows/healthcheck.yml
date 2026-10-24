@@ -35,6 +35,8 @@ jobs:
           cask: true
       - name: Tap self
         run: brew tap --custom-remote thedavidweng/unsigned-tap "${GITHUB_WORKSPACE}"
+      - name: Trust tap
+        run: brew trust thedavidweng/unsigned-tap
       - name: Check download availability
         id: check
         run: |

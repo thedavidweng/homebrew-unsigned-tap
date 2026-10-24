@@ -37,6 +37,8 @@ jobs:
       - uses: Homebrew/actions/git-user-config@4790763c0a3ba4036f72634dc079c4a7dfcd4878 # 2026.10.19.1
         with:
           username: BrewTestBot
+      - name: Trust tap
+        run: brew trust thedavidweng/unsigned-tap
       - name: Bump casks
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
