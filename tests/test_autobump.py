@@ -64,6 +64,14 @@ class AutobumpTests(unittest.TestCase):
                          ([(pr(), {"arm", "intel"})], set()))
         coverage.assert_called_once()
 
+    @patch.object(autobump, "channel_coverage", return_value={"arm", "intel"})
+    @patch.object(autobump, "output")
+    def test_pat_authored_pr_matches(self, output, coverage):
+        output.return_value = json.dumps([[{"filename": "Casks/sample.rb", "status": "modified"}]])
+        owner_pr = pr(2, "bump-sample-2.0", author="thedavidweng")
+        self.assertEqual(autobump.pending_prs("sample", [owner_pr], REPO, "/tap", "main", {"arm", "intel"}),
+                         ([(owner_pr, {"arm", "intel"})], set()))
+
     @patch.object(autobump, "channel_coverage")
     @patch.object(autobump, "output")
     def test_import_and_prefix_collision_are_not_updates(self, output, coverage):
@@ -94,27 +102,27 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0")), json.dumps(result("2.0")), json.dumps([[pr()]])])
     @patch.object(autobump, "pending_prs", side_effect=[([], {"arm", "intel"}), ([(pr(), {"arm", "intel"})], set())])
     @patch.object(autobump, "bump_cask_pr", return_value=True)
-    def test_fresh_candidate_dispatches_checks(self, bump, pending, output, run, chdir):
+    def test_fresh_candidate_relies_on_pr_ci_without_dispatch(self, bump, pending, output, run, chdir):
         autobump.bump("sample", ["--version=2.0"], [], REPO, "main")
         self.assertIn(("--no-fork", "--version=2.0", "thedavidweng/unsigned-tap/sample"),
                       [c.args for c in bump.call_args_list])
         calls = [c.args for c in run.call_args_list]
-        self.assertIn(("gh", "workflow", "run", "ci.yml", "--repo", REPO, "--ref", "bump-sample-1.0", "-f", "casks=sample", "-f", "skip_install=true"), calls)
+        self.assertFalse(any(c[:2] == ("gh", "workflow") for c in calls))
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
     @patch.object(autobump, "output")
     @patch.object(autobump, "pending_prs", side_effect=[([(pr(), {"arm"})], {"intel"}), ([(pr(2, "bump-sample-intel"), {"intel"})], set())])
     @patch.object(autobump, "bump_cask_pr", return_value=True)
-    def test_refresh_dispatches_new_head_and_keeps_uncovered_intel_version(self, bump, pending, output, run, chdir):
+    def test_refresh_pushes_new_head_and_keeps_uncovered_intel_version(self, bump, pending, output, run, chdir):
         output.side_effect = ["/tap", "old-head", json.dumps(result("4.0")), "new-head", json.dumps(result("2.0")), json.dumps([[pr(2, "bump-sample-intel")]])]
         autobump.bump("sample", ["--version-arm=3.0", "--version-intel=2.0"], [], REPO, "main")
         bumped = [c.args for c in bump.call_args_list]
         self.assertIn(("--write-only", "--commit", "--version-arm=4.0", "thedavidweng/unsigned-tap/sample"), bumped)
         self.assertIn(("--no-fork", "--version-intel=2.0", "thedavidweng/unsigned-tap/sample"), bumped)
         calls = [c.args for c in run.call_args_list]
-        self.assertIn(("gh", "workflow", "run", "ci.yml", "--repo", REPO, "--ref", "bump-sample-1.0", "-f", "casks=sample", "-f", "skip_install=true"), calls)
-        self.assertIn(("gh", "workflow", "run", "ci.yml", "--repo", REPO, "--ref", "bump-sample-intel", "-f", "casks=sample", "-f", "skip_install=true"), calls)
+        self.assertTrue(any(c[:2] == ("git", "push") for c in calls))
+        self.assertFalse(any(c[:2] == ("gh", "workflow") for c in calls))
         self.assertFalse(any("--force" in c for c in calls))
 
     @patch.object(autobump.os, "chdir")

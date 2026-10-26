@@ -112,6 +112,7 @@ def main():
     parser.add_argument("--delete", action="store_true", help="Delete dead casks automatically")
     parser.add_argument("--max-workers", type=int, default=20, help="Concurrent checks (default: 20)")
     parser.add_argument("--casks", nargs="*", help="Specific cask tokens to check")
+    parser.add_argument("--json-out", help="Write machine-readable result JSON for the radar issue")
     args = parser.parse_args()
 
     print("==> Extracting cask URLs via Homebrew...", flush=True)
@@ -140,6 +141,12 @@ def main():
 
             if checked % 50 == 0 or checked == len(urls):
                 print(f"Progress: {checked}/{len(urls)} checked ({len(dead)} dead)...", flush=True)
+
+    if args.json_out:
+        with open(args.json_out, "w", encoding="utf-8") as fh:
+            json.dump({"total": len(urls), "alive": alive,
+                       "dead": [{"token": t, "url": u, "detail": d} for t, u, d in dead]},
+                      fh, indent=2)
 
     print("\n" + "=" * 50, flush=True)
     print("Health Check Summary:", flush=True)

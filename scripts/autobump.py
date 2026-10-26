@@ -34,12 +34,6 @@ def bump_cask_pr(*args):
     return True
 
 
-def verify_head(repo, branch, cask):
-    run("gh", "workflow", "run", "ci.yml", "--repo", repo, "--ref", branch,
-        "-f", "casks=" + cask, "-f", "skip_install=true")
-    run("gh", "workflow", "run", "workflow-lint.yml", "--repo", repo, "--ref", branch)
-
-
 def livecheck_errors(data):
     """Return per-cask livecheck errors without aborting the whole run.
 
@@ -99,11 +93,20 @@ end)
 ''', "--", *sources)))
 
 
+def bot_authors(repo):
+    """Logins whose bump branches may be refreshed in place.
+
+    Bumps used to be pushed with GITHUB_TOKEN (github-actions[bot]); since the
+    PAT switch they are pushed authenticated as the repository owner.
+    """
+    return {"github-actions[bot]", repo.split("/", 1)[0]}
+
+
 def pending_prs(cask, prs, repo, tap, default_branch, architectures):
     pending = []
     covered = set()
     for pr in prs:
-        if (pr["user"]["login"] != "github-actions[bot]"
+        if (pr["user"]["login"] not in bot_authors(repo)
                 or pr["head"]["repo"]["full_name"] != repo
                 or not pr["head"]["ref"].startswith("bump-" + cask + "-")):
             continue
@@ -162,8 +165,8 @@ def bump(cask, args, prs, repo, default_branch):
             run("git", "push", "origin", "HEAD:" + branch)
             if rows:
                 run("gh", "pr", "edit", str(pr["number"]), "--repo", repo, "--title", cask + " " + version)
-            # GITHUB_TOKEN pushes need explicit workflows to verify the refreshed head.
-            verify_head(repo, branch, cask)
+            # The push triggers pull_request CI on the refreshed head (PAT
+            # identity); no explicit verification dispatch is needed.
         print(f"Checked existing PR #{pr['number']} for {cask}: {sorted(scope)}")
         run("git", "checkout", default_branch)
     if uncovered:
@@ -196,8 +199,8 @@ def bump(cask, args, prs, repo, default_branch):
         created, remaining = pending_prs(cask, [pr for page in pages for pr in page], repo, tap, default_branch, uncovered)
         if remaining:
             raise ValueError(f"No created update PR covers {cask}: {sorted(remaining)}")
-        for pr, scope in created:
-            verify_head(repo, pr["head"]["ref"], cask)
+        # PR creation triggers pull_request CI on the new branch (PAT
+        # identity); no explicit verification dispatch is needed.
 
 
 if __name__ == "__main__":

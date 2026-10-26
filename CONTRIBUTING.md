@@ -14,6 +14,15 @@ Follow the guide in [How to Open a Homebrew Pull Request](https://docs.brew.sh/H
 
 ## Updating a Cask
 
+Version bumps in this tap are fully automated and must not be done by hand:
+the scheduled autobump compares every cask against livecheck and the upstream
+checkout, opens the bump PR, and merges it once CI is green. Do not edit
+`version`/`sha256` (or any other stanza) manually — hand edits fight the bot
+and break the unattended pipeline. The only intentional deviation from
+upstream is quarantine removal; everything else mirrors Homebrew/homebrew-cask
+verbatim. Anything the bot cannot handle surfaces in the weekly
+"Maintenance radar" issue.
+
 Notice an application that's out-of-date in Homebrew Cask? In most cases, it's very simple to update it. We have a command that will take care of updating the cask file and submitting a pull request to us:
 
 ```bash

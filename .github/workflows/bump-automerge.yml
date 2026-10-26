@@ -1,0 +1,126 @@
+name: Bump auto-merge
+
+# Workflowified upstream `brew pr-automerge`: merge bot version-bump PRs once
+# their checks are green, so no maintainer ever has to click merge.
+# Never checks out or executes PR code; every decision comes from the API.
+#
+# A PR is merged only when ALL of these hold (fail-closed: anything unexpected
+# leaves the PR open for a human):
+# - open, not a draft, targeting main, from a same-repo bump-* or sync/* branch
+# - authored by github-actions[bot] (pre-PAT bumps) or the repo owner (PAT bumps)
+# - bump-*: exactly one modified file under Casks/
+#   sync/*: every file an added file under Casks/ (pure import, no edits)
+# - no blocklist label (automerge-skip, do not merge)
+# - every check run on the head SHA completed with success, including the CI
+#   conclusion job, audit, Workflow lint and CodeQL
+# - GitHub reports the PR mergeable
+#
+# Deliberately NOT `gh pr merge --auto`: with no required-checks ruleset,
+# --auto would merge immediately without waiting for CI. The checks above are
+# evaluated explicitly instead.
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["CI", "audit", "CodeQL", "Workflow lint"]
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Merge green bump PRs
+        run: |
+          set -euo pipefail
+
+          REPO="${REPO:?}"
+          OWNER="${REPO%%/*}"
+
+          branch_gate='select(.headRefName | startswith("bump-") or startswith("sync/"))'
+          filter="[.[] | select(.isDraft | not)
+                   | select(.baseRefName == \"main\")
+                   | $branch_gate
+                   | select(.headRepository.nameWithOwner == \$repo)
+                   | select(.author.login == \"github-actions[bot]\" or .author.login == \$owner)
+             ]"
+          if [[ -n "${HEAD_SHA:-}" ]]; then
+            # workflow_run trigger: only PRs on the completed run's commit.
+            filter="[.[] | select(.headRefOid == \$sha)
+                   | select(.isDraft | not)
+                   | select(.baseRefName == \"main\")
+                   | $branch_gate
+                   | select(.headRepository.nameWithOwner == \$repo)
+                   | select(.author.login == \"github-actions[bot]\" or .author.login == \$owner)
+             ]"
+          fi
+          candidates="$(gh pr list --repo "$REPO" --state open --limit 50 \
+            --json number,headRefName,headRefOid,headRepository,baseRefName,author,isDraft \
+            --jq "$filter" --arg repo "$REPO" --arg owner "$OWNER" --arg sha "${HEAD_SHA:-}")"
+
+          count="$(jq 'length' <<<"$candidates")"
+          if [[ "$count" -eq 0 ]]; then
+            echo "No candidate bump PRs."
+            exit 0
+          fi
+
+          merged=0
+          while read -r number; do
+            sha="$(jq -r --argjson n "$number" '.[] | select(.number == $n) | .headRefOid' <<<"$candidates")"
+            branch="$(jq -r --argjson n "$number" '.[] | select(.number == $n) | .headRefName' <<<"$candidates")"
+            echo "=== #$number ($branch @ ${sha:0:7}) ==="
+
+            skip() { echo "skip #$number: $1"; }
+
+            if [[ "$(gh pr view "$number" --repo "$REPO" --json mergeable --jq .mergeable)" != "MERGEABLE" ]]; then
+              skip "not mergeable right now"; continue
+            fi
+
+            if gh pr view "$number" --repo "$REPO" --json labels \
+                --jq -e '[.labels[].name] | map(select(. == "automerge-skip" or . == "do not merge")) | length > 0' >/dev/null; then
+              skip "blocklist label present"; continue
+            fi
+
+            files_gate='length == 1 and .[0].status == "modified" and (.[0].filename | test("^Casks/[^/]+\\.rb$"))'
+            files_desc="exactly one modified Casks/*.rb"
+            if [[ "$branch" == sync/* ]]; then
+              # Import PRs add new casks; any modification or non-cask file
+              # means a human touched it and must review it.
+              files_gate='length > 0 and all(.status == "added" and (.filename | test("^Casks/[^/]+\\.rb$")))'
+              files_desc="only added Casks/*.rb files"
+            fi
+            if ! gh api "repos/$REPO/pulls/$number/files" --paginate \
+                --jq -e "$files_gate" >/dev/null; then
+              skip "diff is not $files_desc"; continue
+            fi
+
+            checks="$(gh api "repos/$REPO/commits/$sha/check-runs?per_page=100" --jq '[.check_runs[] | {name, status, conclusion}]')"
+            if ! jq -e 'length > 0 and all(.status == "completed") and all(.conclusion == "success")' <<<"$checks" >/dev/null; then
+              skip "check runs not all completed+success"; continue
+            fi
+            if ! jq -e 'map(.name) | contains(["conclusion", "audit", "Workflow lint"])' <<<"$checks" >/dev/null \
+                || ! jq -e '[.[].name | select(startswith("CodeQL"))] | length > 0' <<<"$checks" >/dev/null; then
+              skip "missing CI conclusion, audit, Workflow lint or CodeQL signal"; continue
+            fi
+
+            echo "merge #$number: all gates green"
+            gh pr merge --repo "$REPO" --squash --delete-branch "$number"
+            merged=$((merged + 1))
+          done < <(jq -r '.[].number' <<<"$candidates")
+
+          echo "Merged $merged PR(s)."

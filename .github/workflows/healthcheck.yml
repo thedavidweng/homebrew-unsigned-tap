@@ -22,6 +22,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     timeout-minutes: 60
     runs-on: macos-latest
     steps:
@@ -43,8 +44,31 @@ jobs:
           if [[ "${{ inputs.auto_delete }}" == "true" ]]; then
             python3 scripts/check_cask_health.py --delete || true
           else
-            python3 scripts/check_cask_health.py
+            # Exit status is captured in dead.json; the radar issue below is
+            # the signal, so a red job here would only add noise.
+            python3 scripts/check_cask_health.py --json-out dead.json || true
           fi
+      - name: Fetch upstream version snapshot
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Same daily-sync snapshot the autobump catch-up uses; a missing
+          # snapshot only narrows this week's radar, it never fails it.
+          run_id="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow sync.yml \
+            --status success --limit 1 --json databaseId --jq -r '.[0].databaseId // empty')"
+          if [[ -n "$run_id" ]]; then
+            gh run download "$run_id" -n upstream-versions \
+              -D /tmp/upstream-snapshot --repo "${GITHUB_REPOSITORY}" || true
+          fi
+      - name: Update maintenance radar issue
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAP_CASK_DIR: ${{ github.workspace }}/Casks
+          SNAPSHOT_JSON: /tmp/upstream-snapshot/upstream-versions.json
+          DEAD_JSON: dead.json
+        run: python3 scripts/radar.py
       - name: Create PR for deleted dead casks
         if: inputs.auto_delete && always()
         run: |

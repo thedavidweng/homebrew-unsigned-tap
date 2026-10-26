@@ -19,7 +19,6 @@ concurrency:
 jobs:
   autobump:
     permissions:
-      actions: write
       contents: write
       pull-requests: write
     timeout-minutes: 60
@@ -37,13 +36,41 @@ jobs:
       - uses: Homebrew/actions/git-user-config@4790763c0a3ba4036f72634dc079c4a7dfcd4878 # 2026.10.19.1
         with:
           username: BrewTestBot
+      - name: Check PAT identity
+        env:
+          GH_TOKEN: ${{ secrets.AUTOBUMP_PAT }}
+        run: |
+          # Fail fast with a clear message if the PAT expired or was revoked;
+          # without it every push/PR would silently fall back to gated runs.
+          login="$(gh api user --jq .login)"
+          echo "Autobump pushes and PRs will run as @${login}"
+          test "$login" = "${{ github.repository_owner }}"
       - name: Trust tap
         run: brew trust thedavidweng/unsigned-tap
+      - name: Fetch upstream version snapshot
+        env:
+          GH_TOKEN: ${{ secrets.AUTOBUMP_PAT }}
+        run: |
+          # The daily sync owns the single upstream clone; consume its
+          # snapshot instead of cloning homebrew-cask eight times a day.
+          # A missing snapshot only disables catch-up rows for this run.
+          run_id="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow sync.yml \
+            --status success --limit 1 --json databaseId --jq -r '.[0].databaseId // empty')"
+          if [[ -n "$run_id" ]] && gh run download "$run_id" -n upstream-versions \
+              -D /tmp/upstream-snapshot --repo "${GITHUB_REPOSITORY}"; then
+            echo "Upstream snapshot from sync run $run_id"
+          else
+            echo "::warning::no upstream snapshot available; catch-up disabled this run"
+          fi
       - name: Bump casks
         env:
-          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # PAT, not GITHUB_TOKEN: pushes authenticated as the token owner let
+          # the resulting pull_request workflows run to completion. Pushes made
+          # with GITHUB_TOKEN leave those runs gated at action_required, so no
+          # status ever reports back to the PR and nothing can auto-merge it.
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.AUTOBUMP_PAT }}
           CASKS: ${{ inputs.casks }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.AUTOBUMP_PAT }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
@@ -63,14 +90,27 @@ jobs:
               -- "${architecture}" "${CASK_ARGS[@]}" --newer-only --extract-plist --json > "outdated-casks-${architecture}.json"
           done
           OUTDATED=$(python3 "$GITHUB_WORKSPACE/scripts/autobump.py" plan)
-          if [[ -z "${OUTDATED// /}" ]]; then
-            echo "No outdated casks found."
-            exit 0
-          fi
-          echo "Outdated: ${OUTDATED}"
+          echo "Livecheck outdated: ${OUTDATED:-<none>}"
           gh auth setup-git
           gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
             -f state=open -f base="${DEFAULT_BRANCH}" --paginate --slurp | jq add > open-cask-prs.json
+          # Catch casks livecheck cannot see: single-version tokens where the
+          # upstream checkout is strictly newer (skips and open PRs excluded).
+          # bump-cask-pr still validates each one via download + audit.
+          CATCHUP=$(SNAPSHOT_JSON=/tmp/upstream-snapshot/upstream-versions.json \
+            TAP_CASK_DIR="$(brew --repository thedavidweng/unsigned-tap)/Casks" \
+            EXCLUDE_TOKENS="$(awk -F'\t' '{print $1}' <<<"${OUTDATED}" | tr '\n' ' ')" \
+            ONLY_TOKENS="${CASKS-}" \
+            OPEN_PRS_JSON=open-cask-prs.json \
+            GITHUB_REPOSITORY="${GITHUB_REPOSITORY}" \
+            python3 "$GITHUB_WORKSPACE/scripts/upstream_catchup.py")
+          echo "Upstream catch-up: ${CATCHUP:-<none>}"
+          COMBINED=$(printf '%s\n%s' "${OUTDATED}" "${CATCHUP}" | { grep -v '^$' || true; } | awk -F'\t' '!seen[$1]++')
+          if [[ -z "${COMBINED// /}" ]]; then
+            echo "No outdated casks found."
+            exit 0
+          fi
+          echo "Outdated: ${COMBINED}"
           FAILED=()
           while IFS=$'\t' read -r cask _version version_args; do
             read -r -a BUMP_ARGS <<< "${version_args}"
@@ -80,7 +120,7 @@ jobs:
               echo "::warning::bump failed for ${cask}; skipping this run"
               FAILED+=("${cask}")
             fi
-          done <<< "${OUTDATED}"
+          done <<< "${COMBINED}"
           if [ ${#FAILED[@]} -gt 0 ]; then
             echo "::warning::${#FAILED[@]} cask(s) failed to bump: ${FAILED[*]}"
           fi
