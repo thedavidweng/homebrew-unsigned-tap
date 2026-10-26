@@ -19,9 +19,13 @@ cask "hackintool" do
   end
 
   zap trash: [
+    "~/Library/Caches/com.apple.helpd/Generated/com.Baker76.Hackintool.help*",
     "~/Library/Caches/com.apple.helpd/Generated/com.Headsoft.Hackintool.help*",
+    "~/Library/Caches/com.Baker76.Hackintool",
     "~/Library/Caches/com.Headsoft.Hackintool",
+    "~/Library/Cookies/com.Baker76.Hackintool.binarycookies",
     "~/Library/Cookies/com.Headsoft.Hackintool.binarycookies",
+    "~/Library/Preferences/com.Baker76.Hackintool.plist",
     "~/Library/Preferences/com.Headsoft.Hackintool.plist",
   ]
 end
