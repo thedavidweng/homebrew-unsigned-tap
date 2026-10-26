@@ -68,9 +68,14 @@ def catchup_and_inflight(repo):
 def livecheck_errors(repo, tmp):
     """Error map from the latest successful autobump evidence artifact."""
     try:
-        run_id = json.loads(gh("run", "list", "--workflow", "Autobump",
-                               "--status", "success", "--limit", "1",
-                               "--json", "databaseId", repo=repo))[0]["databaseId"]
+        # Older gh rejects conclusion values in --status, so filter in Python.
+        runs = json.loads(gh("run", "list", "--workflow", "Autobump",
+                             "--limit", "5", "--json", "databaseId,conclusion",
+                             repo=repo))
+        succeeded = [run["databaseId"] for run in runs if run.get("conclusion") == "success"]
+        if not succeeded:
+            return {"<evidence unavailable>": "no successful autobump run"}
+        run_id = succeeded[0]
         dest = str(Path(tmp) / "lc")
         subprocess.run(["gh", "run", "download", str(run_id), "-n", "livecheck-casks",
                         "-D", dest, "--repo", repo],

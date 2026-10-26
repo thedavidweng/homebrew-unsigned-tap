@@ -43,6 +43,26 @@ class RadarTests(unittest.TestCase):
     def test_retired_tokens_come_from_sync_blocklist(self):
         self.assertIn("v2ray-unofficial", radar.retired_tokens())
 
+    def test_evidence_prefers_successful_runs(self):
+        calls = []
+
+        def fake_gh(*args, repo):
+            calls.append(args)
+            if args[:2] == ("run", "list"):
+                self.assertNotIn("--status", args)
+                return json.dumps([{"databaseId": 1, "conclusion": "failure"},
+                                   {"databaseId": 2, "conclusion": "success"}])
+            raise AssertionError(args)
+
+        with patch.object(radar, "gh", side_effect=fake_gh), \
+                patch.object(radar.subprocess, "run") as run, \
+                tempfile.TemporaryDirectory() as tmp:
+            run.return_value = unittest.mock.Mock(returncode=0)
+            pathlib.Path(tmp, "lc").mkdir()
+            pathlib.Path(tmp, "lc", "outdated-casks.json").write_text('{"arm": []}')
+            self.assertEqual(radar.livecheck_errors("o/r", tmp), {})
+            self.assertIn("2", run.call_args.args[0])
+
     def test_upsert_creates_edits_or_closes(self):
         with patch.object(radar, "gh", return_value=json.dumps([])) as gh, \
                 patch.object(radar, "gh_create_with_body", return_value="http://x/1") as create:
