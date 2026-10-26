@@ -32,7 +32,10 @@ Reads:
   ONLY_TOKENS    when set, restrict to these tokens (manual dispatch scope)
   OPEN_PRS_JSON  path to slurped `gh api .../pulls` JSON (open PRs)
 
-Prints TSV rows: token<TAB>version<TAB>--version=<upstream version>
+Prints TSV rows: token<TAB>version<TAB>--version=<upstream version><TAB>catchup
+The trailing source marker tells bump() the version is explicit (livecheck is
+blind here), so it attempts the bump directly instead of re-deriving versions
+from livecheck. Livecheck rows carry no marker and default to "livecheck".
 """
 import json
 import os
@@ -136,6 +139,10 @@ def upstream_newer(pairs):
     return [(token, theirs) for token, _ours, theirs in pairs if token in newer]
 
 
+def row(token, version):
+    return f"{token}\t{version}\t--version={version}\tcatchup"
+
+
 def main():
     exclude = set(os.environ.get("EXCLUDE_TOKENS", "").split())
     only_raw = os.environ.get("ONLY_TOKENS", "").strip()
@@ -152,7 +159,7 @@ def main():
         upstream = snapshot_upstream(SRC_CASK_DIR)
     pairs = candidates(TAP_CASK_DIR, upstream, exclude, only, open_refs)
     for token, version in upstream_newer(pairs):
-        print(f"{token}\t{version}\t--version={version}")
+        print(row(token, version))
 
 
 if __name__ == "__main__":

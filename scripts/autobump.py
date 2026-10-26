@@ -123,7 +123,7 @@ def pending_prs(cask, prs, repo, tap, default_branch, architectures):
     return pending, architectures - covered
 
 
-def bump(cask, args, prs, repo, default_branch):
+def bump(cask, args, prs, repo, default_branch, source="livecheck"):
     qualified = "thedavidweng/unsigned-tap/" + cask
     tap = output("brew", "--repository", "thedavidweng/unsigned-tap").strip()
     versions = ({arch: args[0].split("=", 1)[1] for arch in ("arm", "intel")}
@@ -186,12 +186,20 @@ def bump(cask, args, prs, repo, default_branch):
         if errors:
             raise ValueError(json.dumps(errors))
         rows = plan(data)
-        if not rows:
+        if rows:
+            token, _version, new_args = rows[0]
+            assert len(rows) == 1 and token == cask
+            uncovered = {arch for arch, results in data.items() if plan({arch: results})}
+        elif (source == "catchup" and args
+                and all(a.startswith("--version") for a in args)):
+            # Livecheck is blind to this cask but upstream is newer (the
+            # catch-up row carries an explicit version). Attempt it directly:
+            # the download and audit inside bump-cask-pr still validate it,
+            # and a bogus version fails here without opening anything.
+            new_args = list(args)
+        else:
             print(f"No remaining update for {cask} on latest {default_branch}")
             return
-        token, _version, new_args = rows[0]
-        assert len(rows) == 1 and token == cask
-        uncovered = {arch for arch, results in data.items() if plan({arch: results})}
         if not bump_cask_pr("--no-fork", *new_args, qualified):
             return
         pages = json.loads(output("gh", "api", f"repos/{repo}/pulls", "--method", "GET",
@@ -222,7 +230,8 @@ if __name__ == "__main__":
         for cask, version, args in plan(data):
             print(cask + "\t" + version + "\t" + " ".join(args))
     elif sys.argv[1] == "bump":
-        bump(sys.argv[2], sys.argv[3:], json.loads(Path("open-cask-prs.json").read_text()),
-             os.environ["GITHUB_REPOSITORY"], os.environ["DEFAULT_BRANCH"])
+        bump(sys.argv[2], sys.argv[4:], json.loads(Path("open-cask-prs.json").read_text()),
+             os.environ["GITHUB_REPOSITORY"], os.environ["DEFAULT_BRANCH"],
+             source=sys.argv[3])
     else:
         raise ValueError("Expected plan or bump")

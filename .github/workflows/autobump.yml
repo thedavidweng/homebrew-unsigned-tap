@@ -116,11 +116,11 @@ jobs:
           fi
           echo "Outdated: ${COMBINED}"
           FAILED=()
-          while IFS=$'\t' read -r cask _version version_args; do
+          while IFS=$'\t' read -r cask _version version_args source; do
             read -r -a BUMP_ARGS <<< "${version_args}"
             # One broken cask (upstream 404, audit verdict, network) must not
             # block the remaining bumps; it is reported and retried next run.
-            if ! python3 "$GITHUB_WORKSPACE/scripts/autobump.py" bump "$cask" "${BUMP_ARGS[@]}"; then
+            if ! python3 "$GITHUB_WORKSPACE/scripts/autobump.py" bump "$cask" "${source:-livecheck}" "${BUMP_ARGS[@]}"; then
               echo "::warning::bump failed for ${cask}; skipping this run"
               FAILED+=("${cask}")
             fi

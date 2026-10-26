@@ -151,6 +151,29 @@ class AutobumpTests(unittest.TestCase):
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
+    @patch.object(autobump, "output")
+    @patch.object(autobump, "pending_prs", side_effect=[([], {"arm", "intel"}), ([(pr(), {"arm", "intel"})], set())])
+    @patch.object(autobump, "bump_cask_pr", return_value=True)
+    def test_catchup_attempts_explicit_version_despite_blind_livecheck(self, bump, pending, output, run, chdir):
+        output.side_effect = ["/tap", json.dumps(result("2.0", False)), json.dumps(result("2.0", False)),
+                              json.dumps([[pr()]])]
+        autobump.bump("sample", ["--version=9.9"], [], REPO, "main", source="catchup")
+        self.assertIn(("--no-fork", "--version=9.9", "thedavidweng/unsigned-tap/sample"),
+                      [c.args for c in bump.call_args_list])
+
+    @patch.object(autobump.os, "chdir")
+    @patch.object(autobump, "run")
+    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)), json.dumps(result("2.0", False))])
+    @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
+    @patch.object(autobump, "bump_cask_pr", return_value=False)
+    def test_catchup_download_failure_opens_nothing(self, bump, pending, output, run, chdir):
+        autobump.bump("sample", ["--version=9.9"], [], REPO, "main", source="catchup")
+        bumped = [c.args for c in bump.call_args_list]
+        self.assertEqual(bumped, [("--no-fork", "--version=9.9", "thedavidweng/unsigned-tap/sample")])
+        self.assertEqual(output.call_count, 3)
+
+    @patch.object(autobump.os, "chdir")
+    @patch.object(autobump, "run")
     @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)), json.dumps(result("2.0", False))])
     @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
     def test_update_merged_during_scan_does_not_create_duplicate(self, pending, output, run, chdir):

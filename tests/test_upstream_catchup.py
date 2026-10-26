@@ -100,6 +100,9 @@ class CatchupTests(unittest.TestCase):
             self.assertEqual(catchup.upstream_newer([]), [])
             check.assert_not_called()
 
+    def test_row_marks_catchup_source(self):
+        self.assertEqual(catchup.row("sample", "9.9"), "sample\t9.9\t--version=9.9\tcatchup")
+
     def test_snapshot_script_writes_json(self):
         (self.src / "a.rb").write_text(cask("1.0"))
         out = pathlib.Path(self.temp.name) / "out.json"
