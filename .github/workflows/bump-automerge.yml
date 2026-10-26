@@ -23,9 +23,6 @@ on:
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
-  workflow_run:
-    workflows: ["CI", "audit", "CodeQL", "Workflow lint"]
-    types: [completed]
 
 permissions: {}
 
@@ -43,7 +40,6 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       REPO: ${{ github.repository }}
-      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
     steps:
       - name: Merge green bump PRs
         run: |
@@ -52,26 +48,15 @@ jobs:
           REPO="${REPO:?}"
           OWNER="${REPO%%/*}"
 
-          branch_gate='select(.headRefName | startswith("bump-") or startswith("sync/"))'
-          filter="[.[] | select(.isDraft | not)
-                   | select(.baseRefName == \"main\")
-                   | $branch_gate
-                   | select(.headRepository.nameWithOwner == \$repo)
-                   | select(.author.login == \"github-actions[bot]\" or .author.login == \$owner)
-             ]"
-          if [[ -n "${HEAD_SHA:-}" ]]; then
-            # workflow_run trigger: only PRs on the completed run's commit.
-            filter="[.[] | select(.headRefOid == \$sha)
-                   | select(.isDraft | not)
-                   | select(.baseRefName == \"main\")
-                   | $branch_gate
-                   | select(.headRepository.nameWithOwner == \$repo)
-                   | select(.author.login == \"github-actions[bot]\" or .author.login == \$owner)
-             ]"
-          fi
+          filter='[.[] | select(.isDraft | not)
+                   | select(.baseRefName == "main")
+                   | select(.headRefName | startswith("bump-") or startswith("sync/"))
+                   | select(.headRepository.nameWithOwner == $repo)
+                   | select(.author.login == "github-actions[bot]" or .author.login == $owner)
+             ]'
           candidates="$(gh pr list --repo "$REPO" --state open --limit 50 \
             --json number,headRefName,headRefOid,headRepository,baseRefName,author,isDraft \
-            --jq "$filter" --arg repo "$REPO" --arg owner "$OWNER" --arg sha "${HEAD_SHA:-}")"
+            --jq "$filter" --arg repo "$REPO" --arg owner "$OWNER")"
 
           count="$(jq 'length' <<<"$candidates")"
           if [[ "$count" -eq 0 ]]; then
