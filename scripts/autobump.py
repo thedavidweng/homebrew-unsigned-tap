@@ -214,7 +214,11 @@ if __name__ == "__main__":
         resolved = [result for results in data.values() for result in results
                     if result.get("status") != "error"]
         if errors and not resolved:
-            raise SystemExit("all livecheck results failed; nothing could be evaluated")
+            # Do not fail here: per-cask errors are already warnings, and the
+            # upstream catch-up step may still produce rows. An empty result
+            # exits cleanly downstream ("No outdated casks found").
+            print("::warning::all livecheck results failed; nothing to plan from livecheck",
+                  file=sys.stderr)
         for cask, version, args in plan(data):
             print(cask + "\t" + version + "\t" + " ".join(args))
     elif sys.argv[1] == "bump":

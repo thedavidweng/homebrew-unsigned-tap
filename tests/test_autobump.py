@@ -1,5 +1,10 @@
+import contextlib
 import importlib.util
+import io
 import json
+import os
+import runpy
+import sys
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -47,6 +52,25 @@ class AutobumpTests(unittest.TestCase):
         }
         self.assertEqual(autobump.plan(data), [("healthy", "2.0", ["--version=2.0"])])
         self.assertEqual([e["cask"] for e in autobump.livecheck_errors(data)], ["broken", "broken"])
+
+    def test_plan_cli_survives_total_livecheck_failure(self):
+        import tempfile
+        data = [{"status": "error", "cask": "broken", "messages": ["boom"]}]
+        with tempfile.TemporaryDirectory() as tmp:
+            for arch in ("arm", "intel"):
+                Path(tmp, f"outdated-casks-{arch}.json").write_text(json.dumps(data))
+            old_argv, old_cwd = sys.argv, os.getcwd()
+            os.chdir(tmp)
+            try:
+                sys.argv = ["autobump.py", "plan"]
+                with contextlib.redirect_stdout(io.StringIO()) as out:
+                    runpy.run_path(
+                        str(Path(__file__).resolve().parents[1] / "scripts/autobump.py"),
+                        run_name="__main__")
+            finally:
+                sys.argv = old_argv
+                os.chdir(old_cwd)
+            self.assertEqual(out.getvalue(), "")
 
     def test_partial_architecture_error_skips_the_cask(self):
         data = {
