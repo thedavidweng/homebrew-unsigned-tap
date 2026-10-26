@@ -1,5 +1,5 @@
 cask "hackintool" do
-  version "4.1.5"
+  version "5.0.0"
   sha256 :no_check # required as upstream package is updated in-place
 
   url "https://github.com/headkaze/Hackintool/releases/download/#{version}/Hackintool.zip"
@@ -8,7 +8,7 @@ cask "hackintool" do
   homepage "https://github.com/headkaze/Hackintool"
 
   auto_updates true
-  depends_on :macos
+  depends_on macos: :monterey
 
   app "Hackintool.app"
 
