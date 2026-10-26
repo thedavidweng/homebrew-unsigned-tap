@@ -1,9 +1,9 @@
 cask "lidarr" do
   arch arm: "arm64", intel: "x64"
 
-  version "3.1.0.4875"
-  sha256 arm:   "60236378eb5645fc217e2dfa6303558f1a2db8b5672c6332fd9ae30966ccbd26",
-         intel: "8450993360e485fc083204a84726fb002b6dfac54c29d583f8d4a22c3a59cf30"
+  version "3.1.6.5079"
+  sha256 arm:   "6f0a01179dbcf51e87d5569e774b94b60021f4483d30c6281e32eb2ca221b09c",
+         intel: "8667bcc4f136237b793432451e35582f2513a9b0bc186af8b81c9692038d2125"
 
   url "https://github.com/lidarr/Lidarr/releases/download/v#{version}/Lidarr.master.#{version}.osx-app-core-#{arch}.zip"
   name "Lidarr"
