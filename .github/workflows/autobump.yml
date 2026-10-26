@@ -54,19 +54,17 @@ jobs:
           # The daily sync owns the single upstream clone; consume its
           # snapshot instead of cloning homebrew-cask eight times a day.
           # A missing snapshot only disables catch-up rows for this run,
-          # never the livecheck bumps. (--status takes run states, not
-          # conclusions, on older gh, so filter conclusion in jq instead.)
-          if run_id="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow sync.yml \
-              --limit 5 --json databaseId,conclusion \
-              --jq -r '[.[] | select(.conclusion == "success")] | .[0].databaseId // empty')"; then
-            if [[ -n "$run_id" ]] && gh run download "$run_id" -n upstream-versions \
-                -D /tmp/upstream-snapshot --repo "${GITHUB_REPOSITORY}"; then
-              echo "Upstream snapshot from sync run $run_id"
-            else
-              echo "::warning::no upstream snapshot available; catch-up disabled this run"
-            fi
+          # never the livecheck bumps. Uses only long-stable gh api calls:
+          # the preinstalled runner gh predates several gh run list flags.
+          mkdir -p /tmp/upstream-snapshot
+          aid="$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=upstream-versions&per_page=5" \
+            --jq '[.artifacts[] | select(.expired == false)] | .[0].id // empty')"
+          if [[ -n "$aid" ]] && gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${aid}/zip" \
+              > /tmp/upstream-snapshot.zip \
+            && unzip -o -q /tmp/upstream-snapshot.zip -d /tmp/upstream-snapshot; then
+            echo "Upstream snapshot from artifact $aid"
           else
-            echo "::warning::could not list sync runs; catch-up disabled this run"
+            echo "::warning::no upstream snapshot available; catch-up disabled this run"
           fi
       - name: Bump casks
         env:

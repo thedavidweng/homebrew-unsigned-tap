@@ -44,24 +44,33 @@ class RadarTests(unittest.TestCase):
         self.assertIn("v2ray-unofficial", radar.retired_tokens())
 
     def test_evidence_prefers_successful_runs(self):
-        calls = []
+        import io
+        import zipfile
 
-        def fake_gh(*args, repo):
-            calls.append(args)
-            if args[:2] == ("run", "list"):
-                self.assertNotIn("--status", args)
-                return json.dumps([{"databaseId": 1, "conclusion": "failure"},
-                                   {"databaseId": 2, "conclusion": "success"}])
-            raise AssertionError(args)
+        def fake_gh(*args, repo=None):
+            self.assertEqual(args[0], "api")
+            self.assertIsNone(repo)
+            if "/actions/artifacts?" in args[1]:
+                return json.dumps({"artifacts": [
+                    {"id": 9, "expired": False, "workflow_run": {"id": 2}},
+                    {"id": 8, "expired": False, "workflow_run": {"id": 1}},
+                    {"id": 7, "expired": True, "workflow_run": {"id": 2}}]})
+            return json.dumps({"workflow_runs": [
+                {"id": 1, "conclusion": "failure"},
+                {"id": 2, "conclusion": "success"}]})
+
+        payload = json.dumps({"arm": [{"status": "error", "cask": "x",
+                                       "messages": ["boom"]}]}).encode()
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as archive:
+            archive.writestr("outdated-casks.json", payload)
 
         with patch.object(radar, "gh", side_effect=fake_gh), \
                 patch.object(radar.subprocess, "run") as run, \
                 tempfile.TemporaryDirectory() as tmp:
-            run.return_value = unittest.mock.Mock(returncode=0)
-            pathlib.Path(tmp, "lc").mkdir()
-            pathlib.Path(tmp, "lc", "outdated-casks.json").write_text('{"arm": []}')
-            self.assertEqual(radar.livecheck_errors("o/r", tmp), {})
-            self.assertIn("2", run.call_args.args[0])
+            run.return_value = unittest.mock.Mock(returncode=0, stdout=buf.getvalue())
+            self.assertEqual(radar.livecheck_errors("o/r", tmp), {"x": ["boom"]})
+            self.assertTrue(any("artifacts/9/zip" in arg for arg in run.call_args.args[0]))
 
     def test_upsert_creates_edits_or_closes(self):
         with patch.object(radar, "gh", return_value=json.dumps([])) as gh, \

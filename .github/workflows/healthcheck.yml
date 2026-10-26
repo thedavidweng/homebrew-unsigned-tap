@@ -55,13 +55,15 @@ jobs:
         run: |
           # Same daily-sync snapshot the autobump catch-up uses; a missing
           # snapshot only narrows this week's radar, it never fails it.
-          if run_id="$(gh run list --repo "${GITHUB_REPOSITORY}" --workflow sync.yml \
-              --limit 5 --json databaseId,conclusion \
-              --jq -r '[.[] | select(.conclusion == "success")] | .[0].databaseId // empty')"; then
-            if [[ -n "$run_id" ]]; then
-              gh run download "$run_id" -n upstream-versions \
-                -D /tmp/upstream-snapshot --repo "${GITHUB_REPOSITORY}" || true
-            fi
+          # gh api only: the preinstalled runner gh predates several
+          # gh run list/download flags.
+          mkdir -p /tmp/upstream-snapshot
+          aid="$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=upstream-versions&per_page=5" \
+            --jq '[.artifacts[] | select(.expired == false)] | .[0].id // empty')"
+          if [[ -n "$aid" ]]; then
+            gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${aid}/zip" \
+              > /tmp/upstream-snapshot.zip || true
+            unzip -o -q /tmp/upstream-snapshot.zip -d /tmp/upstream-snapshot || true
           fi
       - name: Update maintenance radar issue
         if: github.event_name == 'schedule'

@@ -37,8 +37,13 @@ def load_upstream():
     return {}
 
 
-def gh(*args, repo):
-    return subprocess.check_output(["gh", *args, "--repo", repo], text=True)
+def gh(*args, repo=None):
+    # gh api takes the repo inside the path and rejects --repo; every other
+    # subcommand used here needs it.
+    cmd = ["gh", *args]
+    if repo is not None:
+        cmd += ["--repo", repo]
+    return subprocess.check_output(cmd, text=True)
 
 
 def retired_tokens():
@@ -66,21 +71,31 @@ def catchup_and_inflight(repo):
 
 
 def livecheck_errors(repo, tmp):
-    """Error map from the latest successful autobump evidence artifact."""
+    """Error map from the latest successful autobump evidence artifact.
+
+    Uses only long-stable gh api calls: the preinstalled runner gh predates
+    several gh run list/download flags.
+    """
     try:
-        # Older gh rejects conclusion values in --status, so filter in Python.
-        runs = json.loads(gh("run", "list", "--workflow", "Autobump",
-                             "--limit", "5", "--json", "databaseId,conclusion",
-                             repo=repo))
-        succeeded = [run["databaseId"] for run in runs if run.get("conclusion") == "success"]
-        if not succeeded:
-            return {"<evidence unavailable>": "no successful autobump run"}
-        run_id = succeeded[0]
-        dest = str(Path(tmp) / "lc")
-        subprocess.run(["gh", "run", "download", str(run_id), "-n", "livecheck-casks",
-                        "-D", dest, "--repo", repo],
-                       check=True, capture_output=True, text=True)
-        data = json.loads(Path(dest, "outdated-casks.json").read_text())
+        # Query strings stay inline: gh api with -f switches to POST.
+        arts = json.loads(gh("api", f"repos/{repo}/actions/artifacts"
+                                    "?name=livecheck-casks&per_page=10"))
+        runs = json.loads(gh("api", f"repos/{repo}/actions/workflows/autobump.yml/runs"
+                                    "?status=completed&per_page=10"))
+        succeeded = {run["id"] for run in runs.get("workflow_runs", [])
+                     if run.get("conclusion") == "success"}
+        aids = [art["id"] for art in arts.get("artifacts", [])
+                if not art.get("expired")
+                and art.get("workflow_run", {}).get("id") in succeeded]
+        if not aids:
+            return {"<evidence unavailable>": "no successful autobump evidence"}
+        proc = subprocess.run(["gh", "api",
+                               f"repos/{repo}/actions/artifacts/{aids[0]}/zip"],
+                              check=True, capture_output=True)
+        import io
+        import zipfile
+        with zipfile.ZipFile(io.BytesIO(proc.stdout)) as archive:
+            data = json.loads(archive.read("outdated-casks.json").decode())
     except Exception as exc:
         return {"<evidence unavailable>": str(exc)}
     errors = {}
