@@ -48,15 +48,18 @@ jobs:
           REPO="${REPO:?}"
           OWNER="${REPO%%/*}"
 
-          filter='[.[] | select(.isDraft | not)
-                   | select(.baseRefName == "main")
-                   | select(.headRefName | startswith("bump-") or startswith("sync/"))
-                   | select(.headRepository.nameWithOwner == $repo)
-                   | select(.author.login == "github-actions[bot]" or .author.login == $owner)
-             ]'
+          # Interpolated (not --arg): the preinstalled gh on runners predates
+          # --arg support for --jq. Values are runner-controlled identifiers
+          # (owner/repo login charset), never PR-controlled strings.
+          filter="[.[] | select(.isDraft | not)
+                   | select(.baseRefName == \"main\")
+                   | select(.headRefName | startswith(\"bump-\") or startswith(\"sync/\"))
+                   | select(.headRepository.nameWithOwner == \"$REPO\")
+                   | select(.author.login == \"github-actions[bot]\" or .author.login == \"$OWNER\")
+             ]"
           candidates="$(gh pr list --repo "$REPO" --state open --limit 50 \
             --json number,headRefName,headRefOid,headRepository,baseRefName,author,isDraft \
-            --jq "$filter" --arg repo "$REPO" --arg owner "$OWNER")"
+            --jq "$filter")"
 
           count="$(jq 'length' <<<"$candidates")"
           if [[ "$count" -eq 0 ]]; then
