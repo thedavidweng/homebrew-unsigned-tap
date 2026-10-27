@@ -11,9 +11,14 @@ name: Bump auto-merge
 # - bump-*: exactly one modified file under Casks/
 #   sync/*: every file an added file under Casks/ (pure import, no edits)
 # - no blocklist label (automerge-skip, do not merge)
-# - every check run on the head SHA completed with success, including the CI
-#   conclusion job, audit, Workflow lint and CodeQL
+# - every check run on the head SHA is completed, none ended in a real bad
+#   outcome (failure, startup_failure, cancelled, timed_out, action_required,
+#   error), and the signals this repo enforces - the CI conclusion job, audit,
+#   Workflow lint and CodeQL - are present on that exact head and actually
+#   success. neutral/skipped results are tolerated only as advisory context
+#   (CodeRabbit, Dependabot auto-merge), never for those four signals.
 # - GitHub reports the PR mergeable
+# - the head SHA still matches at merge time (--match-head-commit)
 #
 # Deliberately NOT `gh pr merge --auto`: with no required-checks ruleset,
 # --auto would merge immediately without waiting for CI. The checks above are
@@ -79,8 +84,18 @@ jobs:
               skip "not mergeable right now"; continue
             fi
 
-            if gh pr view "$number" --repo "$REPO" --json labels \
-                --jq -e '[.labels[].name] | map(select(. == "automerge-skip" or . == "do not merge")) | length > 0' >/dev/null; then
+            # `gh api`/`gh pr view` --jq takes exactly one argument, so it has no
+            # `-e` mode; the predicate is evaluated as an expression instead.
+            # An unreadable or unexpected label payload is not "no blocklist".
+            if ! labels="$(gh pr view "$number" --repo "$REPO" --json labels \
+                --jq '[.labels[].name]')"; then
+              skip "could not read labels"; continue
+            fi
+            if ! jq -e 'type == "array" and all(type == "string")' <<<"$labels" >/dev/null; then
+              skip "label payload malformed"; continue
+            fi
+            if jq -e 'map(select(. == "automerge-skip" or . == "do not merge")) | length > 0' \
+                <<<"$labels" >/dev/null; then
               skip "blocklist label present"; continue
             fi
 
@@ -92,22 +107,61 @@ jobs:
               files_gate='length > 0 and all(.status == "added" and (.filename | test("^Casks/[^/]+\\.rb$")))'
               files_desc="only added Casks/*.rb files"
             fi
-            if ! gh api "repos/$REPO/pulls/$number/files" --paginate \
-                --jq -e "$files_gate" >/dev/null; then
+            # The whole diff is judged at once: --paginate emits one array per
+            # page, so slurp and concatenate before applying the gate. A failed
+            # or empty read must never look like a clean single-file diff.
+            if ! files="$(gh api "repos/$REPO/pulls/$number/files" --paginate | jq -s 'add')"; then
+              skip "could not read PR files"; continue
+            fi
+            if ! jq -e 'type == "array" and length > 0' <<<"$files" >/dev/null; then
+              skip "PR file list empty or malformed"; continue
+            fi
+            if ! jq -e "$files_gate" <<<"$files" >/dev/null; then
               skip "diff is not $files_desc"; continue
             fi
 
-            checks="$(gh api "repos/$REPO/commits/$sha/check-runs?per_page=100" --jq '[.check_runs[] | {name, status, conclusion}]')"
-            if ! jq -e 'length > 0 and all(.status == "completed") and all(.conclusion == "success")' <<<"$checks" >/dev/null; then
-              skip "check runs not all completed+success"; continue
+            # filter=latest: a context that failed on an earlier run but has
+            # since succeeded on this same head counts once, by its latest
+            # result. An unreadable payload is not an empty (passing) one.
+            if ! checks="$(gh api "repos/$REPO/commits/$sha/check-runs?per_page=100&filter=latest" \
+                --jq '[.check_runs[] | {name, status, conclusion}]')"; then
+              skip "could not read check runs"; continue
             fi
-            if ! jq -e 'map(.name) | contains(["conclusion", "audit", "Workflow lint"])' <<<"$checks" >/dev/null \
-                || ! jq -e '[.[].name | select(startswith("CodeQL"))] | length > 0' <<<"$checks" >/dev/null; then
-              skip "missing CI conclusion, audit, Workflow lint or CodeQL signal"; continue
+            if ! jq -e 'type == "array" and length > 0 and all(type == "object")' <<<"$checks" >/dev/null; then
+              skip "check-run payload empty or malformed"; continue
+            fi
+            # Nothing may still be running, and no context may end in a real bad
+            # outcome anywhere. neutral/skipped are advisory bots (CodeRabbit,
+            # Dependabot auto-merge) and are tolerated only as such.
+            if ! jq -e 'all(.status == "completed")' <<<"$checks" >/dev/null; then
+              skip "a check run is not completed"; continue
+            fi
+            if ! jq -e 'all(.conclusion != "failure"
+                            and .conclusion != "startup_failure"
+                            and .conclusion != "cancelled"
+                            and .conclusion != "timed_out"
+                            and .conclusion != "action_required"
+                            and .conclusion != "error")' <<<"$checks" >/dev/null; then
+              skip "a check run failed, was cancelled or needs action"; continue
+            fi
+            # The signals this repo actually enforces must be present on this
+            # exact head AND actually green; neutral/skipped is not a pass here.
+            if ! jq -e '[.[] | select(.conclusion == "success") | .name] as $ok
+                        | ($ok | index("conclusion")) != null
+                          and ($ok | index("audit")) != null
+                          and ($ok | index("Workflow lint")) != null
+                          and ([$ok[] | select(startswith("CodeQL"))] | length > 0)' \
+                <<<"$checks" >/dev/null; then
+              skip "CI conclusion, audit, Workflow lint or CodeQL not green on this head"; continue
             fi
 
             echo "merge #$number: all gates green"
-            gh pr merge --repo "$REPO" --squash --delete-branch "$number"
+            # CAS: the head must still be exactly the SHA every gate above was
+            # evaluated against.
+            if ! gh pr merge --repo "$REPO" --squash --delete-branch \
+                --match-head-commit "$sha" "$number"; then
+              skip "merge rejected (head moved or not permitted)"; continue
+            fi
             merged=$((merged + 1))
           done < <(jq -r '.[].number' <<<"$candidates")
 
