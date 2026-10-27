@@ -62,9 +62,16 @@ jobs:
                    | select(.headRepository.nameWithOwner == \"$REPO\")
                    | select(.author.login == \"github-actions[bot]\" or .author.login == \"$OWNER\")
              ]"
-          candidates="$(gh pr list --repo "$REPO" --state open --limit 50 \
-            --json number,headRefName,headRefOid,headRepository,baseRefName,author,isDraft \
-            --jq "$filter")"
+          if ! candidates="$(gh pr list --repo "$REPO" --state open --limit 50 \
+              --json number,headRefName,headRefOid,headRepository,baseRefName,author,isDraft \
+              --jq "$filter")"; then
+            echo "Could not read candidate PRs; merging nothing."
+            exit 1
+          fi
+          if ! jq -e 'type == "array"' <<<"$candidates" >/dev/null; then
+            echo "Candidate PR payload is not an array; merging nothing."
+            exit 1
+          fi
 
           count="$(jq 'length' <<<"$candidates")"
           if [[ "$count" -eq 0 ]]; then
@@ -123,8 +130,14 @@ jobs:
             # filter=latest: a context that failed on an earlier run but has
             # since succeeded on this same head counts once, by its latest
             # result. An unreadable payload is not an empty (passing) one.
+            # Every page is read and merged before any judgement: a failure
+            # hiding behind page 1 must not be invisible to the gates.
             if ! checks="$(gh api "repos/$REPO/commits/$sha/check-runs?per_page=100&filter=latest" \
-                --jq '[.check_runs[] | {name, status, conclusion}]')"; then
+                --paginate \
+                | jq -s 'map(.check_runs)
+                         | if any(.[]; type != "array") then error("malformed check-runs page")
+                           else (add // []) | map({name, status, conclusion})
+                           end')"; then
               skip "could not read check runs"; continue
             fi
             if ! jq -e 'type == "array" and length > 0 and all(type == "object")' <<<"$checks" >/dev/null; then

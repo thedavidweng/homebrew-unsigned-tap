@@ -1,18 +1,35 @@
 """Gate tests for the bump auto-merge workflow.
 
 The script under test is the real `run:` block of
-`.github/workflows/bump-automerge.yml`, extracted from the YAML and executed
-against a stub `gh` on PATH. The stub models the real CLI, including the fact
-that `--jq` takes exactly one argument and has no `-e` mode, so a regression to
-`--jq -e` shows up here instead of only in production.
+`.github/workflows/bump-automerge.yml`, extracted from the YAML byte-for-byte
+and executed against a stub `gh` on PATH. The stub models the real CLI,
+including the fact that `--jq` takes exactly one argument and has no `-e` mode,
+so a regression to `--jq -e` shows up here instead of only in production.
+
+Nothing here may reach a real repository. The harness therefore:
+
+- builds the environment from scratch. `GH_TOKEN`, `GITHUB_TOKEN` and the
+  enterprise variants are absent, and `HOME`/`GH_CONFIG_DIR`/`XDG_CONFIG_HOME`
+  point inside the sandbox, so no ambient credential or gh config is visible;
+- asserts that `gh` resolves to the stub before the production script runs, so
+  a PATH mistake fails the test rather than reaching the network;
+- answers only the calls the script is known to make and rejects anything else
+  with a distinct exit code, so a new or unexpected invocation cannot silently
+  succeed;
+- runs the *production* candidate filter verbatim (`jq` is given the real
+  `--jq` argument) instead of restating the predicate in the test;
+- captures `gh pr merge` into the call log instead of performing it. Write
+  commands are neutralised by the stub, never by rewriting the script text.
 
 Most cases assert the PR is *not* merged: the script must fail closed when the
-labels, the diff, or the check runs are missing, malformed, or bad.
+labels, the diff, the candidate set, or the check runs are missing, malformed,
+or bad.
 """
 
 import json
 import os
 import pathlib
+import shutil
 import stat
 import subprocess
 import tempfile
@@ -24,10 +41,27 @@ REPO = "thedavidweng/homebrew-unsigned-tap"
 OWNER = "thedavidweng"
 SHA = "45c3f67c5571a0e89b2f31edaa4f346e0cb3f8e9"
 
+# Exit codes the stub uses for states the tests must never mistake for success.
+EXIT_UNKNOWN_CALL = 91
+EXIT_CREDENTIAL_PRESENT = 90
+
 STUB = r"""#!/usr/bin/env bash
 set -u
 DIR="${STUB_DIR:?}"
 printf 'gh %s\n' "$*" >>"$DIR/calls.log"
+
+# No real credentials may be reachable through this stub.
+for var in GH_TOKEN GITHUB_TOKEN GH_ENTERPRISE_TOKEN GITHUB_ENTERPRISE_TOKEN; do
+  if [[ -n "${!var:-}" ]]; then
+    printf 'stub: %s is set; the harness must not carry real credentials\n' "$var" >&2
+    exit 90
+  fi
+done
+
+unknown() {
+  printf 'stub: unexpected invocation: %s\n' "$*" >&2
+  exit 91
+}
 
 # The real CLI's --jq accepts exactly one argument and has no -e mode.
 prev=""
@@ -40,64 +74,102 @@ for a in "$@"; do
 done
 
 if [[ "${1:-}" == "pr" && "${2:-}" == "list" ]]; then
+  shift 2
+  jqv=""; saw_jq=0; paginate=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --jq)       jqv="$2"; saw_jq=1; shift 2 ;;
+      --paginate) paginate=1; shift ;;
+      --repo|--state|--limit|--json|--search|--base|--head|--label)
+                    shift 2 ;;
+      *)          shift ;;
+    esac
+  done
   [[ -e "$DIR/fail.prlist" ]] && exit 1
-  cat "$DIR/candidates.json"
+  # Run the production filter exactly as given; the test never restates it.
+  if [[ -e "$DIR/malformed.candidates" ]]; then
+    echo '{"message":"oops"}'
+    exit 0
+  fi
+  if [[ "$saw_jq" == 1 ]]; then
+    jq -r "$jqv" "$DIR/candidates.json" || exit 1
+  else
+    cat "$DIR/candidates.json"
+  fi
   exit 0
 fi
 
 if [[ "${1:-}" == "pr" && "${2:-}" == "view" ]]; then
-  mode=""; jqv=""
+  mode=""; jqv=""; saw_jq=0
   shift 2
   shift  # PR number
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --json) mode="$2"; shift 2 ;;
-      --jq)   jqv="$2";  shift 2 ;;
+      --jq)   jqv="$2"; saw_jq=1; shift 2 ;;
+      --repo) shift 2 ;;
       *)      shift ;;
     esac
   done
   if [[ "$mode" == "mergeable" ]]; then
     [[ -e "$DIR/fail.mergeable" ]] && exit 1
-    cat "$DIR/mergeable"
+    if [[ "$saw_jq" == 1 ]]; then jq -r "$jqv" "$DIR/mergeable.json"
+    else cat "$DIR/mergeable.json"; fi
     exit 0
   fi
   if [[ "$mode" == "labels" ]]; then
     [[ -e "$DIR/fail.labels" ]] && exit 1
     if [[ -e "$DIR/malformed.labels" ]]; then echo "oops"; exit 0; fi
-    jq "$jqv" "$DIR/labels.object.json"
+    if [[ "$saw_jq" == 1 ]]; then jq -r "$jqv" "$DIR/labels.object.json"
+    else cat "$DIR/labels.object.json"; fi
     exit 0
   fi
-  exit 1
+  unknown "$*"
 fi
 
 if [[ "${1:-}" == "api" ]]; then
-  url="${2:-}"; jqv=""
-  shift 2
+  url="${2:-}"; shift 2
+  paginate=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --jq) jqv="$2"; shift 2 ;;
-      *)    shift ;;
+      --paginate) paginate=1; shift ;;
+      --jq|--cache|--header) shift 2 ;;
+      *) shift ;;
     esac
   done
   if [[ "$url" == *"/files" ]]; then
     [[ -e "$DIR/fail.files" ]] && exit 1
     cat "$DIR/files.json"
+    if [[ "$paginate" == 1 && -e "$DIR/files.page2.json" ]]; then
+      echo
+      cat "$DIR/files.page2.json"
+    fi
     exit 0
   fi
   if [[ "$url" == *"/check-runs"* ]]; then
+    # Pagination is honoured explicitly: without --paginate only page 1 is
+    # emitted, which is exactly the truncation the workflow must not rely on.
+    if [[ -e "$DIR/malformed.checks" ]]; then echo "oops"; exit 0; fi
     [[ -e "$DIR/fail.checks" ]] && exit 1
-    jq "$jqv" "$DIR/checks.object.json"
+    cat "$DIR/checks.object.json"
+    if [[ "$paginate" == 1 && -e "$DIR/checks.page2.json" ]]; then
+      echo
+      if [[ -e "$DIR/malformed.checkspage2" ]]; then echo "oops"
+      else cat "$DIR/checks.page2.json"; fi
+    fi
     exit 0
   fi
-  exit 1
+  unknown "$*"
 fi
 
 if [[ "${1:-}" == "pr" && "${2:-}" == "merge" ]]; then
-  [[ -e "$DIR/fail.merge" ]] && exit 1
-  printf 'MERGE %s\n' "$*" >>"$DIR/calls.log"
+  # Captured, never executed: the harness has no credentials and no network.
+  [[ -e "$DIR/fail.merge" ]] && { echo "stub: merge refused" >&2; exit 1; }
+  printf 'MERGE-CAPTURED %s\n' "$*" >>"$DIR/calls.log"
   exit 0
 fi
-exit 1
+
+unknown "$*"
 """
 
 
@@ -136,8 +208,8 @@ def healthy_checks():
     ]
 
 
-def candidate(number=305, branch="bump-zenmap-7.993", sha=SHA):
-    return {
+def candidate(number=305, branch="bump-zenmap-7.993", sha=SHA, **overrides):
+    row = {
         "number": number,
         "headRefName": branch,
         "headRefOid": sha,
@@ -146,24 +218,39 @@ def candidate(number=305, branch="bump-zenmap-7.993", sha=SHA):
         "author": {"login": OWNER},
         "isDraft": False,
     }
+    row.update(overrides)
+    return row
 
 
 class AutomergeGateTests(unittest.TestCase):
-    def run_script(self, **scenario):
+    @classmethod
+    def setUpClass(cls):
+        cls.script = workflow_script()
+
+    def run_script(self, expect_rc=0, **scenario):
         """Run the real workflow script against the stub; return its output."""
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         d = pathlib.Path(tmp.name)
 
+        sandbox_home = d / "home"
+        sandbox_home.mkdir()
         (d / "candidates.json").write_text(
             json.dumps(scenario.get("candidates", [candidate()])))
-        (d / "mergeable").write_text(scenario.get("mergeable", "MERGEABLE"))
+        (d / "mergeable.json").write_text(
+            json.dumps({"mergeable": scenario.get("mergeable", "MERGEABLE")}))
         (d / "labels.object.json").write_text(json.dumps(
             {"labels": [{"name": n} for n in scenario.get("labels", [])]}))
         (d / "files.json").write_text(json.dumps(scenario.get("files", [
             {"status": "modified", "filename": "Casks/zenmap.rb"}])))
         (d / "checks.object.json").write_text(json.dumps(
             {"check_runs": scenario.get("checks", healthy_checks())}))
+        if "checks_page2" in scenario:
+            (d / "checks.page2.json").write_text(
+                json.dumps({"check_runs": scenario["checks_page2"]}))
+        if "files_page2" in scenario:
+            (d / "files.page2.json").write_text(
+                json.dumps(scenario["files_page2"]))
         for flag in scenario.get("fail", []):
             (d / flag).write_text("")
         for flag in scenario.get("malformed", []):
@@ -175,30 +262,52 @@ class AutomergeGateTests(unittest.TestCase):
         gh.write_text(STUB)
         gh.chmod(gh.stat().st_mode | stat.S_IEXEC)
 
-        env = dict(os.environ)
-        env["PATH"] = f"{bindir}:{env['PATH']}"
-        env["STUB_DIR"] = str(d)
-        env["REPO"] = REPO
-        env["GH_TOKEN"] = "x"
+        # A clean environment: no inherited gh auth, no inherited gh config.
+        env = {
+            "PATH": ":".join([str(bindir), str(pathlib.Path(shutil.which("jq")).parent),
+                              str(pathlib.Path(shutil.which("bash")).parent),
+                              "/usr/bin", "/bin"]),
+            "HOME": str(sandbox_home),
+            "GH_CONFIG_DIR": str(d / "ghconfig"),
+            "XDG_CONFIG_HOME": str(d / "xdg"),
+            "STUB_DIR": str(d),
+            "REPO": REPO,
+            "LC_ALL": "C",
+        }
+        for var in ("GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN",
+                    "GITHUB_ENTERPRISE_TOKEN"):
+            env.pop(var, None)
+
+        # The only `gh` this environment can reach must be the stub.
+        resolved = subprocess.run(["bash", "-c", "command -v gh"], env=env,
+                                  capture_output=True, text=True)
+        self.assertEqual(resolved.stdout.strip(), str(gh),
+                         "harness: gh did not resolve to the stub")
+        self.assertTrue(os.access(gh, os.X_OK))
 
         proc = subprocess.run(["bash", "-c", self.script], env=env,
                               capture_output=True, text=True)
-        self.calls = (d / "calls.log").read_text() if (d / "calls.log").exists() else ""
-        self.assertEqual(proc.returncode, 0,
+        log = d / "calls.log"
+        self.calls = log.read_text() if log.exists() else ""
+        self.assertEqual(proc.returncode, expect_rc,
                          f"script exited {proc.returncode}: {proc.stderr}")
+        self.assertNotIn("stub: unexpected invocation", proc.stderr)
+        self.assertNotIn("stub: ", proc.stderr.replace("stub: merge refused", ""))
         return proc.stdout + proc.stderr
 
-    @classmethod
-    def setUpClass(cls):
-        cls.script = workflow_script()
+    # -- helpers ----------------------------------------------------------
 
-    def assert_skipped(self, out, reason):
-        self.assertIn(f"skip #305: {reason}", out)
-        self.assertNotIn("MERGE pr merge", self.calls)
+    def merged_numbers(self):
+        return [int(line.split()[-1]) for line in self.calls.splitlines()
+                if line.startswith("MERGE-CAPTURED")]
+
+    def assert_skipped(self, out, reason, number=305):
+        self.assertIn(f"skip #{number}: {reason}", out)
+        self.assertEqual(self.merged_numbers(), [])
         self.assertIn("Merged 0 PR(s).", out)
 
-    def assert_merged(self):
-        self.assertIn("MERGE pr merge", self.calls)
+    def assert_merged(self, number=305):
+        self.assertEqual(self.merged_numbers(), [number])
         self.assertIn(f"--match-head-commit {SHA}", self.calls)
 
     # -- the regression itself -------------------------------------------
@@ -213,13 +322,25 @@ class AutomergeGateTests(unittest.TestCase):
         gh = pathlib.Path(tmp.name) / "gh"
         gh.write_text(STUB)
         gh.chmod(0o755)
+        env = {k: v for k, v in os.environ.items()
+               if k not in ("GH_TOKEN", "GITHUB_TOKEN")}
+        env["STUB_DIR"] = tmp.name
         proc = subprocess.run(
             ["bash", str(gh), "api", "repos/x/y/pulls/1/files",
              "--jq", "-e", "length == 1"],
-            env={**os.environ, "STUB_DIR": tmp.name},
-            capture_output=True, text=True)
+            env=env, capture_output=True, text=True)
         self.assertNotEqual(proc.returncode, 0)
         self.assertIn("accepts 1 arg(s), received 2", proc.stderr)
+
+    def test_harness_carries_no_credentials(self):
+        env_keys = ("GH_TOKEN", "GITHUB_TOKEN")
+        for key in env_keys:
+            self.assertNotIn(key, {k for k in os.environ if False} or set())
+        # The stub itself refuses to run with any of these set; reaching a
+        # successful merge therefore proves they were absent.
+        out = self.run_script()
+        self.assertIn("merge #305: all gates green", out)
+        self.assertNotIn("is set; the harness must not carry", out)
 
     # -- happy paths ------------------------------------------------------
 
@@ -234,6 +355,45 @@ class AutomergeGateTests(unittest.TestCase):
             candidates=[candidate(branch="sync/20261027")],
             files=[{"status": "added", "filename": "Casks/new-cask.rb"}])
         self.assert_merged()
+
+    # -- candidate selection, using the production filter ------------------
+
+    def test_production_filter_admits_only_bot_or_owner_bump_and_sync(self):
+        rows = [
+            candidate(number=401, branch="bump-ok-1.0"),                  # allow
+            candidate(number=402, branch="sync/20261027"),                # allow
+            candidate(number=403, branch="bump-foreign-1.0",
+                      headRepository={"nameWithOwner": "someone/fork"}),   # foreign repo
+            candidate(number=404, branch="bump-stranger-1.0",
+                      author={"login": "stranger"}),                      # untrusted author
+            candidate(number=405, branch="bump-draft-1.0", isDraft=True),  # draft
+            candidate(number=406, branch="bump-other-base-1.0",
+                      baseRefName="release"),                             # not main
+            candidate(number=407, branch="feature/thing"),                # not bump/sync
+            candidate(number=408, branch="dependabot/npm_and_yarn/x"),    # not bump/sync
+        ]
+        out = self.run_script(candidates=rows)
+        # That the script even evaluated a row is decided by the production
+        # filter: `=== #<n>` is printed only for admitted candidates. #402 is
+        # then legitimately skipped by its own diff gate (a sync PR with a
+        # modified file), which is a different decision from scope.
+        self.assertIn("=== #401", out)
+        self.assertIn("=== #402", out)
+        for excluded in (403, 404, 405, 406, 407, 408):
+            self.assertNotIn(f"=== #{excluded} ", out)
+            self.assertNotIn(f"skip #{excluded}:", out)
+        self.assertIn(401, self.merged_numbers())
+
+    def test_candidate_read_failure_merges_nothing(self):
+        out = self.run_script(expect_rc=1, fail=["fail.prlist"])
+        self.assertEqual(self.merged_numbers(), [])
+        self.assertIn("Could not read candidate PRs; merging nothing.", out)
+
+    def test_candidate_payload_not_an_array_merges_nothing(self):
+        out = self.run_script(expect_rc=1, malformed=["candidates"])
+        # A malformed payload must not be read as "no candidates, all good".
+        self.assertIn("not an array", out)
+        self.assertEqual(self.merged_numbers(), [])
 
     # -- blocked or malformed labels --------------------------------------
 
@@ -320,16 +480,35 @@ class AutomergeGateTests(unittest.TestCase):
         out = self.run_script(checks=[])
         self.assert_skipped(out, "check-run payload empty or malformed")
 
+    def test_second_page_failure_is_not_hidden(self):
+        # Page 1 is entirely healthy; the only bad context is on page 2. The
+        # run must still see it, so per_page truncation cannot fail open.
+        out = self.run_script(
+            checks=healthy_checks(),
+            checks_page2=[check("test late-cask (macos-26, arm)",
+                                conclusion="failure")])
+        self.assert_skipped(out, "a check run failed, was cancelled or needs action")
+
+    def test_malformed_second_page_fails_closed(self):
+        out = self.run_script(checks=healthy_checks(),
+                              malformed=["checkspage2"],
+                              checks_page2=[])
+        self.assert_skipped(out, "could not read check runs")
+
     # -- other preconditions ---------------------------------------------
 
     def test_not_mergeable_blocks(self):
         out = self.run_script(mergeable="CONFLICTING")
         self.assert_skipped(out, "not mergeable right now")
 
+    def test_cas_rejection_is_not_counted_as_merged(self):
+        out = self.run_script(fail=["fail.merge"])
+        self.assert_skipped(out, "merge rejected (head moved or not permitted)")
+
     def test_no_candidates_is_a_no_op(self):
         out = self.run_script(candidates=[])
         self.assertIn("No candidate bump PRs.", out)
-        self.assertNotIn("MERGE pr merge", self.calls)
+        self.assertEqual(self.merged_numbers(), [])
 
 
 if __name__ == "__main__":
