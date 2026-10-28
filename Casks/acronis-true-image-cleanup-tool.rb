@@ -18,9 +18,9 @@ cask "acronis-true-image-cleanup-tool" do
 
   binary "#{staged_path}/cleanup_tool%20Mac", target: "#{lib_directory}/cleanup_tool"
 
-  # No zap stanza required
-
   postflight_steps do
     run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
+
+  zap :not_required
 end

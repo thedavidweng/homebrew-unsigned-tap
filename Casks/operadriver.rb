@@ -16,11 +16,11 @@ cask "operadriver" do
 
   binary "operadriver_mac64/operadriver"
 
-  # No zap stanza required
-
   postflight_steps do
     run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
+
+  zap :not_required
 
   caveats do
     requires_rosetta

@@ -14,11 +14,11 @@ cask "ultimate-vocal-remover" do
 
   app "Ultimate Vocal Remover.app"
 
-  # No zap stanza required
-
   postflight_steps do
     run "/usr/bin/xattr",
         args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Ultimate Vocal Remover.app"],
         must_succeed: false
   end
+
+  zap :not_required
 end
