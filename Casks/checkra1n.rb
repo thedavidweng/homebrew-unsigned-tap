@@ -17,13 +17,13 @@ cask "checkra1n" do
   app "checkra1n.app"
   binary "#{appdir}/checkra1n.app/Contents/MacOS/checkra1n"
 
-  # No zap stanza required
-
   postflight_steps do
     run "/usr/bin/xattr",
         args:         ["-rd", "com.apple.quarantine", "{{appdir}}/checkra1n.app"],
         must_succeed: false
   end
+
+  zap :not_required
 
   caveats do
     requires_rosetta

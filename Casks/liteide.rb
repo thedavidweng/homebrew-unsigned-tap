@@ -17,13 +17,13 @@ cask "liteide" do
 
   app "liteide/LiteIDE.app"
 
-  # No zap stanza required
-
   postflight_steps do
     run "/usr/bin/xattr",
         args:         ["-rd", "com.apple.quarantine", "{{appdir}}/LiteIDE.app"],
         must_succeed: false
   end
+
+  zap :not_required
 
   caveats do
     requires_rosetta
