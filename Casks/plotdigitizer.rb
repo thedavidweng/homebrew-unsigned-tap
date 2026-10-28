@@ -16,11 +16,11 @@ cask "plotdigitizer" do
 
   app "Plot Digitizer.app"
 
-  # No zap stanza required
-
   postflight_steps do
     run "/usr/bin/xattr",
         args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Plot Digitizer.app"],
         must_succeed: false
   end
+
+  zap :not_required
 end
