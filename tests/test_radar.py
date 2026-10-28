@@ -40,8 +40,13 @@ class RadarTests(unittest.TestCase):
             (tap / "kept.rb").write_text("x")
             self.assertEqual(radar.missing_upstream(tap, {"kept"}, {"retired"}), ["gone"])
 
-    def test_retired_tokens_come_from_sync_blocklist(self):
-        self.assertIn("v2ray-unofficial", radar.retired_tokens())
+    def test_retired_tokens_use_sync_blocklist(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            (root / "scripts").mkdir()
+            (root / "scripts/sync_disabled_casks.py").write_text('DEAD_CASKS = {"retired"}\n')
+            with patch.object(radar, "ROOT", root):
+                self.assertEqual(radar.retired_tokens(), {"retired"})
 
     def test_evidence_prefers_successful_runs(self):
         import io
