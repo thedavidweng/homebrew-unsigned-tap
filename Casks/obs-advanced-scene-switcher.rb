@@ -24,5 +24,5 @@ cask "obs-advanced-scene-switcher" do
             delete:  "/Library/Application Support/obs-studio/plugins/advanced-scene-switcher.plugin",
             rmdir:   "/Library/Application Support/obs-studio/plugins"
 
-  # No zap stanza required
+  zap :not_required
 end
