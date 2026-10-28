@@ -18,11 +18,11 @@ cask "topcat" do
   binary "#{appdir}/TOPCAT.app/Contents/Resources/app/topcat"
   binary "#{appdir}/TOPCAT.app/Contents/Resources/app/stilts"
 
-  # No zap stanza required
-
   postflight_steps do
     run "/usr/bin/xattr",
         args:         ["-rd", "com.apple.quarantine", "{{appdir}}/TOPCAT.app"],
         must_succeed: false
   end
+
+  zap :not_required
 end
