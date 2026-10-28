@@ -16,9 +16,9 @@ cask "nrfutil" do
 
   binary "nrfutil-universal-apple-darwin-#{version}", target: "nrfutil"
 
-  # No zap stanza required
-
   postflight_steps do
     run "/usr/bin/xattr", args: ["-r", "-d", "com.apple.quarantine", "{{staged_path}}"]
   end
+
+  zap :not_required
 end

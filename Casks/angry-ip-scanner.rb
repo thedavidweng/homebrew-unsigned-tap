@@ -14,11 +14,11 @@ cask "angry-ip-scanner" do
 
   app "Angry IP Scanner.app"
 
-  # No zap stanza required
-
   postflight_steps do
     run "/usr/bin/xattr",
         args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Angry IP Scanner.app"],
         must_succeed: false
   end
+
+  zap :not_required
 end
