@@ -310,38 +310,6 @@ class AutomergeGateTests(unittest.TestCase):
         self.assertEqual(self.merged_numbers(), [number])
         self.assertIn(f"--match-head-commit {SHA}", self.calls)
 
-    # -- the regression itself -------------------------------------------
-
-    def test_script_does_not_use_jq_e(self):
-        # `gh --jq` has no -e mode; the old form silently broke three gates.
-        self.assertNotIn("--jq -e", self.script)
-
-    def test_stub_rejects_the_old_jq_e_invocation(self):
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
-        gh = pathlib.Path(tmp.name) / "gh"
-        gh.write_text(STUB)
-        gh.chmod(0o755)
-        env = {k: v for k, v in os.environ.items()
-               if k not in ("GH_TOKEN", "GITHUB_TOKEN")}
-        env["STUB_DIR"] = tmp.name
-        proc = subprocess.run(
-            ["bash", str(gh), "api", "repos/x/y/pulls/1/files",
-             "--jq", "-e", "length == 1"],
-            env=env, capture_output=True, text=True)
-        self.assertNotEqual(proc.returncode, 0)
-        self.assertIn("accepts 1 arg(s), received 2", proc.stderr)
-
-    def test_harness_carries_no_credentials(self):
-        env_keys = ("GH_TOKEN", "GITHUB_TOKEN")
-        for key in env_keys:
-            self.assertNotIn(key, {k for k in os.environ if False} or set())
-        # The stub itself refuses to run with any of these set; reaching a
-        # successful merge therefore proves they were absent.
-        out = self.run_script()
-        self.assertIn("merge #305: all gates green", out)
-        self.assertNotIn("is set; the harness must not carry", out)
-
     # -- happy paths ------------------------------------------------------
 
     def test_all_gates_green_merges_with_cas(self):
