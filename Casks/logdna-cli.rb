@@ -13,5 +13,5 @@ cask "logdna-cli" do
 
   uninstall pkgutil: "com.logdna.logdna-cli"
 
-  # No zap stanza required
+  zap :not_required
 end

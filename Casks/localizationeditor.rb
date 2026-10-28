@@ -11,11 +11,11 @@ cask "localizationeditor" do
 
   app "LocalizationEditor.app"
 
-  # No zap stanza required
-
   postflight_steps do
     run "/usr/bin/xattr",
         args:         ["-rd", "com.apple.quarantine", "{{appdir}}/LocalizationEditor.app"],
         must_succeed: false
   end
+
+  zap :not_required
 end
