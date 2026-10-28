@@ -18,11 +18,11 @@ cask "starsector" do
 
   app "Starsector.app"
 
-  # No zap stanza required
-
   postflight_steps do
     run "/usr/bin/xattr",
         args:         ["-rd", "com.apple.quarantine", "{{appdir}}/Starsector.app"],
         must_succeed: false
   end
+
+  zap :not_required
 end

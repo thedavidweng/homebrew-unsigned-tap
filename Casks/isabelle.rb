@@ -17,9 +17,9 @@ cask "isabelle" do
   binary "#{appdir}/Isabelle#{version}.app/bin/isabelle"
   artifact "Isabelle#{version}.app", target: "#{appdir}/Isabelle#{version}.app"
 
-  # No zap stanza required
-
   preflight_steps do
     run "/usr/bin/xattr", args: ["-rd", "com.apple.quarantine", "{{staged_path}}"]
   end
+
+  zap :not_required
 end
