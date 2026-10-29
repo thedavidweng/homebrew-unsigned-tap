@@ -1,6 +1,6 @@
 cask "mindforger" do
-  version "2.5.0,20260926.191335"
-  sha256 "4b01c0e84a8d1aea7b94348d39142620bae982af3bf9c97dda55543453bbfa89"
+  version "2.6.0,20261028.170459"
+  sha256 "efc990e09ef001a3b8bf4b139a30fb8c768c9bc5bf42fc78dd1ff7d50b19c992"
 
   url "https://github.com/dvorka/mindforger/releases/download/#{version.csv.first}/mindforger-#{version.csv.first}-#{version.csv.second}-intel.dmg"
   name "MindForger"
