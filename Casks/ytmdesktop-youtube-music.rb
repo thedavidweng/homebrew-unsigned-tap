@@ -15,9 +15,9 @@ cask "ytmdesktop-youtube-music" do
     end
   end
   on_ventura :or_newer do
-    version "2.0.12"
-    sha256 arm:   "9932d6eedd985c3068068449f6e73f105c37e39a93433d880eb17a5a83963f9b",
-           intel: "f4539ffc4a30ed71976dac2e45f2fa90d9858b3975bc4cf2c7b0b33407a001d0"
+    version "2.1.0"
+    sha256 arm:   "3934423c37cb1a71296dd31cea9c7db9cf304c1b5726c467fc78fb6bf4cea1e2",
+           intel: "ec445b87b8f18e34e2932fbbe6bdf42340ea4ce3f14536618ba9b2218e4bab1c"
 
     url "https://github.com/ytmdesktop/ytmdesktop/releases/download/v#{version}/YouTube.Music.Desktop.App-darwin-#{arch}-#{version}.zip"
 
