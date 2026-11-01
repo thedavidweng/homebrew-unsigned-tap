@@ -1,7 +1,7 @@
 """Weekly maintenance radar: one tracking issue for everything needing eyes.
 
 Aggregates read-only signals (never edits casks):
-- dead downloads, from `check_cask_health.py --json-out`
+- missing and unverified downloads, from `check_cask_health.py --json-out`
 - tap casks removed upstream (excluding intentional DEAD_CASKS retirements)
 - upstream-newer single-version casks with no open PR (the catch-up path
   attempts them every autobump run; still listed next week means the bump
@@ -136,15 +136,18 @@ def section(title, lines):
     return body + "".join(f"- {line}\n" for line in lines)
 
 
-def build_body(today, dead, missing, catchups, inflight, errors, failures):
+def build_body(today, dead, missing, catchups, inflight, errors, failures, unverified):
     parts = [
         f"Automated weekly summary for human review. "
         f"Everything else in this tap updates and merges itself; "
         f"only the items below need eyes. ({today})",
         "",
-        section("Dead downloads (healthcheck)",
+        section("HTTP 404/410 downloads (healthcheck)",
                 [f"`{d['token']}` — {d['detail']}" for d in dead]
                 if dead is not None else ["evidence unavailable"]),
+        section("Unverified downloads (healthcheck)",
+                [f"`{d['token']}` — {d['detail']}" for d in unverified]
+                if unverified is not None else ["evidence unavailable"]),
         section("Removed upstream, still in this tap",
                 [f"`{token}`" for token in missing]
                 if missing is not None else ["evidence unavailable"]),
@@ -172,7 +175,7 @@ def upsert_issue(repo, body, clean):
     if clean:
         for issue in found:
             gh("issue", "close", str(issue["number"]),
-               "--comment", "All clear: no dead downloads, no removed casks, "
+               "--comment", "All clear: no HTTP download issues, no removed casks, "
                             "nothing stuck upstream, livecheck clean.", repo=repo)
         print("radar clean; closed any open radar issue")
         return
@@ -198,18 +201,21 @@ def main():
     if not repo:
         raise SystemExit("GITHUB_REPOSITORY is required")
     dead = None
+    unverified = None
     if DEAD_JSON and Path(DEAD_JSON).exists():
-        dead = json.loads(Path(DEAD_JSON).read_text())["dead"]
-        if not isinstance(dead, list):
-            raise ValueError("healthcheck dead field must be a list")
+        healthcheck = json.loads(Path(DEAD_JSON).read_text())
+        dead = healthcheck["dead"]
+        unverified = healthcheck["unverified"]
+        if not isinstance(dead, list) or not isinstance(unverified, list):
+            raise ValueError("healthcheck dead and unverified fields must be lists")
     upstream = load_upstream()
     missing = missing_upstream(TAP_CASK_DIR, set(upstream), retired_tokens()) if upstream else None
     rows, inflight = catchup_and_inflight(repo, upstream)
     errors, failures = autobump_evidence(repo)
-    clean = (dead is not None and bool(upstream) and not dead and not missing and not rows
+    clean = (dead is not None and not dead and not unverified and bool(upstream) and not missing and not rows
              and not errors and failures is not None and not failures)
     body = build_body(date.today().isoformat(), dead, missing, rows if upstream else None,
-                      inflight, errors, failures)
+                      inflight, errors, failures, unverified)
     upsert_issue(repo, body, clean)
 
 

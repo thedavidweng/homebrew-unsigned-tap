@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-check_cask_health.py: Validate download availability for all casks in the tap.
-Detects dead URLs (404, expired SSL, connection refused) to identify dead casks.
+check_cask_health.py: Check download URL reachability for all casks in the tap.
 
 Usage:
-  python3 scripts/check_cask_health.py             # report status, exit 1 if dead found
-  python3 scripts/check_cask_health.py --delete    # automatically remove dead casks
+  python3 scripts/check_cask_health.py             # exit 1 if dead or unverified
+  python3 scripts/check_cask_health.py --delete    # remove casks confirmed missing by Homebrew
 """
 
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -38,74 +38,46 @@ UA_BROWSER = (
 )
 
 def check_url_and_fetch(token, url):
-    # Method 1: Initial HEAD request without following redirects
-    # Especially effective for SourceForge and download mirrors that redirect (301/302/307)
-    # but block automated clients with Cloudflare challenges on CDN targets.
-    cmd_head_initial = [
-        "curl", "-s", "-I",
-        "--max-time", "6",
-        "-o", "/dev/null",
-        "-w", "%{http_code}",
-        url
-    ]
-    try:
-        proc = subprocess.run(cmd_head_initial, capture_output=True, text=True, timeout=8)
-        code = proc.stdout.strip()
-        if code in ("200", "301", "302", "303", "307", "308"):
-            return token, url, True, f"HTTP {code} (Mirror redirect)"
-    except Exception:
-        pass
-
-    # Method 2: Range GET request (fast header+partial check with -L)
-    cmd_range = [
-        "curl", "-s", "-L", "-o", "/dev/null",
-        "-A", UA_BROWSER,
-        "--max-time", "8",
-        "--range", "0-1024",
-        "-w", "%{http_code}",
-        url
-    ]
-    try:
-        proc = subprocess.run(cmd_range, capture_output=True, text=True, timeout=10)
-        code = proc.stdout.strip()
-        if code in ("200", "206", "301", "302", "304", "307", "308"):
+    results = []
+    for method in (["-I"], ["--range", "0-1024", "--max-filesize", "1025", "-A", UA_BROWSER]):
+        cmd = ["curl", "-sS", "-L", *method,
+               "--max-time", "8", "-o", "/dev/null", "-w", "%{http_code} %{size_download}", url]
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        except subprocess.TimeoutExpired:
+            results.append("timeout")
+            continue
+        code, _, downloaded = proc.stdout.strip().partition(" ")
+        limited = (proc.returncode in (56, 63) and downloaded.isdigit() and int(downloaded) >= 1025
+                   and "maximum allowed file size" in proc.stderr.lower())
+        if code in ("200", "206") and (proc.returncode == 0 or limited):
             return token, url, True, f"HTTP {code}"
-    except Exception:
-        pass
+        results.append(code if proc.returncode == 0 else proc.stderr.strip() or "curl failed")
 
-    # Method 3: HEAD request (for servers that reject Range requests)
-    cmd_head = [
-        "curl", "-s", "-I", "-L",
-        "-A", UA_BROWSER,
-        "--max-time", "8",
-        "-o", "/dev/null",
-        "-w", "%{http_code}",
-        url
-    ]
-    try:
-        proc = subprocess.run(cmd_head, capture_output=True, text=True, timeout=10)
-        code = proc.stdout.strip()
-        if code in ("200", "206", "301", "302", "304", "307", "308"):
-            return token, url, True, f"HTTP {code} (HEAD)"
-    except Exception:
-        pass
+    if all(code in ("404", "410") for code in results):
+        return token, url, False, f"HTTP {results[0]} (HEAD), {results[1]} (GET)"
+    return token, url, None, f"HEAD: {results[0]}; GET: {results[1]}"
 
-    # Method 4: Fallback to Homebrew's internal fetcher (handles complex cookies/headers)
+
+def homebrew_confirms_missing(token, file_path):
+    tap = Path(subprocess.check_output(
+        ["brew", "--repository", "thedavidweng/unsigned-tap"], text=True,
+    ).strip())
+    installed_cask = tap / "Casks" / f"{token}.rb"
+    if not installed_cask.is_file() or installed_cask.read_bytes() != file_path.read_bytes():
+        return False
     try:
-        retry_res = subprocess.run(
+        result = subprocess.run(
             ["brew", "fetch", "--cask", f"thedavidweng/unsigned-tap/{token}"],
-            capture_output=True,
-            text=True,
-            timeout=40
+            capture_output=True, text=True, timeout=40,
         )
-        if retry_res.returncode == 0:
-            return token, url, True, "brew fetch ok"
-        error_msg = retry_res.stderr.strip().splitlines()[-1] if retry_res.stderr else "brew fetch failed"
-        return token, url, False, error_msg
     except subprocess.TimeoutExpired:
-        return token, url, False, "Timeout during fetch"
-    except Exception as e:
-        return token, url, False, str(e)
+        return False
+    return result.returncode != 0 and bool(re.search(
+        r"(?:returned error: |HTTP(?:/\d(?:\.\d)?)? (?:error )?)(?:404|410)\b",
+        result.stderr, re.IGNORECASE,
+    ))
+
 
 def main():
     parser = argparse.ArgumentParser(description="Check cask download health")
@@ -122,9 +94,13 @@ def main():
     else:
         urls = all_urls
 
+    if not urls:
+        raise SystemExit("No cask URLs to check")
+
     print(f"Checking {len(urls)} casks...", flush=True)
 
     dead = []
+    unverified = []
     alive = 0
     checked = 0
 
@@ -133,56 +109,70 @@ def main():
         for f in as_completed(futures):
             token, url, is_alive, detail = f.result()
             checked += 1
-            if is_alive:
+            if is_alive is True:
                 alive += 1
-            else:
+            elif is_alive is False:
                 dead.append((token, url, detail))
-                print(f"❌ DEAD CASK: {token} -> {detail}", flush=True)
+                print(f"HTTP 404/410: {token} -> {detail}", flush=True)
+            else:
+                unverified.append((token, url, detail))
+                print(f"UNVERIFIED CASK: {token} -> {detail}", flush=True)
 
             if checked % 50 == 0 or checked == len(urls):
-                print(f"Progress: {checked}/{len(urls)} checked ({len(dead)} dead)...", flush=True)
+                print(f"Progress: {checked}/{len(urls)} checked ({len(dead)} dead, "
+                      f"{len(unverified)} unverified)...", flush=True)
 
     if args.json_out:
         with open(args.json_out, "w", encoding="utf-8") as fh:
             json.dump({"total": len(urls), "alive": alive,
-                       "dead": [{"token": t, "url": u, "detail": d} for t, u, d in dead]},
+                       "dead": [{"token": t, "url": u, "detail": d} for t, u, d in dead],
+                       "unverified": [{"token": t, "url": u, "detail": d} for t, u, d in unverified]},
                       fh, indent=2)
 
     print("\n" + "=" * 50, flush=True)
     print("Health Check Summary:", flush=True)
     print(f"  Total casks: {len(urls)}", flush=True)
-    print(f"  Installable / Alive: {alive}", flush=True)
-    print(f"  Dead / Broken: {len(dead)}", flush=True)
+    print(f"  Reachable: {alive}", flush=True)
+    print(f"  HTTP 404/410: {len(dead)}", flush=True)
+    print(f"  Unverified: {len(unverified)}", flush=True)
     print("=" * 50, flush=True)
 
     if dead:
-        print("\nDead casks:", flush=True)
+        print("\nHTTP 404/410 casks:", flush=True)
         for token, url, err in dead:
             print(f"  - {token}: {url} ({err})", flush=True)
 
         if args.delete:
-            print("\n==> Deleting dead casks...", flush=True)
+            print("\n==> Confirming missing casks with Homebrew...", flush=True)
             sync_script = ROOT / "scripts" / "sync_disabled_casks.py"
+            deleted = []
             for token, _, _ in dead:
                 file_path = CASKS_DIR / f"{token}.rb"
-                if file_path.exists():
+                if file_path.exists() and homebrew_confirms_missing(token, file_path):
                     file_path.unlink()
+                    deleted.append(token)
                     print(f"  Deleted {file_path.name}", flush=True)
+                else:
+                    print(f"  Retained {file_path.name}: Homebrew did not confirm HTTP 404/410", flush=True)
 
-            if sync_script.exists():
+            if deleted and sync_script.exists():
                 text = sync_script.read_text(encoding="utf-8")
                 for token, _, err in dead:
-                    if f'"{token}"' not in text:
+                    if token in deleted and f'"{token}"' not in text:
                         text = text.replace(
                             "DEAD_CASKS = {\n",
                             f'DEAD_CASKS = {{\n    "{token}", # auto-detected dead: {err}\n'
                         )
                 sync_script.write_text(text, encoding="utf-8")
                 print("  Updated DEAD_CASKS blocklist in scripts/sync_disabled_casks.py", flush=True)
+    if unverified:
+        print("\nUnverified casks:", flush=True)
+        for token, url, err in unverified:
+            print(f"  - {token}: {url} ({err})", flush=True)
+    if dead or unverified:
         sys.exit(1)
-    else:
-        print("\n✅ All casks can be successfully downloaded and installed!", flush=True)
-        sys.exit(0)
+    print("\nAll download URLs responded successfully.", flush=True)
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
