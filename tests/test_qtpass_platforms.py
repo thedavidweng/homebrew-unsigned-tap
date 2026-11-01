@@ -19,6 +19,12 @@ class QtPassPlatformTests(unittest.TestCase):
               end
             end
           end
+          [:arm, :intel].each do |arch|
+            Homebrew::SimulateSystem.with(os: :linux, arch: arch) do
+              cask = Cask::CaskLoader::FromContentLoader.new(source).load(config: nil)
+              results << [:linux, arch, cask.depends_on.key?(:macos)]
+            end
+          end
           puts JSON.generate(results)
         '''
         path = Path(__file__).resolve().parents[1] / "Casks/qtpass.rb"
@@ -30,4 +36,6 @@ class QtPassPlatformTests(unittest.TestCase):
             ["ventura", "intel", "1.4.0", "12", True],
             ["sequoia", "arm", "1.8.4", "13", False],
             ["sequoia", "intel", "1.4.0", "12", True],
+            ["linux", "arm", True],
+            ["linux", "intel", True],
         ])
