@@ -33,7 +33,7 @@ class RadarTests(unittest.TestCase):
 
     def test_unavailable_evidence_is_not_reported_as_no_failed_bumps(self):
         body = radar.build_body("2026-10-26", [], [], [], [],
-                               {"<evidence unavailable>": "missing"}, [])
+                               {"<evidence unavailable>": "missing"}, None)
         self.assertIn("## Failed bumps in latest scheduled autobump\n- evidence unavailable\n", body)
         self.assertEqual(body.count("- evidence unavailable"), 2)
 
@@ -87,7 +87,7 @@ class RadarTests(unittest.TestCase):
         with patch.object(radar, "gh", side_effect=responses) as gh:
             errors, failures = radar.autobump_evidence("o/r")
         self.assertIn("<evidence unavailable>", errors)
-        self.assertEqual(failures, [])
+        self.assertIsNone(failures)
         self.assertIn("/actions/runs/2/artifacts?", gh.call_args_list[1].args[1])
 
     def test_missing_failure_list_is_not_a_clean_run(self):
@@ -96,7 +96,40 @@ class RadarTests(unittest.TestCase):
 
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w") as archive:
-            archive.writestr("outdated-casks.json", b'{}')
+            archive.writestr("outdated-casks.json", json.dumps({
+                "arm": [{"status": "error", "cask": "x", "messages": ["boom"]}]
+            }))
+        responses = [json.dumps({"workflow_runs": [{"id": 2, "conclusion": "success"}]}),
+                     json.dumps({"artifacts": [{"id": 9, "expired": False,
+                                                "workflow_run": {"id": 2}}]})]
+        with patch.object(radar, "gh", side_effect=responses), \
+                patch.object(radar.subprocess, "run") as run:
+            run.return_value = unittest.mock.Mock(returncode=0, stdout=buf.getvalue())
+            errors, failures = radar.autobump_evidence("o/r")
+        self.assertEqual(errors, {"x": ["boom"]})
+        self.assertIsNone(failures)
+        body = radar.build_body("2026-10-26", [], [], [], [], errors, failures)
+        self.assertIn("## Livecheck errors in latest autobump evidence\n- `x` — boom\n", body)
+        self.assertIn("## Failed bumps in latest scheduled autobump\n- evidence unavailable\n", body)
+
+    def test_missing_failure_list_prevents_clean_close(self):
+        with patch.dict(radar.os.environ, {"GITHUB_REPOSITORY": "o/r"}), \
+                patch.object(radar, "load_upstream", return_value={}), \
+                patch.object(radar, "catchup_and_inflight", return_value=([], [])), \
+                patch.object(radar, "autobump_evidence", return_value=({}, None)), \
+                patch.object(radar, "upsert_issue") as upsert:
+            radar.main()
+        self.assertFalse(upsert.call_args.args[2])
+        self.assertIn("## Failed bumps in latest scheduled autobump\n- evidence unavailable\n",
+                      upsert.call_args.args[1])
+
+    def test_missing_livecheck_preserves_failed_bumps(self):
+        import io
+        import zipfile
+
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as archive:
+            archive.writestr("bump-failures.txt", "broken\n")
         responses = [json.dumps({"workflow_runs": [{"id": 2, "conclusion": "success"}]}),
                      json.dumps({"artifacts": [{"id": 9, "expired": False,
                                                 "workflow_run": {"id": 2}}]})]
@@ -105,7 +138,47 @@ class RadarTests(unittest.TestCase):
             run.return_value = unittest.mock.Mock(returncode=0, stdout=buf.getvalue())
             errors, failures = radar.autobump_evidence("o/r")
         self.assertIn("<evidence unavailable>", errors)
-        self.assertEqual(failures, [])
+        self.assertEqual(failures, ["broken"])
+        body = radar.build_body("2026-10-26", [], [], [], [], errors, failures)
+        self.assertIn("## Livecheck errors in latest autobump evidence\n- evidence unavailable\n", body)
+        self.assertIn("## Failed bumps in latest scheduled autobump\n- `broken`\n", body)
+
+    def test_invalid_livecheck_shape_preserves_failed_bumps(self):
+        import io
+        import zipfile
+
+        for payload in ([], {"arm": None}, {"arm": [None]},
+                        {"arm": [{"status": "error", "cask": "x", "messages": "boom"}]}):
+            with self.subTest(payload=payload):
+                buf = io.BytesIO()
+                with zipfile.ZipFile(buf, "w") as archive:
+                    archive.writestr("outdated-casks.json", json.dumps(payload))
+                    archive.writestr("bump-failures.txt", "broken\n")
+                responses = [json.dumps({"workflow_runs": [{"id": 2, "conclusion": "success"}]}),
+                             json.dumps({"artifacts": [{"id": 9, "expired": False,
+                                                        "workflow_run": {"id": 2}}]})]
+                with patch.object(radar, "gh", side_effect=responses), \
+                        patch.object(radar.subprocess, "run") as run:
+                    run.return_value = unittest.mock.Mock(returncode=0, stdout=buf.getvalue())
+                    errors, failures = radar.autobump_evidence("o/r")
+                self.assertIn("<evidence unavailable>", errors)
+                self.assertEqual(failures, ["broken"])
+
+    def test_empty_livecheck_object_is_valid(self):
+        import io
+        import zipfile
+
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as archive:
+            archive.writestr("outdated-casks.json", "{}")
+            archive.writestr("bump-failures.txt", "")
+        responses = [json.dumps({"workflow_runs": [{"id": 2, "conclusion": "success"}]}),
+                     json.dumps({"artifacts": [{"id": 9, "expired": False,
+                                                "workflow_run": {"id": 2}}]})]
+        with patch.object(radar, "gh", side_effect=responses), \
+                patch.object(radar.subprocess, "run") as run:
+            run.return_value = unittest.mock.Mock(returncode=0, stdout=buf.getvalue())
+            self.assertEqual(radar.autobump_evidence("o/r"), ({}, []))
 
     def test_failed_scheduled_run_is_not_treated_as_complete_evidence(self):
         response = json.dumps({"workflow_runs": [{"id": 2, "conclusion": "failure"}]})
@@ -113,7 +186,7 @@ class RadarTests(unittest.TestCase):
                 patch.object(radar.subprocess, "run") as run:
             errors, failures = radar.autobump_evidence("o/r")
         self.assertIn("<evidence unavailable>", errors)
-        self.assertEqual(failures, [])
+        self.assertIsNone(failures)
         gh.assert_called_once_with(
             "api", "repos/o/r/actions/workflows/autobump.yml/runs?event=schedule&status=completed&per_page=1")
         run.assert_not_called()

@@ -82,9 +82,9 @@ def autobump_evidence(repo):
                                     "?event=schedule&status=completed&per_page=1"))
         scheduled = runs.get("workflow_runs", [])
         if not scheduled:
-            return {"<evidence unavailable>": "no completed scheduled autobump"}, []
+            return {"<evidence unavailable>": "no completed scheduled autobump"}, None
         if scheduled[0].get("conclusion") != "success":
-            return {"<evidence unavailable>": "latest scheduled autobump did not succeed"}, []
+            return {"<evidence unavailable>": "latest scheduled autobump did not succeed"}, None
         run_id = scheduled[0]["id"]
         arts = json.loads(gh("api", f"repos/{repo}/actions/runs/{run_id}/artifacts"
                                     "?name=livecheck-casks&per_page=10"))
@@ -92,22 +92,40 @@ def autobump_evidence(repo):
                 if not art.get("expired")
                 and art.get("workflow_run", {}).get("id") == run_id]
         if not aids:
-            return {"<evidence unavailable>": "latest scheduled autobump evidence missing"}, []
+            return {"<evidence unavailable>": "latest scheduled autobump evidence missing"}, None
         proc = subprocess.run(["gh", "api",
                                f"repos/{repo}/actions/artifacts/{aids[0]}/zip"],
                               check=True, capture_output=True)
         import io
         import zipfile
         with zipfile.ZipFile(io.BytesIO(proc.stdout)) as archive:
-            data = json.loads(archive.read("outdated-casks.json").decode())
-            failures = sorted(set(archive.read("bump-failures.txt").decode().splitlines()))
+            try:
+                data = json.loads(archive.read("outdated-casks.json").decode())
+            except (KeyError, UnicodeDecodeError, json.JSONDecodeError):
+                data = None
+            try:
+                failures = sorted(set(archive.read("bump-failures.txt").decode().splitlines()))
+            except (KeyError, UnicodeDecodeError):
+                failures = None
     except Exception as exc:
-        return {"<evidence unavailable>": str(exc)}, []
+        return {"<evidence unavailable>": str(exc)}, None
+    invalid = {"<evidence unavailable>": "livecheck evidence missing or invalid"}
+    if not isinstance(data, dict):
+        return invalid, failures
     errors = {}
     for results in data.values():
+        if not isinstance(results, list):
+            return invalid, failures
         for result in results:
+            if not isinstance(result, dict):
+                return invalid, failures
             if result.get("status") == "error":
-                errors.setdefault(result.get("cask", "?"), set()).update(result.get("messages") or [])
+                cask = result.get("cask", "?")
+                messages = result.get("messages")
+                if not isinstance(cask, str) or (messages is not None and
+                        (not isinstance(messages, list) or not all(isinstance(m, str) for m in messages))):
+                    return invalid, failures
+                errors.setdefault(cask, set()).update(messages or [])
     return {cask: sorted(msgs) for cask, msgs in sorted(errors.items())}, failures
 
 
@@ -138,8 +156,8 @@ def build_body(today, dead, missing, catchups, inflight, errors, failures):
                  if cask != "<evidence unavailable>"] +
                 (["evidence unavailable"] if "<evidence unavailable>" in errors else [])),
         section("Failed bumps in latest scheduled autobump",
-                [f"`{cask}`" for cask in failures] +
-                (["evidence unavailable"] if "<evidence unavailable>" in errors else [])),
+                [f"`{cask}`" for cask in (failures or [])] +
+                (["evidence unavailable"] if failures is None else [])),
     ]
     return "\n".join(parts) + "\n"
 
@@ -183,7 +201,7 @@ def main():
     missing = missing_upstream(TAP_CASK_DIR, set(upstream), retired_tokens()) if upstream else []
     rows, inflight = catchup_and_inflight(repo)
     errors, failures = autobump_evidence(repo)
-    clean = not dead and not missing and not rows and not errors and not failures
+    clean = not dead and not missing and not rows and not errors and failures is not None and not failures
     body = build_body(date.today().isoformat(), dead, missing, rows, inflight, errors, failures)
     upsert_issue(repo, body, clean)
 
