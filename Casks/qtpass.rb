@@ -7,15 +7,19 @@ cask "qtpass" do
       livecheck do
         skip "Pinned release for macOS Monterey"
       end
+
+      depends_on macos: :monterey
     end
     on_ventura :or_newer do
-      version "1.8.3"
-      sha256 "384267b8dfb20b78ec3f82ce27c4ad144c36dec00622de6de09bfe34ad32dd46"
+      version "1.8.4"
+      sha256 "3ac7df20a979afbf10674d13c5f424aa9ce6ffd895aeb566ffb51c16cf60caee"
 
       livecheck do
         url :url
         strategy :github_latest
       end
+
+      depends_on macos: :ventura
     end
   end
   on_intel do
@@ -25,14 +29,14 @@ cask "qtpass" do
     livecheck do
       skip "Pinned Intel release; newer macOS packages contain only ARM64 binaries"
     end
+
+    depends_on macos: :monterey
   end
 
   url "https://github.com/IJHack/qtpass/releases/download/v#{version}/QtPass-#{version}.dmg"
   name "QtPass"
   desc "Multi-platform GUI for pass, the standard unix password manager"
   homepage "https://qtpass.org/"
-
-  depends_on macos: :monterey
 
   app "QtPass.app"
 
