@@ -177,17 +177,20 @@ def bump(cask, args, prs, repo, default_branch, source="livecheck"):
         for arch in ("arm", "intel"):
             if arch not in scope:
                 continue
+            # Catch-up needs current results as well as outdated ones: an
+            # empty --newer-only response does not mean livecheck is blind.
             data[arch] = json.loads(output(
                 "brew", "ruby", "-e",
                 'require "dev-cmd/livecheck"; require "simulate_system"; Homebrew::SimulateSystem.with(arch: ARGV.shift.to_sym) { Homebrew::DevCmd::LivecheckCmd.new(ARGV).run }',
-                "--", arch, qualified, "--newer-only", "--extract-plist", "--json"))
+                "--", arch, qualified, *([] if source == "catchup" else ["--newer-only"]),
+                "--extract-plist", "--json"))
         # A bump must never be produced from an incomplete livecheck result.
         errors = livecheck_errors(data)
         if errors:
             raise ValueError(json.dumps(errors))
         rows = plan(data)
         if source == "catchup":
-            missing = scope - {arch for arch, results in data.items() if plan({arch: results})}
+            missing = {arch for arch in scope if not data.get(arch)}
             if missing:
                 data.update(catchup_results(cask, versions, missing, single_version=False))
                 rows = plan(data)
@@ -220,14 +223,15 @@ def bump(cask, args, prs, repo, default_branch, source="livecheck"):
             data[arch] = json.loads(output(
                 "brew", "ruby", "-e",
                 'require "dev-cmd/livecheck"; require "simulate_system"; Homebrew::SimulateSystem.with(arch: ARGV.shift.to_sym) { Homebrew::DevCmd::LivecheckCmd.new(ARGV).run }',
-                "--", arch, qualified, "--newer-only", "--extract-plist", "--json"))
+                "--", arch, qualified, *([] if source == "catchup" else ["--newer-only"]),
+                "--extract-plist", "--json"))
         # A bump must never be produced from an incomplete livecheck result.
         errors = livecheck_errors(data)
         if errors:
             raise ValueError(json.dumps(errors))
         rows = plan(data)
         if source == "catchup":
-            missing = uncovered - {arch for arch, results in data.items() if plan({arch: results})}
+            missing = {arch for arch in uncovered if not data.get(arch)}
             if missing:
                 # Recheck the base, which may have changed since the scan.
                 data.update(catchup_results(cask, versions, missing, single_version=True))

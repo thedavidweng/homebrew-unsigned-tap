@@ -164,11 +164,14 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "bump_cask_pr", return_value=True)
     @patch("upstream_catchup.upstream_newer", return_value=[("arm", "9.9"), ("intel", "9.9")])
     def test_catchup_attempts_explicit_version_despite_blind_livecheck(self, newer, bump, pending, output, run, chdir):
-        output.side_effect = ["/tap", json.dumps(result("2.0", False)), json.dumps(result("2.0", False)),
+        output.side_effect = ["/tap", "[]", "[]",
                               '  version "1.0"\n', json.dumps([[pr()]])]
         autobump.bump("sample", ["--version=9.9"], [], REPO, "main", source="catchup")
         self.assertIn(("--no-fork", "--version=9.9", "thedavidweng/unsigned-tap/sample"),
                       [c.args for c in bump.call_args_list])
+        livechecks = [c.args for c in output.call_args_list if "--json" in c.args]
+        self.assertEqual(len(livechecks), 2)
+        self.assertTrue(all("--newer-only" not in args for args in livechecks))
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
@@ -179,8 +182,8 @@ class AutobumpTests(unittest.TestCase):
     @patch("upstream_catchup.upstream_newer", side_effect=[[], [("intel", "9.9")]])
     @patch.object(autobump, "cask_versions", return_value={"arm": "10.0"})
     def test_catchup_only_updates_uncovered_architecture(self, versions, newer, bump, pending, output, run, chdir):
-        output.side_effect = ["/tap", "same-head", json.dumps(result("2.0", False)), '  version "10.0"\n', "same-head",
-                              json.dumps(result("2.0", False)), '  version "1.0"\n', json.dumps([[pr(2)]])]
+        output.side_effect = ["/tap", "same-head", "[]", '  version "10.0"\n', "same-head",
+                              "[]", '  version "1.0"\n', json.dumps([[pr(2)]])]
         autobump.bump("sample", ["--version=9.9"], [], REPO, "main", source="catchup")
         self.assertEqual([c.args for c in bump.call_args_list], [
             ("--no-fork", "--version-intel=9.9", "thedavidweng/unsigned-tap/sample")])
@@ -192,8 +195,7 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "bump_cask_pr", return_value=True)
     @patch.object(autobump, "cask_versions", return_value={"arm": "3.0", "intel": "1.0"}, create=True)
     def test_catchup_refreshes_only_outdated_existing_channels(self, versions, bump, pending, output, run, chdir):
-        output.side_effect = ["/tap", "old-head", json.dumps(result("2.0", False)),
-                              json.dumps(result("2.0", False)), '  version "1.0"\n', "new-head"]
+        output.side_effect = ["/tap", "old-head", "[]", "[]", '  version "1.0"\n', "new-head"]
         autobump.bump("sample", ["--version=2.0"], [], REPO, "main", source="catchup")
         bump.assert_called_once_with("--write-only", "--commit", "--version-intel=2.0",
                                      "thedavidweng/unsigned-tap/sample")
@@ -206,8 +208,7 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "bump_cask_pr")
     @patch.object(autobump, "cask_versions", return_value={"arm": "3.0", "intel": "2.0"}, create=True)
     def test_catchup_never_downgrades_an_existing_pr(self, versions, bump, pending, output, run, chdir):
-        output.side_effect = ["/tap", "same-head", json.dumps(result("2.0", False)),
-                              json.dumps(result("2.0", False)), '  version "1.0"\n', "same-head"]
+        output.side_effect = ["/tap", "same-head", "[]", "[]", '  version "1.0"\n', "same-head"]
         autobump.bump("sample", ["--version=2.0"], [], REPO, "main", source="catchup")
         bump.assert_not_called()
         self.assertFalse(any(c.args[:2] == ("git", "push") for c in run.call_args_list))
@@ -220,7 +221,7 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "cask_versions", return_value={"intel": "1.0"})
     def test_catchup_preserves_livecheck_version_and_refreshes_blind_channel(self, versions, bump, pending, output, run, chdir):
         output.side_effect = ["/tap", "old-head", json.dumps(result("2.5")),
-                              json.dumps(result("1.0", False)), '  version "1.0"\n', "new-head"]
+                              "[]", '  version "1.0"\n', "new-head"]
         autobump.bump("sample", ["--version=2.0"], [], REPO, "main", source="catchup")
         bump.assert_called_once_with("--write-only", "--commit", "--version-arm=2.5", "--version-intel=2.0",
                                      "thedavidweng/unsigned-tap/sample")
@@ -232,7 +233,7 @@ class AutobumpTests(unittest.TestCase):
                                                         ([(pr(), {"arm", "intel"})], set())])
     @patch.object(autobump, "bump_cask_pr", return_value=True)
     def test_catchup_combines_livecheck_with_blind_uncovered_channel(self, bump, pending, output, run, chdir):
-        output.side_effect = ["/tap", json.dumps(result("2.5")), json.dumps(result("1.0", False)),
+        output.side_effect = ["/tap", json.dumps(result("2.5")), "[]",
                               '  version "1.0"\n', json.dumps([[pr()]])]
         autobump.bump("sample", ["--version=2.0"], [], REPO, "main", source="catchup")
         bump.assert_called_once_with("--no-fork", "--version-arm=2.5", "--version-intel=2.0",
@@ -245,7 +246,7 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "bump_cask_pr")
     @patch.object(autobump, "cask_versions")
     def test_catchup_does_not_refresh_a_pinned_existing_pr(self, versions, bump, pending, output, run, chdir):
-        output.side_effect = ["/tap", "same-head", json.dumps(result("1.0", False)),
+        output.side_effect = ["/tap", "same-head", "[]",
                               '  version "1.0"\n  livecheck do\n    skip "Pinned"\n  end\n', "same-head"]
         autobump.bump("sample", ["--version=2.0"], [], REPO, "main", source="catchup")
         versions.assert_not_called()
@@ -253,7 +254,7 @@ class AutobumpTests(unittest.TestCase):
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
-    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)), json.dumps(result("2.0", False)), '  version "1.0"\n'])
+    @patch.object(autobump, "output", side_effect=["/tap", "[]", "[]", '  version "1.0"\n'])
     @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
     @patch.object(autobump, "bump_cask_pr", return_value=False)
     @patch("upstream_catchup.upstream_newer", return_value=[("arm", "9.9"), ("intel", "9.9")])
@@ -265,8 +266,7 @@ class AutobumpTests(unittest.TestCase):
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
-    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)),
-                                                     json.dumps(result("2.0", False)), '  version "10.0"\n'])
+    @patch.object(autobump, "output", side_effect=["/tap", "[]", "[]", '  version "10.0"\n'])
     @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
     @patch.object(autobump, "bump_cask_pr")
     def test_catchup_does_not_downgrade_after_main_advances(self, bump, pending, output, run, chdir):
@@ -275,8 +275,7 @@ class AutobumpTests(unittest.TestCase):
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
-    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)),
-                                                     json.dumps(result("2.0", False)),
+    @patch.object(autobump, "output", side_effect=["/tap", "[]", "[]",
                                                      '  version "1.0"\n  livecheck do\n    skip "Pinned"\n  end\n'])
     @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
     @patch.object(autobump, "bump_cask_pr")
@@ -286,14 +285,46 @@ class AutobumpTests(unittest.TestCase):
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
-    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)),
-                                                     json.dumps(result("2.0", False)),
+    @patch.object(autobump, "output", side_effect=["/tap", "[]", "[]",
                                                      '  version "1.0"\n  version "2.0"\n'])
     @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
     @patch.object(autobump, "bump_cask_pr")
     def test_catchup_does_not_overwrite_new_platform_versions(self, bump, pending, output, run, chdir):
         autobump.bump("sample", ["--version=9.9"], [], REPO, "main", source="catchup")
         bump.assert_not_called()
+
+    @patch.object(autobump.os, "chdir")
+    @patch.object(autobump, "run")
+    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.23.1", False)),
+                                                     json.dumps(result("2.23.1", False))])
+    @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
+    @patch.object(autobump, "bump_cask_pr")
+    def test_catchup_does_not_override_resolved_current_livecheck(self, bump, pending, output, run, chdir):
+        autobump.bump("sample", ["--version=3333"], [], REPO, "main", source="catchup")
+        bump.assert_not_called()
+        self.assertEqual(output.call_count, 3)
+
+    @patch.object(autobump.os, "chdir")
+    @patch.object(autobump, "run")
+    @patch.object(autobump, "output", side_effect=["/tap", json.dumps([{"cask": "sample", "status": "skipped"}]),
+                                                     json.dumps([{"cask": "sample", "status": "skipped"}])])
+    @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
+    @patch.object(autobump, "bump_cask_pr")
+    def test_catchup_does_not_override_livecheck_skip(self, bump, pending, output, run, chdir):
+        autobump.bump("sample", ["--version=3333"], [], REPO, "main", source="catchup")
+        bump.assert_not_called()
+        self.assertEqual(output.call_count, 3)
+
+    @patch.object(autobump.os, "chdir")
+    @patch.object(autobump, "run")
+    @patch.object(autobump, "output", side_effect=["/tap", "same-head", json.dumps(result("2.23.1", False)),
+                                                     json.dumps(result("2.23.1", False)), "same-head"])
+    @patch.object(autobump, "pending_prs", return_value=([(pr(), {"arm", "intel"})], set()))
+    @patch.object(autobump, "bump_cask_pr")
+    def test_catchup_does_not_override_resolved_livecheck_on_existing_pr(self, bump, pending, output, run, chdir):
+        autobump.bump("sample", ["--version=3333"], [], REPO, "main", source="catchup")
+        bump.assert_not_called()
+        self.assertEqual(output.call_count, 5)
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
@@ -419,8 +450,8 @@ class CatchupGitIntegrationTests(unittest.TestCase):
                 args = sys.argv[1:]
                 if args[0] == "--repository":
                     print(os.environ["FIXTURE_TAP"])
-                elif args[0] == "ruby" and "--newer-only" in args:
-                    print(json.dumps([{"cask": "sample", "version": {"latest": "1.5", "outdated": False}}]))
+                elif args[0] == "ruby" and any("dev-cmd/livecheck" in arg for arg in args):
+                    print("[]")
                 elif args[0] == "ruby":
                     os.execv(os.environ["REAL_BREW"], [os.environ["REAL_BREW"], *args])
                 elif args[0] == "bump-cask-pr":
