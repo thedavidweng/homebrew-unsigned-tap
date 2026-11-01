@@ -1,5 +1,5 @@
 cask "catchup-e2e-fixture" do
-  version "2.0"
+  version "1.5"
   sha256 :no_check
   url "https://example.test/#{version}.zip"
   name "Catchup test fixture"
