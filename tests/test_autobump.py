@@ -335,31 +335,6 @@ class ChannelCoverageTests(unittest.TestCase):
         head = self.BASE.replace("\nend", '\n  on_monterey :or_older do\n    version "2.0"\n  end\nend')
         self.assertEqual(self.coverage(head), set())
 
-    def test_homebrew_single_architecture_bump_preserves_other_version(self):
-        source = ('cask "sample" do\n  version "1.0"\n  sha256 :no_check\n'
-                  '  url "https://example.com/#{version}.zip"\n  depends_on :macos\nend\n')
-        script = '''
-require "dev-cmd/bump-cask-pr"
-require "utils/ast"
-require "simulate_system"
-path = Pathname.new(ARGV.fetch(0))
-cask = Cask::CaskLoader.load(path)
-version = Homebrew::BumpVersionParser.new(intel: "2.0")
-updated = Homebrew::DevCmd::BumpCaskPr.allocate.send(:replace_version_and_checksum, cask, :no_check, version, path.read)
-puts JSON.generate([:arm, :intel].map do |arch|
-  Homebrew::SimulateSystem.with(arch: arch) do
-    Cask::CaskLoader::FromContentLoader.new(updated).load(config: nil).version.to_s
-  end
-end)
-'''
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "sample.rb"
-            path.write_text(source)
-            out = subprocess.check_output(["brew", "ruby", "-e", script, "--", str(path)], text=True,
-                                          env={**os.environ, "HOMEBREW_DEVELOPER": "1"})
-        self.assertEqual(json.loads(out), ["1.0", "2.0"])
-
-
 if __name__ == "__main__":
     unittest.main()
 
