@@ -1,0 +1,45 @@
+name: CircuitJS1 install check
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Homebrew/actions/setup-homebrew@d482da0e602890d3160aade42e72c8556103bf04 # 2026.10.26.1
+      - name: Install and launch
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALL_FROM_API: 1
+        run: |
+          set -euo pipefail
+          brew tap --custom-remote thedavidweng/unsigned-tap "$GITHUB_WORKSPACE"
+          brew trust thedavidweng/unsigned-tap
+          mkdir -p "$RUNNER_TEMP/Applications"
+          brew install --cask thedavidweng/unsigned-tap/circuitjs1 --appdir="$RUNNER_TEMP/Applications"
+          app="$RUNNER_TEMP/Applications/CircuitJS1.app"
+          test "$(defaults read "$app/Contents/Info" CFBundleShortVersionString)" = 5.0.5ts
+          open "$app"
+          for ((attempt = 0; attempt < 30; attempt++)); do
+            if pid="$(pgrep -x CircuitJS1 | head -n 1)" && [[ -n "$pid" ]]; then
+              sleep 3
+              kill -0 "$pid"
+              kill "$pid"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo 'CircuitJS1 did not remain running' >&2
+          exit 1
