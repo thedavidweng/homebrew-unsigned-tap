@@ -32,16 +32,23 @@ jobs:
           brew install --cask thedavidweng/unsigned-tap/obs-advanced-scene-switcher
           test -f '/Library/Application Support/obs-studio/plugins/advanced-scene-switcher.plugin/Contents/MacOS/advanced-scene-switcher'
       - name: Verify OBS loads plugin
+        timeout-minutes: 5
         run: |
           set -euo pipefail
-          open -n /Applications/OBS.app --args --disable-shutdown-check --multi
+          /Applications/OBS.app/Contents/MacOS/OBS --disable-shutdown-check --multi > "$RUNNER_TEMP/obs-output.log" 2>&1 &
+          obs_pid=$!
+          trap 'kill "$obs_pid" 2>/dev/null || true; wait "$obs_pid" 2>/dev/null || true' EXIT
           log_dir="$HOME/Library/Application Support/obs-studio/logs"
           for ((attempt = 0; attempt < 90; attempt++)); do
             if grep -hE '\[adv-ss\] version: 1\.37\.2' "$log_dir"/*.txt 2>/dev/null; then
               exit 0
             fi
+            if ! kill -0 "$obs_pid" 2>/dev/null; then
+              break
+            fi
             sleep 2
           done
+          cat "$RUNNER_TEMP/obs-output.log"
           find "$log_dir" -name '*.txt' -exec cat {} + || true
           echo 'OBS did not report initializing the plugin' >&2
           exit 1
