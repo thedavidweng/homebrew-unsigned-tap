@@ -5,6 +5,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+import upstream_catchup
+
 
 def output(*args):
     return subprocess.check_output(args, text=True)
@@ -43,6 +45,17 @@ def livecheck_errors(data):
     """
     return [result for results in data.values() for result in results
             if result.get("status") == "error"]
+
+
+def validate_livecheck(data, source):
+    errors = livecheck_errors(data)
+    if errors:
+        raise ValueError(json.dumps(errors))
+    if source == "catchup":
+        unresolved = [{"arch": arch, "result": result} for arch, results in data.items()
+                      for result in results if "version" not in result]
+        if unresolved:
+            raise ValueError("Cannot verify catch-up livecheck: " + json.dumps(unresolved))
 
 
 def plan(data):
@@ -91,6 +104,39 @@ puts JSON.generate([:arm, :intel].select do |arch|
   end
 end)
 ''', "--", *sources)))
+
+
+def cask_versions(source, architectures):
+    return json.loads(output("brew", "ruby", "-e", '''
+require "cask/cask_loader"; require "simulate_system"; require "json"
+source = ARGV.shift
+puts JSON.generate(ARGV.to_h do |arch|
+  value = Homebrew::SimulateSystem.with(arch: arch.to_sym) do
+    version = Cask::CaskLoader::FromContentLoader.new(source).load(config: nil).version
+    version.to_s if version && !version.latest?
+  end
+  [arch, value]
+end)
+''', "--", source, *sorted(architectures)))
+
+
+def catchup_results(cask, versions, architectures, *, single_version):
+    current = output("git", "show", f"HEAD:Casks/{cask}.rb")
+    if upstream_catchup.has_livecheck_skip(current):
+        return {}
+    if single_version:
+        literals = upstream_catchup.version_literals(current)
+        if len(literals) != 1 or literals[0] == ":latest":
+            return {}
+        current_versions = dict.fromkeys(architectures, literals[0])
+    else:
+        current_versions = cask_versions(current, architectures)
+    newer = upstream_catchup.upstream_newer([
+        (arch, current_versions[arch], versions[arch]) for arch in sorted(architectures)
+        if current_versions.get(arch)
+    ])
+    return {arch: [{"cask": cask, "version": {"latest": version, "outdated": True}}]
+            for arch, version in newer}
 
 
 def bot_authors(repo):
@@ -142,15 +188,21 @@ def bump(cask, args, prs, repo, default_branch, source="livecheck"):
         for arch in ("arm", "intel"):
             if arch not in scope:
                 continue
+            # Catch-up needs current results as well as outdated ones: an
+            # empty --newer-only response does not mean livecheck is blind.
             data[arch] = json.loads(output(
                 "brew", "ruby", "-e",
                 'require "dev-cmd/livecheck"; require "simulate_system"; Homebrew::SimulateSystem.with(arch: ARGV.shift.to_sym) { Homebrew::DevCmd::LivecheckCmd.new(ARGV).run }',
-                "--", arch, qualified, "--newer-only", "--extract-plist", "--json"))
+                "--", arch, qualified, *([] if source == "catchup" else ["--newer-only"]),
+                "--extract-plist", "--json"))
         # A bump must never be produced from an incomplete livecheck result.
-        errors = livecheck_errors(data)
-        if errors:
-            raise ValueError(json.dumps(errors))
+        validate_livecheck(data, source)
         rows = plan(data)
+        if source == "catchup":
+            missing = {arch for arch in scope if not data.get(arch)}
+            if missing:
+                data.update(catchup_results(cask, versions, missing, single_version=False))
+                rows = plan(data)
         skipped = False
         if rows:
             token, version, new_args = rows[0]
@@ -180,26 +232,23 @@ def bump(cask, args, prs, repo, default_branch, source="livecheck"):
             data[arch] = json.loads(output(
                 "brew", "ruby", "-e",
                 'require "dev-cmd/livecheck"; require "simulate_system"; Homebrew::SimulateSystem.with(arch: ARGV.shift.to_sym) { Homebrew::DevCmd::LivecheckCmd.new(ARGV).run }',
-                "--", arch, qualified, "--newer-only", "--extract-plist", "--json"))
+                "--", arch, qualified, *([] if source == "catchup" else ["--newer-only"]),
+                "--extract-plist", "--json"))
         # A bump must never be produced from an incomplete livecheck result.
-        errors = livecheck_errors(data)
-        if errors:
-            raise ValueError(json.dumps(errors))
+        validate_livecheck(data, source)
         rows = plan(data)
-        if rows:
-            token, _version, new_args = rows[0]
-            assert len(rows) == 1 and token == cask
-            uncovered = {arch for arch, results in data.items() if plan({arch: results})}
-        elif (source == "catchup" and args
-                and all(a.startswith("--version") for a in args)):
-            # Livecheck is blind to this cask but upstream is newer (the
-            # catch-up row carries an explicit version). Attempt it directly:
-            # the download and audit inside bump-cask-pr still validate it,
-            # and a bogus version fails here without opening anything.
-            new_args = list(args)
-        else:
+        if source == "catchup":
+            missing = {arch for arch in uncovered if not data.get(arch)}
+            if missing:
+                # Recheck the base, which may have changed since the scan.
+                data.update(catchup_results(cask, versions, missing, single_version=True))
+                rows = plan(data)
+        if not rows:
             print(f"No remaining update for {cask} on latest {default_branch}")
             return
+        token, _version, new_args = rows[0]
+        assert len(rows) == 1 and token == cask
+        uncovered = {arch for arch, results in data.items() if plan({arch: results})}
         if not bump_cask_pr("--no-fork", *new_args, qualified):
             return
         pages = json.loads(output("gh", "api", f"repos/{repo}/pulls", "--method", "GET",

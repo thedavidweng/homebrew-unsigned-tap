@@ -30,7 +30,7 @@ class RadarTests(unittest.TestCase):
     def test_body_says_none_when_clean(self):
         body = radar.build_body("2026-10-26", [], [], [], [], {}, [], [])
         self.assertNotIn("- `", body)
-        self.assertEqual(body.count("None."), 7)
+        self.assertEqual(body.count("None."), 9)
 
     def test_unavailable_evidence_is_not_reported_as_no_failed_bumps(self):
         body = radar.build_body("2026-10-26", [], [], [], [],
@@ -47,6 +47,70 @@ class RadarTests(unittest.TestCase):
             (tap / "retired.rb").write_text("x")
             (tap / "kept.rb").write_text("x")
             self.assertEqual(radar.missing_upstream(tap, {"kept"}, {"retired"}), ["gone"])
+
+    def test_catchup_and_inflight_uses_candidate_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tap = pathlib.Path(tmp)
+            (tap / "sample.rb").write_text('cask "sample" do\n  version "1.0"\nend\n')
+            prs = [{"number": 12, "title": "sample 2.0", "headRefName": "bump-sample-2.0"}]
+            with patch.object(radar, "TAP_CASK_DIR", tap), patch.object(radar, "gh", return_value=json.dumps(prs)):
+                self.assertEqual(radar.catchup_and_inflight("o/r", {"sample": ["2.0"]}),
+                                 ([("sample", "2.0")], [(12, "sample 2.0")]))
+
+    def test_classify_catchups_checks_both_architectures(self):
+        def result(latest, current="2.23.1", outdated=False):
+            return json.dumps([{"cask": "treesheets", "version": {
+                "current": current, "latest": latest, "outdated": outdated}}])
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tap = pathlib.Path(tmp) / "Casks"
+            tap.mkdir()
+            (tap / "treesheets.rb").write_text('cask "treesheets" do\n  version "2.23.1"\nend\n')
+            with patch.object(radar, "TAP_CASK_DIR", tap), \
+                    patch.object(radar.subprocess, "check_output") as check:
+                check.side_effect = [tmp, result("2.23.1"), result("2.23.1")]
+                confirmed, conflicts, unresolved = radar.classify_catchups([("treesheets", "3333")])
+                self.assertEqual(confirmed, [])
+                self.assertEqual(conflicts, [("treesheets", "3333",
+                                              "arm: 2.23.1 → 2.23.1 (current), "
+                                              "intel: 2.23.1 → 2.23.1 (current)")])
+                self.assertEqual(unresolved, [])
+                self.assertIn("arm", check.call_args_list[1].args[0])
+                self.assertIn("intel", check.call_args_list[2].args[0])
+
+                check.side_effect = [tmp, result("2.24.0", outdated=True), result("2.24.0", outdated=True)]
+                self.assertEqual(radar.classify_catchups([("treesheets", "2.24.0")]),
+                                 ([("treesheets", "2.24.0")], [], []))
+
+                for bad in ("[]", result("2.23.1", current="2.22.5"), "not json"):
+                    check.side_effect = [tmp, bad]
+                    confirmed, conflicts, unresolved = radar.classify_catchups([("treesheets", "3333")])
+                    self.assertEqual((confirmed, conflicts), ([], []))
+                    self.assertEqual(unresolved[0][:2], ("treesheets", "3333"))
+
+                check.side_effect = [str(tap)]
+                confirmed, conflicts, unresolved = radar.classify_catchups([("treesheets", "3333")])
+                self.assertEqual((confirmed, conflicts), ([], []))
+                self.assertIn("differs", unresolved[0][2])
+
+    def test_conflicting_upstream_evidence_prevents_clean_close(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dead = pathlib.Path(tmp) / "dead.json"
+            dead.write_text('{"dead": [], "unverified": []}')
+            with patch.dict(radar.os.environ, {"GITHUB_REPOSITORY": "o/r"}), \
+                    patch.object(radar, "DEAD_JSON", str(dead)), \
+                    patch.object(radar, "load_upstream", return_value={"treesheets": ["3333"]}), \
+                    patch.object(radar, "missing_upstream", return_value=[]), \
+                    patch.object(radar, "retired_tokens", return_value=set()), \
+                    patch.object(radar, "catchup_and_inflight", return_value=([("treesheets", "3333")], [])), \
+                    patch.object(radar, "classify_catchups", return_value=(
+                        [], [("treesheets", "3333", "arm: 2.23.1, intel: 2.23.1")], [])), \
+                    patch.object(radar, "autobump_evidence", return_value=({}, [])), \
+                    patch.object(radar, "upsert_issue") as upsert:
+                radar.main()
+        self.assertFalse(upsert.call_args.args[2])
+        self.assertIn("`treesheets` — upstream 3333; livecheck arm: 2.23.1, intel: 2.23.1",
+                      upsert.call_args.args[1])
 
     def test_retired_tokens_use_sync_blocklist(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -202,6 +266,22 @@ class RadarTests(unittest.TestCase):
         self.assertFalse(upsert.call_args.args[2])
         self.assertIn("`broken`", upsert.call_args.args[1])
 
+    def test_open_bump_pr_prevents_clean_close(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dead = pathlib.Path(tmp) / "dead.json"
+            dead.write_text('{"dead": [], "unverified": []}')
+            with patch.dict(radar.os.environ, {"GITHUB_REPOSITORY": "o/r"}), \
+                    patch.object(radar, "DEAD_JSON", str(dead)), \
+                    patch.object(radar, "load_upstream", return_value={"kept": ["1"]}), \
+                    patch.object(radar, "missing_upstream", return_value=[]), \
+                    patch.object(radar, "retired_tokens", return_value=set()), \
+                    patch.object(radar, "catchup_and_inflight", return_value=([], [(12, "sample 2.0")])), \
+                    patch.object(radar, "autobump_evidence", return_value=({}, [])), \
+                    patch.object(radar, "upsert_issue") as upsert:
+                radar.main()
+        self.assertFalse(upsert.call_args.args[2])
+        self.assertIn("## Open bump/sync PRs\n- #12 sample 2.0\n", upsert.call_args.args[1])
+
     def test_missing_healthcheck_does_not_close_radar(self):
         with patch.dict(radar.os.environ, {"GITHUB_REPOSITORY": "o/r"}), \
                 patch.object(radar, "DEAD_JSON", ""), \
@@ -246,7 +326,7 @@ class RadarTests(unittest.TestCase):
                     patch.object(radar, "upsert_issue") as upsert:
                 radar.main()
         self.assertTrue(upsert.call_args.args[2])
-        self.assertEqual(upsert.call_args.args[1].count("None."), 7)
+        self.assertEqual(upsert.call_args.args[1].count("None."), 9)
 
     def test_healthcheck_without_dead_field_fails(self):
         with tempfile.TemporaryDirectory() as tmp:

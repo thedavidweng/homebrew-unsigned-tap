@@ -6,8 +6,7 @@ Aggregates read-only signals (never edits casks):
 - upstream-newer single-version casks with no open PR (the catch-up path
   attempts them every autobump run; still listed next week means the bump
   keeps failing and a human should look)
-- open bump PRs still waiting (normally merged by automation; lingering
-  means red checks)
+- open bump/sync PRs still waiting for review or automation
 - livecheck errors and failed bumps from the latest scheduled autobump evidence
 
 Upserts a single open issue; closes it with an all-clear note when clean.
@@ -61,13 +60,61 @@ def missing_upstream(tap_dir, upstream_tokens, retired):
 
 def catchup_and_inflight(repo, upstream):
     import upstream_catchup
-    pairs = upstream_catchup.candidates(TAP_CASK_DIR, upstream, set(), set(), set())
+    pairs = upstream_catchup.candidates(TAP_CASK_DIR, upstream, set())
     rows = upstream_catchup.upstream_newer(pairs)
     prs = json.loads(gh("pr", "list", "--state", "open", "--limit", "100",
                         "--json", "number,title,headRefName", repo=repo))
     inflight = sorted((p["number"], p["title"]) for p in prs
                       if p["headRefName"].startswith(("bump-", "sync/")))
     return rows, inflight
+
+
+def classify_catchups(rows):
+    """Compare each numeric snapshot candidate with both livecheck channels."""
+    confirmed, conflicts, unresolved = [], [], []
+    if not rows:
+        return confirmed, conflicts, unresolved
+    tap = Path(subprocess.check_output(
+        ["brew", "--repository", "thedavidweng/unsigned-tap"], text=True).strip())
+    if tap.resolve() != TAP_CASK_DIR.parent.resolve():
+        return [], [], [(token, version, "tap checkout differs from radar checkout")
+                        for token, version in rows]
+    import upstream_catchup
+    for token, upstream in rows:
+        current = upstream_catchup.version_literals((TAP_CASK_DIR / f"{token}.rb").read_text())[0]
+        latest = {}
+        try:
+            for arch in ("arm", "intel"):
+                output = subprocess.check_output([
+                    "brew", "ruby", "-e",
+                    'require "dev-cmd/livecheck"; require "simulate_system"; '
+                    'Homebrew::SimulateSystem.with(arch: ARGV.shift.to_sym) '
+                    '{ Homebrew::DevCmd::LivecheckCmd.new(ARGV).run }',
+                    "--", arch, f"thedavidweng/unsigned-tap/{token}",
+                    "--extract-plist", "--json",
+                ], text=True, stderr=subprocess.PIPE, timeout=120)
+                results = json.loads(output)
+                if not isinstance(results, list) or len(results) != 1:
+                    raise ValueError(f"{arch}: no single livecheck result")
+                result = results[0]
+                version = result.get("version", {})
+                if (result.get("cask") != token or version.get("current") != current
+                        or not isinstance(version.get("latest"), str)
+                        or not isinstance(version.get("outdated"), bool)):
+                    raise ValueError(f"{arch}: livecheck result incomplete or stale")
+                latest[arch] = version
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired,
+                json.JSONDecodeError, ValueError, AttributeError) as exc:
+            unresolved.append((token, upstream, str(exc)))
+            continue
+        if all(item["latest"] == upstream and item["outdated"] for item in latest.values()):
+            confirmed.append((token, upstream))
+        else:
+            conflicts.append((token, upstream, ", ".join(
+                f"{arch}: {item['current']} → {item['latest']} "
+                f"({'outdated' if item['outdated'] else 'current'})"
+                for arch, item in latest.items())))
+    return confirmed, conflicts, unresolved
 
 
 def autobump_evidence(repo):
@@ -136,7 +183,8 @@ def section(title, lines):
     return body + "".join(f"- {line}\n" for line in lines)
 
 
-def build_body(today, dead, missing, catchups, inflight, errors, failures, unverified):
+def build_body(today, dead, missing, catchups, inflight, errors, failures, unverified,
+               conflicts=(), unresolved=()):
     parts = [
         f"Automated weekly summary for human review. "
         f"Everything else in this tap updates and merges itself; "
@@ -155,7 +203,13 @@ def build_body(today, dead, missing, catchups, inflight, errors, failures, unver
                 "still here next week = bump keeps failing)",
                 [f"`{token}` → {version}" for token, version in catchups]
                 if catchups is not None else ["evidence unavailable"]),
-        section("Open bump/sync PRs (automation merges when green)",
+        section("Upstream version conflicts with livecheck",
+                [f"`{token}` — upstream {version}; livecheck {detail}"
+                 for token, version, detail in conflicts]),
+        section("Upstream version could not be verified",
+                [f"`{token}` — upstream {version}; {detail}"
+                 for token, version, detail in unresolved]),
+        section("Open bump/sync PRs",
                 [f"#{number} {title}" for number, title in inflight]),
         section("Livecheck errors in latest autobump evidence",
                 [f"`{cask}` — {'; '.join(msgs)}" for cask, msgs in errors.items()
@@ -211,11 +265,13 @@ def main():
     upstream = load_upstream()
     missing = missing_upstream(TAP_CASK_DIR, set(upstream), retired_tokens()) if upstream else None
     rows, inflight = catchup_and_inflight(repo, upstream)
+    rows, conflicts, unresolved = classify_catchups(rows)
     errors, failures = autobump_evidence(repo)
-    clean = (dead is not None and not dead and not unverified and bool(upstream) and not missing and not rows
-             and not errors and failures is not None and not failures)
+    clean = (dead is not None and not dead and not unverified and bool(upstream)
+             and not missing and not rows and not conflicts and not unresolved
+             and not inflight and not errors and failures is not None and not failures)
     body = build_body(date.today().isoformat(), dead, missing, rows if upstream else None,
-                      inflight, errors, failures, unverified)
+                      inflight, errors, failures, unverified, conflicts, unresolved)
     upsert_issue(repo, body, clean)
 
 

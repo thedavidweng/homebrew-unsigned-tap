@@ -13,18 +13,10 @@ spec = importlib.util.spec_from_file_location(
     "upstream_catchup", ROOT / "scripts/upstream_catchup.py")
 catchup = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(catchup)
-REPO = "thedavidweng/homebrew-unsigned-tap"
-
-
 def cask(version="1.0", livecheck=None, extra=""):
     block = "" if livecheck is None else f"\n  livecheck do\n{livecheck}\n  end\n"
     return (f'cask "sample" do\n  version "{version}"\n  sha256 "abc"\n'
             f'  url "https://example.com/{version}.zip"\n{extra}{block}end\n')
-
-
-def upstream_pr(branch="bump-sample-2.0", author="github-actions[bot]", repo=REPO):
-    return {"number": 1, "user": {"login": author},
-            "head": {"repo": {"full_name": repo}, "ref": branch}}
 
 
 class CatchupTests(unittest.TestCase):
@@ -46,16 +38,16 @@ class CatchupTests(unittest.TestCase):
     def test_skip_encodes_a_pin_and_is_never_adopted(self):
         self.write_pair("pinned", cask("3.5.1", '    skip "Pinned edition"'), cask("4.7.2"))
         self.assertTrue(catchup.has_livecheck_skip((self.tap / "pinned.rb").read_text()))
-        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set(), set(), set()), [])
+        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set()), [])
 
     def test_per_os_skip_without_strategy_is_still_a_pin(self):
         body = ('  on_monterey :or_older do\n    livecheck do\n      skip "Old OS"\n    end\n  end\n')
         self.write_pair("oldschool", cask("1.0") + body, cask("2.0"))
-        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set(), set(), set()), [])
+        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set()), [])
 
     def test_single_version_upstream_newer_is_a_candidate(self):
         self.write_pair("fresh", cask("1.0", '    url :url\n    strategy :github_latest'), cask("2.0"))
-        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set(), set(), set()),
+        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set()),
                          [("fresh", "1.0", "2.0")])
 
     def test_equal_multi_and_latest_versions_are_ignored(self):
@@ -63,30 +55,45 @@ class CatchupTests(unittest.TestCase):
         self.write_pair("multi", cask("1.0", extra='  on_arm do\n    version "1.0-arm"\n  end\n'), cask("2.0"))
         (self.tap / "rolling.rb").write_text('cask "rolling" do\n  version :latest\nend\n')
         (self.src / "rolling.rb").write_text('cask "rolling" do\n  version :latest\nend\n')
-        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set(), set(), set()), [])
+        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set()), [])
 
-    def test_exclude_only_and_open_prs_win(self):
+    def test_latest_with_pinned_arch_is_never_a_single_version(self):
+        rolling = 'cask "sample" do\n  version :latest\n  on_intel do\n    version "1.0"\n  end\nend\n'
+        self.write_pair("mixed-local", rolling, cask("2.0"))
+        self.write_pair("mixed-upstream", cask("1.0"), rolling)
+        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set()), [])
+        self.assertIn(":latest", catchup.version_literals(rolling))
+
+    def test_only_restricts_candidates(self):
         self.write_pair("a", cask("1.0"), cask("2.0"))
         self.write_pair("b", cask("1.0"), cask("2.0"))
-        self.assertEqual(catchup.candidates(self.tap, self.upstream(), {"a"}, set(), set()), [("b", "1.0", "2.0")])
-        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set(), {"a"}, set()), [("a", "1.0", "2.0")])
-        pages = [[upstream_pr("bump-a-2.0"), upstream_pr("sync/20240101"),
-                   upstream_pr("bump-a-2.0", author="human"),
-                   upstream_pr("bump-a-2.0", repo="human/fork")]]
-        refs = catchup.open_bump_refs(pages, REPO)
-        self.assertEqual(refs, {"bump-a-2.0"})
-        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set(), set(), refs), [("b", "1.0", "2.0")])
+        self.assertEqual(catchup.candidates(self.tap, self.upstream(), {"a"}), [("a", "1.0", "2.0")])
+
+    def test_candidate_is_not_excluded_by_flattened_open_prs(self):
+        self.write_pair("sample", cask("1.0"), cask("2.0"))
+        snapshot = pathlib.Path(self.temp.name) / "snapshot.json"
+        snapshot.write_text(json.dumps(self.upstream()))
+        prs = pathlib.Path(self.temp.name) / "open-cask-prs.json"
+        prs.write_text(json.dumps([
+            {"number": 1, "head": {"ref": "bump-sample-1.5"}},
+            {"number": 2, "head": {"ref": "bump-other-2.0"}},
+        ]))
+        env = dict(os.environ, TAP_CASK_DIR=str(self.tap), SNAPSHOT_JSON=str(snapshot), OPEN_PRS_JSON=str(prs))
+        proc = subprocess.run([sys.executable, str(ROOT / "scripts/upstream_catchup.py")],
+                              env=env, capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.stdout, "sample\t2.0\t--version=2.0\tcatchup\n")
 
     def test_missing_upstream_is_ignored(self):
         (self.tap / "gone.rb").write_text(cask("1.0"))
-        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set(), set(), set()), [])
+        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set()), [])
 
     def test_upstream_letter_subdirectory_is_found(self):
         (self.tap / "fresh.rb").write_text(cask("1.0"))
         letter = self.src / "f"
         letter.mkdir()
         (letter / "fresh.rb").write_text(cask("2.0"))
-        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set(), set(), set()),
+        self.assertEqual(catchup.candidates(self.tap, self.upstream(), set()),
                          [("fresh", "1.0", "2.0")])
 
     @patch.object(catchup.subprocess, "check_output",
@@ -117,11 +124,18 @@ class CatchupTests(unittest.TestCase):
         letter = self.src / "b"
         letter.mkdir()
         (letter / "b.rb").write_text(cask("2.0"))
+        (letter / "rolling.rb").write_text('version :latest\non_intel do\n  version "1.0"\nend\n')
         snap = catchup.snapshot_upstream(self.src)
-        self.assertEqual(snap, {"a": ["1.0"], "b": ["2.0"]})
+        self.assertEqual(snap, {"a": ["1.0"], "b": ["2.0"], "rolling": [":latest", "1.0"]})
         path = pathlib.Path(self.temp.name) / "snap.json"
         path.write_text(__import__("json").dumps(snap))
         self.assertEqual(catchup.load_snapshot(str(path)), snap)
+
+    def test_snapshot_artifact_version_is_shared_by_producer_and_consumers(self):
+        workflows = ROOT / ".github/workflows"
+        self.assertIn("name: upstream-versions-v2", (workflows / "sync.yml").read_text())
+        for name in ("autobump.yml", "healthcheck.yml"):
+            self.assertIn("artifacts?name=upstream-versions-v2&", (workflows / name).read_text())
 
 
 if __name__ == "__main__":
