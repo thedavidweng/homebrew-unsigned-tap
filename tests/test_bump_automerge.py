@@ -120,7 +120,9 @@ if [[ "${1:-}" == "pr" && "${2:-}" == "view" ]]; then
     if [[ -e "$DIR/mergeable-sequence.json" ]]; then
       count=0
       [[ -e "$DIR/mergeable-count" ]] && read -r count < "$DIR/mergeable-count"
-      jq -r --argjson n "$count" '.[$n] // .[-1]' "$DIR/mergeable-sequence.json"
+      value="$(jq --argjson n "$count" '{mergeable: (.[$n] // .[-1])}' "$DIR/mergeable-sequence.json")" || exit 1
+      if [[ "$saw_jq" == 1 ]]; then jq -r "$jqv" <<<"$value" || exit 1
+      else printf '%s\n' "$value"; fi
       printf '%s\n' "$((count + 1))" > "$DIR/mergeable-count"
       exit 0
     fi
