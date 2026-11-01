@@ -1,6 +1,6 @@
 cask "keepassxc@snapshot" do
-  version "2.8.0,290601"
-  sha256 "d8406491cee08dbed95404d83a617b2a86cf58c5e5d9006dd4b3109de3ca8344"
+  version "2.8.0,299252"
+  sha256 "809227cf8076ab905689a91863dbb858b7e0f1f522b9478309d012b5d4d96653"
 
   url "https://snapshot.keepassxc.org/build-#{version.csv.second}/KeePassXC-#{version.csv.first}-snapshot.dmg"
   name "KeePassXC"
@@ -8,7 +8,20 @@ cask "keepassxc@snapshot" do
   homepage "https://keepassxc.org/"
 
   livecheck do
-    skip "Snapshot version and build sources changed; pinned snapshot download returns HTTP 404"
+    url "https://snapshot.keepassxc.org/"
+    regex(/href=["']?KeePassXC[._-]v?(\d+(?:\.\d+)+)[._-]snapshot\.dmg["' >]/i)
+    strategy :page_match do |page, regex|
+      build = page.scan(%r{href=["']build-(\d+)/["']}i).flatten.map(&:to_i).max
+      next if build.blank?
+
+      build_page = Homebrew::Livecheck::Strategy.page_content("https://snapshot.keepassxc.org/build-#{build}/")[:content]
+      next if build_page.blank?
+
+      match = build_page.match(regex)
+      next if match.blank?
+
+      "#{match[1]},#{build}"
+    end
   end
 
   conflicts_with cask: [
