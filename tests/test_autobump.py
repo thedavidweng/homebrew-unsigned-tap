@@ -4,7 +4,10 @@ import io
 import json
 import os
 import runpy
+import subprocess
 import sys
+import tempfile
+import textwrap
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -63,7 +66,8 @@ class AutobumpTests(unittest.TestCase):
             os.chdir(tmp)
             try:
                 sys.argv = ["autobump.py", "plan"]
-                with contextlib.redirect_stdout(io.StringIO()) as out:
+                with contextlib.redirect_stdout(io.StringIO()) as out, \
+                        contextlib.redirect_stderr(io.StringIO()) as err:
                     runpy.run_path(
                         str(Path(__file__).resolve().parents[1] / "scripts/autobump.py"),
                         run_name="__main__")
@@ -71,6 +75,8 @@ class AutobumpTests(unittest.TestCase):
                 sys.argv = old_argv
                 os.chdir(old_cwd)
             self.assertEqual(out.getvalue(), "")
+            self.assertEqual(err.getvalue().count("::warning::livecheck failed for broken: boom"), 2)
+            self.assertIn("::warning::all livecheck results failed", err.getvalue())
 
     def test_partial_architecture_error_skips_the_cask(self):
         data = {
@@ -213,6 +219,46 @@ class AutobumpTests(unittest.TestCase):
         self.assertFalse(any(c.args[:2] == ("git", "push") for c in run.call_args_list))
 
 
+class AutobumpWorkflowTests(unittest.TestCase):
+    def run_bump_loop(self, combined):
+        workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/autobump.yml").read_text()
+        start = workflow.index("          FAILED_COUNT=0\n")
+        end = workflow.index("\n      - name: Retain livecheck evidence", start)
+        script = textwrap.dedent(workflow[start:end])
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)
+            stub = path / "python3"
+            stub.write_text('#!/bin/sh\nprintf "%s\\n" "$3" >> "$CALLS"\n[ "$3" != broken ]\n')
+            stub.chmod(0o755)
+            env = {**os.environ, "PATH": f"{tmp}:{os.environ['PATH']}",
+                   "GITHUB_WORKSPACE": tmp, "CALLS": str(path / "calls"), "COMBINED": combined}
+            result = subprocess.run(["bash", "-euo", "pipefail", "-c", script], cwd=tmp,
+                                    env=env, capture_output=True, text=True)
+            evidence = (path / "bump-failures.txt").read_text()
+            calls = (path / "calls").read_text() if (path / "calls").exists() else ""
+            return result, evidence, calls
+
+    def test_no_candidates_produces_empty_evidence(self):
+        result, evidence, calls = self.run_bump_loop("")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(evidence, "")
+        self.assertEqual(calls, "")
+
+    def test_successful_bump_produces_empty_evidence(self):
+        result, evidence, calls = self.run_bump_loop("healthy\t3.0\t--version=3.0\tlivecheck")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(evidence, "")
+        self.assertEqual(calls, "healthy\n")
+
+    def test_failure_is_recorded_and_later_casks_still_run(self):
+        result, evidence, calls = self.run_bump_loop(
+            "broken\t2.0\t--version=2.0\tlivecheck\nhealthy\t3.0\t--version=3.0\tlivecheck")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(evidence, "broken\n")
+        self.assertEqual(calls, "broken\nhealthy\n")
+        self.assertIn("1 cask(s) failed to bump: broken", result.stdout)
+
+
 class ChannelCoverageTests(unittest.TestCase):
     BASE = 'cask "sample" do\n  version "1.0"\n  sha256 "' + "a" * 64 + '"\n  url "https://example.com/#{version}.zip"\nend'
 
@@ -249,13 +295,17 @@ class BumpCaskPrTests(unittest.TestCase):
     def test_prerelease_only_result_is_skipped(self):
         from types import SimpleNamespace
         proc = SimpleNamespace(returncode=1, stdout="", stderr="152.0.7977.169 is a GitHub pre-release.")
-        with patch.object(autobump.subprocess, "run", return_value=proc):
+        with patch.object(autobump.subprocess, "run", return_value=proc), \
+                contextlib.redirect_stderr(io.StringIO()) as err:
             self.assertFalse(autobump.bump_cask_pr("--no-fork", "sample"))
+        self.assertIn("::warning::skipping pre-release bump: --no-fork sample", err.getvalue())
 
     def test_unrelated_bump_failure_still_raises(self):
         import subprocess
         from types import SimpleNamespace
         proc = SimpleNamespace(returncode=1, args=("brew", "bump-cask-pr"), stdout="", stderr="download failed")
-        with patch.object(autobump.subprocess, "run", return_value=proc):
+        with patch.object(autobump.subprocess, "run", return_value=proc), \
+                contextlib.redirect_stderr(io.StringIO()) as err:
             with self.assertRaises(subprocess.CalledProcessError):
                 autobump.bump_cask_pr("--no-fork", "sample")
+        self.assertEqual(err.getvalue(), "download failed\n")
