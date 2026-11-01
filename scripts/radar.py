@@ -59,9 +59,9 @@ def missing_upstream(tap_dir, upstream_tokens, retired):
                   if p.stem not in upstream_tokens and p.stem not in retired)
 
 
-def catchup_and_inflight(repo):
+def catchup_and_inflight(repo, upstream):
     import upstream_catchup
-    pairs = upstream_catchup.candidates(TAP_CASK_DIR, load_upstream(), set(), set(), set())
+    pairs = upstream_catchup.candidates(TAP_CASK_DIR, upstream, set(), set(), set())
     rows = upstream_catchup.upstream_newer(pairs)
     prs = json.loads(gh("pr", "list", "--state", "open", "--limit", "100",
                         "--json", "number,title,headRefName", repo=repo))
@@ -143,12 +143,15 @@ def build_body(today, dead, missing, catchups, inflight, errors, failures):
         f"only the items below need eyes. ({today})",
         "",
         section("Dead downloads (healthcheck)",
-                [f"`{d['token']}` — {d['detail']}" for d in dead]),
+                [f"`{d['token']}` — {d['detail']}" for d in dead]
+                if dead is not None else ["evidence unavailable"]),
         section("Removed upstream, still in this tap",
-                [f"`{token}`" for token in missing]),
+                [f"`{token}`" for token in missing]
+                if missing is not None else ["evidence unavailable"]),
         section("Upstream newer, catch-up pending (bump attempted each run; "
                 "still here next week = bump keeps failing)",
-                [f"`{token}` → {version}" for token, version in catchups]),
+                [f"`{token}` → {version}" for token, version in catchups]
+                if catchups is not None else ["evidence unavailable"]),
         section("Open bump/sync PRs (automation merges when green)",
                 [f"#{number} {title}" for number, title in inflight]),
         section("Livecheck errors in latest autobump evidence",
@@ -194,15 +197,19 @@ def main():
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     if not repo:
         raise SystemExit("GITHUB_REPOSITORY is required")
-    dead = []
+    dead = None
     if DEAD_JSON and Path(DEAD_JSON).exists():
-        dead = json.loads(Path(DEAD_JSON).read_text()).get("dead", [])
+        dead = json.loads(Path(DEAD_JSON).read_text())["dead"]
+        if not isinstance(dead, list):
+            raise ValueError("healthcheck dead field must be a list")
     upstream = load_upstream()
-    missing = missing_upstream(TAP_CASK_DIR, set(upstream), retired_tokens()) if upstream else []
-    rows, inflight = catchup_and_inflight(repo)
+    missing = missing_upstream(TAP_CASK_DIR, set(upstream), retired_tokens()) if upstream else None
+    rows, inflight = catchup_and_inflight(repo, upstream)
     errors, failures = autobump_evidence(repo)
-    clean = not dead and not missing and not rows and not errors and failures is not None and not failures
-    body = build_body(date.today().isoformat(), dead, missing, rows, inflight, errors, failures)
+    clean = (dead is not None and bool(upstream) and not dead and not missing and not rows
+             and not errors and failures is not None and not failures)
+    body = build_body(date.today().isoformat(), dead, missing, rows if upstream else None,
+                      inflight, errors, failures)
     upsert_issue(repo, body, clean)
 
 
