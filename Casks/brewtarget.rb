@@ -1,6 +1,6 @@
 cask "brewtarget" do
-  version "5.1.1"
-  sha256 "01366cec23ca735cb11aec389d4fec61db921e3130ef4f50ee0ceaf9f66313e4"
+  version "5.2.0"
+  sha256 "6c954f2809587cbbca53b2f2b6ffdbf2e2e0fa90a4fbaa32b490f8871f0522d1"
 
   url "https://github.com/Brewtarget/brewtarget/releases/download/v#{version}/brewtarget_#{version}_MacOS.dmg"
   name "brewtarget"
@@ -12,7 +12,7 @@ cask "brewtarget" do
     strategy :github_latest
   end
 
-  depends_on macos: :sequoia
+  depends_on macos: :tahoe
 
   app "brewtarget_#{version}_MacOS.app"
 
