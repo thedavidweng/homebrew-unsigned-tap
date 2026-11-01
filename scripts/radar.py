@@ -78,8 +78,6 @@ def autobump_evidence(repo):
     """
     try:
         # Query strings stay inline: gh api with -f switches to POST.
-        arts = json.loads(gh("api", f"repos/{repo}/actions/artifacts"
-                                    "?name=livecheck-casks&per_page=10"))
         runs = json.loads(gh("api", f"repos/{repo}/actions/workflows/autobump.yml/runs"
                                     "?event=schedule&status=completed&per_page=1"))
         scheduled = runs.get("workflow_runs", [])
@@ -88,6 +86,8 @@ def autobump_evidence(repo):
         if scheduled[0].get("conclusion") != "success":
             return {"<evidence unavailable>": "latest scheduled autobump did not succeed"}, []
         run_id = scheduled[0]["id"]
+        arts = json.loads(gh("api", f"repos/{repo}/actions/runs/{run_id}/artifacts"
+                                    "?name=livecheck-casks&per_page=10"))
         aids = [art["id"] for art in arts.get("artifacts", [])
                 if not art.get("expired")
                 and art.get("workflow_run", {}).get("id") == run_id]
@@ -138,7 +138,8 @@ def build_body(today, dead, missing, catchups, inflight, errors, failures):
                  if cask != "<evidence unavailable>"] +
                 (["evidence unavailable"] if "<evidence unavailable>" in errors else [])),
         section("Failed bumps in latest scheduled autobump",
-                [f"`{cask}`" for cask in failures]),
+                [f"`{cask}`" for cask in failures] +
+                (["evidence unavailable"] if "<evidence unavailable>" in errors else [])),
     ]
     return "\n".join(parts) + "\n"
 
