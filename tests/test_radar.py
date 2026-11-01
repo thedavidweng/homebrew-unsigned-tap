@@ -21,19 +21,20 @@ class RadarTests(unittest.TestCase):
             inflight=[(12, "sample 2.0")],
             errors={"flaky": ["timeout", "404"]},
             failures=["broken"],
+            unverified=[{"token": "blocked", "url": "https://x", "detail": "403"}],
         )
         for needle in ("`gone` — 404", "`vanished`", "`stuck` → 9.9",
-                       "#12 sample 2.0", "`flaky` — timeout; 404", "`broken`"):
+                       "#12 sample 2.0", "`flaky` — timeout; 404", "`broken`", "`blocked` — 403"):
             self.assertIn(needle, body)
 
     def test_body_says_none_when_clean(self):
-        body = radar.build_body("2026-10-26", [], [], [], [], {}, [])
+        body = radar.build_body("2026-10-26", [], [], [], [], {}, [], [])
         self.assertNotIn("- `", body)
-        self.assertEqual(body.count("None."), 6)
+        self.assertEqual(body.count("None."), 7)
 
     def test_unavailable_evidence_is_not_reported_as_no_failed_bumps(self):
         body = radar.build_body("2026-10-26", [], [], [], [],
-                               {"<evidence unavailable>": "missing"}, None)
+                               {"<evidence unavailable>": "missing"}, None, [])
         self.assertIn("## Failed bumps in latest scheduled autobump\n- evidence unavailable\n", body)
         self.assertEqual(body.count("- evidence unavailable"), 2)
 
@@ -108,7 +109,7 @@ class RadarTests(unittest.TestCase):
             errors, failures = radar.autobump_evidence("o/r")
         self.assertEqual(errors, {"x": ["boom"]})
         self.assertIsNone(failures)
-        body = radar.build_body("2026-10-26", [], [], [], [], errors, failures)
+        body = radar.build_body("2026-10-26", [], [], [], [], errors, failures, [])
         self.assertIn("## Livecheck errors in latest autobump evidence\n- `x` — boom\n", body)
         self.assertIn("## Failed bumps in latest scheduled autobump\n- evidence unavailable\n", body)
 
@@ -139,7 +140,7 @@ class RadarTests(unittest.TestCase):
             errors, failures = radar.autobump_evidence("o/r")
         self.assertIn("<evidence unavailable>", errors)
         self.assertEqual(failures, ["broken"])
-        body = radar.build_body("2026-10-26", [], [], [], [], errors, failures)
+        body = radar.build_body("2026-10-26", [], [], [], [], errors, failures, [])
         self.assertIn("## Livecheck errors in latest autobump evidence\n- evidence unavailable\n", body)
         self.assertIn("## Failed bumps in latest scheduled autobump\n- `broken`\n", body)
 
@@ -212,13 +213,13 @@ class RadarTests(unittest.TestCase):
                 patch.object(radar, "upsert_issue") as upsert:
             radar.main()
         self.assertFalse(upsert.call_args.args[2])
-        self.assertIn("## Dead downloads (healthcheck)\n- evidence unavailable\n",
+        self.assertIn("## HTTP 404/410 downloads (healthcheck)\n- evidence unavailable\n",
                       upsert.call_args.args[1])
 
     def test_missing_upstream_does_not_close_radar(self):
         with tempfile.TemporaryDirectory() as tmp:
             dead = pathlib.Path(tmp) / "dead.json"
-            dead.write_text('{"dead": []}')
+            dead.write_text('{"dead": [], "unverified": []}')
             with patch.dict(radar.os.environ, {"GITHUB_REPOSITORY": "o/r"}), \
                     patch.object(radar, "DEAD_JSON", str(dead)), \
                     patch.object(radar, "load_upstream", return_value={}), \
@@ -234,7 +235,7 @@ class RadarTests(unittest.TestCase):
     def test_empty_complete_evidence_can_close_radar(self):
         with tempfile.TemporaryDirectory() as tmp:
             dead = pathlib.Path(tmp) / "dead.json"
-            dead.write_text('{"dead": []}')
+            dead.write_text('{"dead": [], "unverified": []}')
             with patch.dict(radar.os.environ, {"GITHUB_REPOSITORY": "o/r"}), \
                     patch.object(radar, "DEAD_JSON", str(dead)), \
                     patch.object(radar, "load_upstream", return_value={"kept": ["1"]}), \
@@ -245,7 +246,7 @@ class RadarTests(unittest.TestCase):
                     patch.object(radar, "upsert_issue") as upsert:
                 radar.main()
         self.assertTrue(upsert.call_args.args[2])
-        self.assertEqual(upsert.call_args.args[1].count("None."), 6)
+        self.assertEqual(upsert.call_args.args[1].count("None."), 7)
 
     def test_healthcheck_without_dead_field_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -259,6 +260,24 @@ class RadarTests(unittest.TestCase):
                 with self.assertRaises(KeyError):
                     radar.main()
                 upsert.assert_not_called()
+
+    def test_unverified_healthcheck_prevents_clean_close(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            report = pathlib.Path(tmp) / "dead.json"
+            report.write_text(json.dumps({"dead": [], "unverified": [
+                {"token": "blocked", "url": "https://x", "detail": "403"}]}))
+            with patch.dict(radar.os.environ, {"GITHUB_REPOSITORY": "o/r"}), \
+                    patch.object(radar, "DEAD_JSON", str(report)), \
+                    patch.object(radar, "load_upstream", return_value={"kept": ["1"]}), \
+                    patch.object(radar, "missing_upstream", return_value=[]), \
+                    patch.object(radar, "retired_tokens", return_value=set()), \
+                    patch.object(radar, "catchup_and_inflight", return_value=([], [])), \
+                    patch.object(radar, "autobump_evidence", return_value=({}, [])), \
+                    patch.object(radar, "upsert_issue") as upsert:
+                radar.main()
+        self.assertFalse(upsert.call_args.args[2])
+        self.assertIn("## Unverified downloads (healthcheck)\n- `blocked` — 403\n",
+                      upsert.call_args.args[1])
 
     def test_upsert_creates_edits_or_closes(self):
         with patch.object(radar, "gh", return_value=json.dumps([])) as gh, \
