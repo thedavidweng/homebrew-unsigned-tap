@@ -66,7 +66,8 @@ class AutobumpTests(unittest.TestCase):
             os.chdir(tmp)
             try:
                 sys.argv = ["autobump.py", "plan"]
-                with contextlib.redirect_stdout(io.StringIO()) as out:
+                with contextlib.redirect_stdout(io.StringIO()) as out, \
+                        contextlib.redirect_stderr(io.StringIO()) as err:
                     runpy.run_path(
                         str(Path(__file__).resolve().parents[1] / "scripts/autobump.py"),
                         run_name="__main__")
@@ -74,6 +75,8 @@ class AutobumpTests(unittest.TestCase):
                 sys.argv = old_argv
                 os.chdir(old_cwd)
             self.assertEqual(out.getvalue(), "")
+            self.assertEqual(err.getvalue().count("::warning::livecheck failed for broken: boom"), 2)
+            self.assertIn("::warning::all livecheck results failed", err.getvalue())
 
     def test_partial_architecture_error_skips_the_cask(self):
         data = {
@@ -292,13 +295,17 @@ class BumpCaskPrTests(unittest.TestCase):
     def test_prerelease_only_result_is_skipped(self):
         from types import SimpleNamespace
         proc = SimpleNamespace(returncode=1, stdout="", stderr="152.0.7977.169 is a GitHub pre-release.")
-        with patch.object(autobump.subprocess, "run", return_value=proc):
+        with patch.object(autobump.subprocess, "run", return_value=proc), \
+                contextlib.redirect_stderr(io.StringIO()) as err:
             self.assertFalse(autobump.bump_cask_pr("--no-fork", "sample"))
+        self.assertIn("::warning::skipping pre-release bump: --no-fork sample", err.getvalue())
 
     def test_unrelated_bump_failure_still_raises(self):
         import subprocess
         from types import SimpleNamespace
         proc = SimpleNamespace(returncode=1, args=("brew", "bump-cask-pr"), stdout="", stderr="download failed")
-        with patch.object(autobump.subprocess, "run", return_value=proc):
+        with patch.object(autobump.subprocess, "run", return_value=proc), \
+                contextlib.redirect_stderr(io.StringIO()) as err:
             with self.assertRaises(subprocess.CalledProcessError):
                 autobump.bump_cask_pr("--no-fork", "sample")
+        self.assertEqual(err.getvalue(), "download failed\n")
