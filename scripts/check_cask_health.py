@@ -38,6 +38,7 @@ UA_BROWSER = (
 )
 
 def check_url_and_fetch(token, url):
+    """Return True for reachable URLs, False for confirmed missing URLs, else None."""
     results = []
     for method in (["-I"], ["--range", "0-1024", "--max-filesize", "1025", "-A", UA_BROWSER]):
         cmd = ["curl", "-sS", "-L", *method,
