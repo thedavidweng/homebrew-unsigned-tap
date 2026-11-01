@@ -54,7 +54,9 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: python3 scripts/check_cask_compatibility.py "$BASE_SHA" "$HEAD_SHA"
+        run: |
+          python3 scripts/check_cask_compatibility.py "$BASE_SHA" "$HEAD_SHA"
+          echo "::notice title=Cask compatibility base::$BASE_SHA"
       - name: Generate matrix
         id: generate-matrix
         env:
