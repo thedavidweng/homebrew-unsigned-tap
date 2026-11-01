@@ -73,8 +73,24 @@ class HealthcheckTests(unittest.TestCase):
         self.assertIs(result, True)
 
     def test_failed_curl_with_success_status_is_unverified(self):
-        results = [subprocess.CompletedProcess([], 28, "200", "timeout"),
-                   subprocess.CompletedProcess([], 0, "404", "")]
+        results = [subprocess.CompletedProcess([], 28, "200 1025", "timeout"),
+                   subprocess.CompletedProcess([], 0, "404 0", "")]
+        with patch.object(health.subprocess, "run", side_effect=results):
+            _, _, result, _ = health.check_url_and_fetch("test", "https://example.test")
+        self.assertIsNone(result)
+
+    def test_range_ignored_after_successful_partial_response(self):
+        results = [subprocess.CompletedProcess([], 0, "405 0", ""),
+                   subprocess.CompletedProcess([], 56, "200 1025",
+                                               "Exceeded the maximum allowed file size (1025) with 1025 bytes")]
+        with patch.object(health.subprocess, "run", side_effect=results):
+            _, _, result, _ = health.check_url_and_fetch("test", "https://example.test")
+        self.assertIs(result, True)
+
+    def test_size_limit_on_error_page_is_not_success(self):
+        results = [subprocess.CompletedProcess([], 0, "204 0", ""),
+                   subprocess.CompletedProcess([], 56, "404 1025",
+                                               "Exceeded the maximum allowed file size (1025) with 1025 bytes")]
         with patch.object(health.subprocess, "run", side_effect=results):
             _, _, result, _ = health.check_url_and_fetch("test", "https://example.test")
         self.assertIsNone(result)

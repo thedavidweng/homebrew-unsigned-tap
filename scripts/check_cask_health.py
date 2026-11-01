@@ -41,14 +41,16 @@ def check_url_and_fetch(token, url):
     results = []
     for method in (["-I"], ["--range", "0-1024", "--max-filesize", "1025", "-A", UA_BROWSER]):
         cmd = ["curl", "-sS", "-L", *method,
-               "--max-time", "8", "-o", "/dev/null", "-w", "%{http_code}", url]
+               "--max-time", "8", "-o", "/dev/null", "-w", "%{http_code} %{size_download}", url]
         try:
             proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         except subprocess.TimeoutExpired:
             results.append("timeout")
             continue
-        code = proc.stdout.strip()
-        if proc.returncode == 0 and code in ("200", "206"):
+        code, _, downloaded = proc.stdout.strip().partition(" ")
+        limited = (proc.returncode in (56, 63) and downloaded.isdigit() and int(downloaded) >= 1025
+                   and "maximum allowed file size" in proc.stderr.lower())
+        if code in ("200", "206") and (proc.returncode == 0 or limited):
             return token, url, True, f"HTTP {code}"
         results.append(code if proc.returncode == 0 else proc.stderr.strip() or "curl failed")
 
