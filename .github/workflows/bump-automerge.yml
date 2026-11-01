@@ -87,7 +87,16 @@ jobs:
 
             skip() { echo "skip #$number: $1"; }
 
-            if [[ "$(gh pr view "$number" --repo "$REPO" --json mergeable --jq .mergeable)" != "MERGEABLE" ]]; then
+            mergeable=""
+            for attempt in {1..5}; do
+              if ! mergeable="$(gh pr view "$number" --repo "$REPO" --json mergeable --jq .mergeable)"; then
+                mergeable=""
+                break
+              fi
+              [[ "$mergeable" == "UNKNOWN" ]] || break
+              if [[ "$attempt" -lt 5 ]]; then sleep 2; fi
+            done
+            if [[ "$mergeable" != "MERGEABLE" ]]; then
               skip "not mergeable right now"; continue
             fi
 

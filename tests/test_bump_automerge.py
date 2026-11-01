@@ -112,7 +112,20 @@ if [[ "${1:-}" == "pr" && "${2:-}" == "view" ]]; then
     esac
   done
   if [[ "$mode" == "mergeable" ]]; then
+    if [[ -e "$DIR/fail.mergeable-with-output" ]]; then
+      echo MERGEABLE
+      exit 1
+    fi
     [[ -e "$DIR/fail.mergeable" ]] && exit 1
+    if [[ -e "$DIR/mergeable-sequence.json" ]]; then
+      count=0
+      [[ -e "$DIR/mergeable-count" ]] && read -r count < "$DIR/mergeable-count"
+      value="$(jq --argjson n "$count" '{mergeable: (.[$n] // .[-1])}' "$DIR/mergeable-sequence.json")" || exit 1
+      if [[ "$saw_jq" == 1 ]]; then jq -r "$jqv" <<<"$value" || exit 1
+      else printf '%s\n' "$value"; fi
+      printf '%s\n' "$((count + 1))" > "$DIR/mergeable-count"
+      exit 0
+    fi
     if [[ "$saw_jq" == 1 ]]; then jq -r "$jqv" "$DIR/mergeable.json"
     else cat "$DIR/mergeable.json"; fi
     exit 0
@@ -239,6 +252,9 @@ class AutomergeGateTests(unittest.TestCase):
             json.dumps(scenario.get("candidates", [candidate()])))
         (d / "mergeable.json").write_text(
             json.dumps({"mergeable": scenario.get("mergeable", "MERGEABLE")}))
+        if "mergeable_sequence" in scenario:
+            (d / "mergeable-sequence.json").write_text(
+                json.dumps(scenario["mergeable_sequence"]))
         (d / "labels.object.json").write_text(json.dumps(
             {"labels": [{"name": n} for n in scenario.get("labels", [])]}))
         (d / "files.json").write_text(json.dumps(scenario.get("files", [
@@ -261,6 +277,9 @@ class AutomergeGateTests(unittest.TestCase):
         gh = bindir / "gh"
         gh.write_text(STUB)
         gh.chmod(gh.stat().st_mode | stat.S_IEXEC)
+        sleep = bindir / "sleep"
+        sleep.write_text('#!/usr/bin/env bash\nexit 0\n')
+        sleep.chmod(sleep.stat().st_mode | stat.S_IEXEC)
 
         # A clean environment: no inherited gh auth, no inherited gh config.
         env = {
@@ -467,6 +486,25 @@ class AutomergeGateTests(unittest.TestCase):
 
     def test_not_mergeable_blocks(self):
         out = self.run_script(mergeable="CONFLICTING")
+        self.assert_skipped(out, "not mergeable right now")
+
+    def test_unknown_mergeability_is_retried(self):
+        self.run_script(mergeable_sequence=["UNKNOWN", "MERGEABLE"])
+        self.assertEqual(self.merged_numbers(), [305])
+        self.assertEqual(self.calls.count("--json mergeable"), 2)
+
+    def test_unknown_mergeability_remains_fail_closed(self):
+        out = self.run_script(mergeable_sequence=["UNKNOWN"])
+        self.assert_skipped(out, "not mergeable right now")
+        self.assertEqual(self.calls.count("--json mergeable"), 5)
+
+    def test_mergeability_query_failure_is_not_retried(self):
+        out = self.run_script(fail=["fail.mergeable"])
+        self.assert_skipped(out, "not mergeable right now")
+        self.assertEqual(self.calls.count("--json mergeable"), 1)
+
+    def test_failed_mergeability_query_output_is_not_trusted(self):
+        out = self.run_script(fail=["fail.mergeable-with-output"])
         self.assert_skipped(out, "not mergeable right now")
 
     def test_cas_rejection_is_not_counted_as_merged(self):
