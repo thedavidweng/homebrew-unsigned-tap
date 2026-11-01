@@ -19,8 +19,8 @@ cask "tic80" do
       end
     end
     on_sonoma :or_newer do
-      version "1.3.1"
-      sha256 "b01cfae15c4c7884d2a0fb22e3b459a4d326da5e252ad5f5e85cd0ab3dc7bf75"
+      version "1.4.1"
+      sha256 "a2b116afd56b9148fe0c2440e607a8d0583f4a85e3391888d25d1c4afc390308"
 
       url "https://github.com/nesbox/TIC-80/releases/download/v#{version}/tic80-v#{version.major_minor}-mac-arm64.dmg"
 
@@ -45,8 +45,8 @@ cask "tic80" do
       end
     end
     on_sequoia :or_newer do
-      version "1.3.1"
-      sha256 "58902d9b51eb068081a5e0bbf45d49e1c8de0263135b5cba96fbc3e1039c55e2"
+      version "1.4.1"
+      sha256 "6d16bd94488a96da199d769537c7ba08a60f2b4632ab386462f6d15db110ffd2"
 
       url "https://github.com/nesbox/TIC-80/releases/download/v#{version}/tic80-v#{version.major_minor}-mac.dmg"
 
