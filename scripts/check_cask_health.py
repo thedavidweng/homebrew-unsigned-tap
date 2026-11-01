@@ -52,7 +52,11 @@ def check_url_and_fetch(token, url):
                    and "maximum allowed file size" in proc.stderr.lower())
         if code in ("200", "206") and (proc.returncode == 0 or limited):
             return token, url, True, f"HTTP {code}"
-        results.append(code if proc.returncode == 0 else proc.stderr.strip() or "curl failed")
+        if proc.returncode == 0:
+            results.append(code)
+        else:
+            detail = proc.stderr.strip() or "curl failed"
+            results.append(f"HTTP {code}: {detail}" if code and code != "000" else detail)
 
     if all(code in ("404", "410") for code in results):
         return token, url, False, f"HTTP {results[0]} (HEAD), {results[1]} (GET)"
