@@ -6,8 +6,7 @@ Aggregates read-only signals (never edits casks):
 - upstream-newer single-version casks with no open PR (the catch-up path
   attempts them every autobump run; still listed next week means the bump
   keeps failing and a human should look)
-- open bump PRs still waiting (normally merged by automation; lingering
-  means red checks)
+- open bump/sync PRs still waiting for review or automation
 - livecheck errors and failed bumps from the latest scheduled autobump evidence
 
 Upserts a single open issue; closes it with an all-clear note when clean.
@@ -210,7 +209,7 @@ def build_body(today, dead, missing, catchups, inflight, errors, failures, unver
         section("Upstream version could not be verified",
                 [f"`{token}` — upstream {version}; {detail}"
                  for token, version, detail in unresolved]),
-        section("Open bump/sync PRs (automation merges when green)",
+        section("Open bump/sync PRs",
                 [f"#{number} {title}" for number, title in inflight]),
         section("Livecheck errors in latest autobump evidence",
                 [f"`{cask}` — {'; '.join(msgs)}" for cask, msgs in errors.items()
@@ -268,8 +267,9 @@ def main():
     rows, inflight = catchup_and_inflight(repo, upstream)
     rows, conflicts, unresolved = classify_catchups(rows)
     errors, failures = autobump_evidence(repo)
-    clean = (dead is not None and not dead and not unverified and bool(upstream) and not missing and not rows
-             and not conflicts and not unresolved and not errors and failures is not None and not failures)
+    clean = (dead is not None and not dead and not unverified and bool(upstream)
+             and not missing and not rows and not conflicts and not unresolved
+             and not inflight and not errors and failures is not None and not failures)
     body = build_body(date.today().isoformat(), dead, missing, rows if upstream else None,
                       inflight, errors, failures, unverified, conflicts, unresolved)
     upsert_issue(repo, body, clean)

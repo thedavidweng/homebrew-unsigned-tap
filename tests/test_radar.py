@@ -266,6 +266,22 @@ class RadarTests(unittest.TestCase):
         self.assertFalse(upsert.call_args.args[2])
         self.assertIn("`broken`", upsert.call_args.args[1])
 
+    def test_open_bump_pr_prevents_clean_close(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dead = pathlib.Path(tmp) / "dead.json"
+            dead.write_text('{"dead": [], "unverified": []}')
+            with patch.dict(radar.os.environ, {"GITHUB_REPOSITORY": "o/r"}), \
+                    patch.object(radar, "DEAD_JSON", str(dead)), \
+                    patch.object(radar, "load_upstream", return_value={"kept": ["1"]}), \
+                    patch.object(radar, "missing_upstream", return_value=[]), \
+                    patch.object(radar, "retired_tokens", return_value=set()), \
+                    patch.object(radar, "catchup_and_inflight", return_value=([], [(12, "sample 2.0")])), \
+                    patch.object(radar, "autobump_evidence", return_value=({}, [])), \
+                    patch.object(radar, "upsert_issue") as upsert:
+                radar.main()
+        self.assertFalse(upsert.call_args.args[2])
+        self.assertIn("## Open bump/sync PRs\n- #12 sample 2.0\n", upsert.call_args.args[1])
+
     def test_missing_healthcheck_does_not_close_radar(self):
         with patch.dict(radar.os.environ, {"GITHUB_REPOSITORY": "o/r"}), \
                 patch.object(radar, "DEAD_JSON", ""), \
