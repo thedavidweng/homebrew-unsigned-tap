@@ -16,9 +16,6 @@ def gh(*args):
     return subprocess.check_output(["gh", *args], text=True).strip()
 
 
-if gh("api", "user", "--jq", ".login") != repo.split("/", 1)[0]:
-    raise SystemExit("Unexpected GitHub account")
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import radar
 
@@ -27,10 +24,15 @@ snapshot = json.loads(Path(os.environ["SNAPSHOT_JSON"]).read_text())
 if not health.get("total") or snapshot.get("treesheets") != ["3333"]:
     raise SystemExit("Expected real health and snapshot evidence")
 
-title = "test radarfixture" + os.environ["GITHUB_RUN_ID"]
-url = gh("issue", "create", "--repo", repo, "--title", title,
-         "--body", "Temporary isolated workflow test using live health evidence.")
-number = url.rsplit("/", 1)[1]
+number = os.environ["FIXTURE_ISSUE_NUMBER"]
+if not number.isdecimal():
+    raise SystemExit("Invalid fixture issue number")
+details = json.loads(gh("api", f"repos/{repo}/issues/{number}"))
+title = details["title"]
+url = details["html_url"]
+if (not title.startswith("test radarfixture") or details["user"]["login"] != repo.split("/", 1)[0]
+        or details["state"] != "open" or "pull_request" in details):
+    raise SystemExit("Test issue identity check failed")
 print("Test issue:", url, flush=True)
 original_gh = radar.gh
 original_edit = radar.gh_create_with_body
@@ -53,10 +55,6 @@ def guarded_edit(args, target_repo, body):
 
 
 try:
-    details = json.loads(gh("api", f"repos/{repo}/issues/{number}"))
-    if (details["title"] != title or details["user"]["login"] != repo.split("/", 1)[0]
-            or details["state"] != "open" or "pull_request" in details):
-        raise RuntimeError("Test issue identity check failed")
     for _ in range(40):
         found = json.loads(original_gh("issue", "list", "--state", "open", "--search",
                                        f"{title} in:title", "--json", "number", repo=repo))

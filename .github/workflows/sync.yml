@@ -2,6 +2,10 @@ name: Isolated scheduled radar fixture
 
 on:
   workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Pre-created isolated fixture issue
+        required: true
 
 permissions:
   contents: read
@@ -10,6 +14,10 @@ jobs:
   verify:
     runs-on: macos-latest
     timeout-minutes: 25
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -38,7 +46,7 @@ jobs:
           test -s dead.json
       - name: Fetch upstream version snapshot
         env:
-          GH_TOKEN: ${{ secrets.AUTOBUMP_PAT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           mkdir -p /tmp/upstream-snapshot
@@ -50,11 +58,11 @@ jobs:
           test -s /tmp/upstream-snapshot/upstream-versions.json
       - name: Update and close isolated radar issue
         env:
-          GH_TOKEN: ${{ secrets.AUTOBUMP_PAT }}
-          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.AUTOBUMP_PAT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_NO_AUTO_UPDATE: 1
           PYTHONDONTWRITEBYTECODE: 1
           TAP_CASK_DIR: ${{ github.workspace }}/Casks
           SNAPSHOT_JSON: /tmp/upstream-snapshot/upstream-versions.json
           DEAD_JSON: dead.json
+          FIXTURE_ISSUE_NUMBER: ${{ inputs.issue_number }}
         run: python3 tests/radar_scheduled_fixture.py
