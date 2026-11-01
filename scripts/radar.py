@@ -8,7 +8,7 @@ Aggregates read-only signals (never edits casks):
   keeps failing and a human should look)
 - open bump PRs still waiting (normally merged by automation; lingering
   means red checks)
-- persistent livecheck errors from the latest successful autobump evidence
+- livecheck errors and failed bumps from the latest scheduled autobump evidence
 
 Upserts a single open issue; closes it with an all-clear note when clean.
 """
@@ -70,25 +70,29 @@ def catchup_and_inflight(repo):
     return rows, inflight
 
 
-def livecheck_errors(repo, tmp):
-    """Error map from the latest successful autobump evidence artifact.
+def autobump_evidence(repo):
+    """Livecheck errors and failed bumps from the latest scheduled run.
 
     Uses only long-stable gh api calls: the preinstalled runner gh predates
     several gh run list/download flags.
     """
     try:
         # Query strings stay inline: gh api with -f switches to POST.
-        arts = json.loads(gh("api", f"repos/{repo}/actions/artifacts"
-                                    "?name=livecheck-casks&per_page=10"))
         runs = json.loads(gh("api", f"repos/{repo}/actions/workflows/autobump.yml/runs"
-                                    "?status=completed&per_page=10"))
-        succeeded = {run["id"] for run in runs.get("workflow_runs", [])
-                     if run.get("conclusion") == "success"}
+                                    "?event=schedule&status=completed&per_page=1"))
+        scheduled = runs.get("workflow_runs", [])
+        if not scheduled:
+            return {"<evidence unavailable>": "no completed scheduled autobump"}, []
+        if scheduled[0].get("conclusion") != "success":
+            return {"<evidence unavailable>": "latest scheduled autobump did not succeed"}, []
+        run_id = scheduled[0]["id"]
+        arts = json.loads(gh("api", f"repos/{repo}/actions/runs/{run_id}/artifacts"
+                                    "?name=livecheck-casks&per_page=10"))
         aids = [art["id"] for art in arts.get("artifacts", [])
                 if not art.get("expired")
-                and art.get("workflow_run", {}).get("id") in succeeded]
+                and art.get("workflow_run", {}).get("id") == run_id]
         if not aids:
-            return {"<evidence unavailable>": "no successful autobump evidence"}
+            return {"<evidence unavailable>": "latest scheduled autobump evidence missing"}, []
         proc = subprocess.run(["gh", "api",
                                f"repos/{repo}/actions/artifacts/{aids[0]}/zip"],
                               check=True, capture_output=True)
@@ -96,14 +100,15 @@ def livecheck_errors(repo, tmp):
         import zipfile
         with zipfile.ZipFile(io.BytesIO(proc.stdout)) as archive:
             data = json.loads(archive.read("outdated-casks.json").decode())
+            failures = sorted(set(archive.read("bump-failures.txt").decode().splitlines()))
     except Exception as exc:
-        return {"<evidence unavailable>": str(exc)}
+        return {"<evidence unavailable>": str(exc)}, []
     errors = {}
     for results in data.values():
         for result in results:
             if result.get("status") == "error":
                 errors.setdefault(result.get("cask", "?"), set()).update(result.get("messages") or [])
-    return {cask: sorted(msgs) for cask, msgs in sorted(errors.items())}
+    return {cask: sorted(msgs) for cask, msgs in sorted(errors.items())}, failures
 
 
 def section(title, lines):
@@ -113,7 +118,7 @@ def section(title, lines):
     return body + "".join(f"- {line}\n" for line in lines)
 
 
-def build_body(today, dead, missing, catchups, inflight, errors):
+def build_body(today, dead, missing, catchups, inflight, errors, failures):
     parts = [
         f"Automated weekly summary for human review. "
         f"Everything else in this tap updates and merges itself; "
@@ -131,6 +136,9 @@ def build_body(today, dead, missing, catchups, inflight, errors):
         section("Livecheck errors in latest autobump evidence",
                 [f"`{cask}` — {'; '.join(msgs)}" for cask, msgs in errors.items()
                  if cask != "<evidence unavailable>"] +
+                (["evidence unavailable"] if "<evidence unavailable>" in errors else [])),
+        section("Failed bumps in latest scheduled autobump",
+                [f"`{cask}`" for cask in failures] +
                 (["evidence unavailable"] if "<evidence unavailable>" in errors else [])),
     ]
     return "\n".join(parts) + "\n"
@@ -168,17 +176,15 @@ def main():
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     if not repo:
         raise SystemExit("GITHUB_REPOSITORY is required")
-    import tempfile
     dead = []
     if DEAD_JSON and Path(DEAD_JSON).exists():
         dead = json.loads(Path(DEAD_JSON).read_text()).get("dead", [])
     upstream = load_upstream()
     missing = missing_upstream(TAP_CASK_DIR, set(upstream), retired_tokens()) if upstream else []
     rows, inflight = catchup_and_inflight(repo)
-    with tempfile.TemporaryDirectory() as tmp:
-        errors = livecheck_errors(repo, tmp)
-    clean = not dead and not missing and not rows and not errors
-    body = build_body(date.today().isoformat(), dead, missing, rows, inflight, errors)
+    errors, failures = autobump_evidence(repo)
+    clean = not dead and not missing and not rows and not errors and not failures
+    body = build_body(date.today().isoformat(), dead, missing, rows, inflight, errors, failures)
     upsert_issue(repo, body, clean)
 
 
