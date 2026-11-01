@@ -47,6 +47,17 @@ def livecheck_errors(data):
             if result.get("status") == "error"]
 
 
+def validate_livecheck(data, source):
+    errors = livecheck_errors(data)
+    if errors:
+        raise ValueError(json.dumps(errors))
+    if source == "catchup":
+        unresolved = [{"arch": arch, "result": result} for arch, results in data.items()
+                      for result in results if "version" not in result]
+        if unresolved:
+            raise ValueError("Cannot verify catch-up livecheck: " + json.dumps(unresolved))
+
+
 def plan(data):
     errors = livecheck_errors(data)
     failed_casks = {result.get("cask") for result in errors}
@@ -185,9 +196,7 @@ def bump(cask, args, prs, repo, default_branch, source="livecheck"):
                 "--", arch, qualified, *([] if source == "catchup" else ["--newer-only"]),
                 "--extract-plist", "--json"))
         # A bump must never be produced from an incomplete livecheck result.
-        errors = livecheck_errors(data)
-        if errors:
-            raise ValueError(json.dumps(errors))
+        validate_livecheck(data, source)
         rows = plan(data)
         if source == "catchup":
             missing = {arch for arch in scope if not data.get(arch)}
@@ -226,9 +235,7 @@ def bump(cask, args, prs, repo, default_branch, source="livecheck"):
                 "--", arch, qualified, *([] if source == "catchup" else ["--newer-only"]),
                 "--extract-plist", "--json"))
         # A bump must never be produced from an incomplete livecheck result.
-        errors = livecheck_errors(data)
-        if errors:
-            raise ValueError(json.dumps(errors))
+        validate_livecheck(data, source)
         rows = plan(data)
         if source == "catchup":
             missing = {arch for arch in uncovered if not data.get(arch)}

@@ -310,8 +310,9 @@ class AutobumpTests(unittest.TestCase):
                                                      json.dumps([{"cask": "sample", "status": "skipped"}])])
     @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
     @patch.object(autobump, "bump_cask_pr")
-    def test_catchup_does_not_override_livecheck_skip(self, bump, pending, output, run, chdir):
-        autobump.bump("sample", ["--version=3333"], [], REPO, "main", source="catchup")
+    def test_catchup_reports_unresolved_livecheck_skip(self, bump, pending, output, run, chdir):
+        with self.assertRaisesRegex(ValueError, "Cannot verify catch-up livecheck"):
+            autobump.bump("sample", ["--version=3333"], [], REPO, "main", source="catchup")
         bump.assert_not_called()
         self.assertEqual(output.call_count, 3)
 
