@@ -12,6 +12,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 spec = importlib.util.spec_from_file_location("autobump", Path(__file__).resolve().parents[1] / "scripts/autobump.py")
 autobump = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(autobump)
@@ -160,23 +161,71 @@ class AutobumpTests(unittest.TestCase):
     @patch.object(autobump, "output")
     @patch.object(autobump, "pending_prs", side_effect=[([], {"arm", "intel"}), ([(pr(), {"arm", "intel"})], set())])
     @patch.object(autobump, "bump_cask_pr", return_value=True)
-    def test_catchup_attempts_explicit_version_despite_blind_livecheck(self, bump, pending, output, run, chdir):
+    @patch("upstream_catchup.upstream_newer", return_value=[("arm", "9.9"), ("intel", "9.9")])
+    def test_catchup_attempts_explicit_version_despite_blind_livecheck(self, newer, bump, pending, output, run, chdir):
         output.side_effect = ["/tap", json.dumps(result("2.0", False)), json.dumps(result("2.0", False)),
-                              json.dumps([[pr()]])]
+                              '  version "1.0"\n', json.dumps([[pr()]])]
         autobump.bump("sample", ["--version=9.9"], [], REPO, "main", source="catchup")
         self.assertIn(("--no-fork", "--version=9.9", "thedavidweng/unsigned-tap/sample"),
                       [c.args for c in bump.call_args_list])
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
-    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)), json.dumps(result("2.0", False))])
+    @patch.object(autobump, "output")
+    @patch.object(autobump, "pending_prs", side_effect=[([(pr(), {"arm"})], {"intel"}),
+                                                        ([(pr(2), {"intel"})], set())])
+    @patch.object(autobump, "bump_cask_pr", return_value=True)
+    @patch("upstream_catchup.upstream_newer", return_value=[("intel", "9.9")])
+    def test_catchup_only_updates_uncovered_architecture(self, newer, bump, pending, output, run, chdir):
+        output.side_effect = ["/tap", "same-head", json.dumps(result("2.0", False)), "same-head",
+                              json.dumps(result("2.0", False)), '  version "1.0"\n', json.dumps([[pr(2)]])]
+        autobump.bump("sample", ["--version=9.9"], [], REPO, "main", source="catchup")
+        self.assertEqual([c.args for c in bump.call_args_list], [
+            ("--no-fork", "--version-intel=9.9", "thedavidweng/unsigned-tap/sample")])
+
+    @patch.object(autobump.os, "chdir")
+    @patch.object(autobump, "run")
+    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)), json.dumps(result("2.0", False)), '  version "1.0"\n'])
     @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
     @patch.object(autobump, "bump_cask_pr", return_value=False)
-    def test_catchup_download_failure_opens_nothing(self, bump, pending, output, run, chdir):
+    @patch("upstream_catchup.upstream_newer", return_value=[("arm", "9.9"), ("intel", "9.9")])
+    def test_catchup_download_failure_opens_nothing(self, newer, bump, pending, output, run, chdir):
         autobump.bump("sample", ["--version=9.9"], [], REPO, "main", source="catchup")
         bumped = [c.args for c in bump.call_args_list]
         self.assertEqual(bumped, [("--no-fork", "--version=9.9", "thedavidweng/unsigned-tap/sample")])
-        self.assertEqual(output.call_count, 3)
+        self.assertEqual(output.call_count, 4)
+
+    @patch.object(autobump.os, "chdir")
+    @patch.object(autobump, "run")
+    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)),
+                                                     json.dumps(result("2.0", False)), '  version "10.0"\n'])
+    @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
+    @patch.object(autobump, "bump_cask_pr")
+    def test_catchup_does_not_downgrade_after_main_advances(self, bump, pending, output, run, chdir):
+        autobump.bump("sample", ["--version=9.9"], [], REPO, "main", source="catchup")
+        bump.assert_not_called()
+
+    @patch.object(autobump.os, "chdir")
+    @patch.object(autobump, "run")
+    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)),
+                                                     json.dumps(result("2.0", False)),
+                                                     '  version "1.0"\n  livecheck do\n    skip "Pinned"\n  end\n'])
+    @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
+    @patch.object(autobump, "bump_cask_pr")
+    def test_catchup_respects_pin_added_after_scan(self, bump, pending, output, run, chdir):
+        autobump.bump("sample", ["--version=9.9"], [], REPO, "main", source="catchup")
+        bump.assert_not_called()
+
+    @patch.object(autobump.os, "chdir")
+    @patch.object(autobump, "run")
+    @patch.object(autobump, "output", side_effect=["/tap", json.dumps(result("2.0", False)),
+                                                     json.dumps(result("2.0", False)),
+                                                     '  version "1.0"\n  version "2.0"\n'])
+    @patch.object(autobump, "pending_prs", return_value=([], {"arm", "intel"}))
+    @patch.object(autobump, "bump_cask_pr")
+    def test_catchup_does_not_overwrite_new_platform_versions(self, bump, pending, output, run, chdir):
+        autobump.bump("sample", ["--version=9.9"], [], REPO, "main", source="catchup")
+        bump.assert_not_called()
 
     @patch.object(autobump.os, "chdir")
     @patch.object(autobump, "run")
@@ -285,6 +334,30 @@ class ChannelCoverageTests(unittest.TestCase):
     def test_old_os_only_update_stays_separate(self):
         head = self.BASE.replace("\nend", '\n  on_monterey :or_older do\n    version "2.0"\n  end\nend')
         self.assertEqual(self.coverage(head), set())
+
+    def test_homebrew_single_architecture_bump_preserves_other_version(self):
+        source = ('cask "sample" do\n  version "1.0"\n  sha256 :no_check\n'
+                  '  url "https://example.com/#{version}.zip"\n  depends_on :macos\nend\n')
+        script = '''
+require "dev-cmd/bump-cask-pr"
+require "utils/ast"
+require "simulate_system"
+path = Pathname.new(ARGV.fetch(0))
+cask = Cask::CaskLoader.load(path)
+version = Homebrew::BumpVersionParser.new(intel: "2.0")
+updated = Homebrew::DevCmd::BumpCaskPr.allocate.send(:replace_version_and_checksum, cask, :no_check, version, path.read)
+puts JSON.generate([:arm, :intel].map do |arch|
+  Homebrew::SimulateSystem.with(arch: arch) do
+    Cask::CaskLoader::FromContentLoader.new(updated).load(config: nil).version.to_s
+  end
+end)
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "sample.rb"
+            path.write_text(source)
+            out = subprocess.check_output(["brew", "ruby", "-e", script, "--", str(path)], text=True,
+                                          env={**os.environ, "HOMEBREW_DEVELOPER": "1"})
+        self.assertEqual(json.loads(out), ["1.0", "2.0"])
 
 
 if __name__ == "__main__":

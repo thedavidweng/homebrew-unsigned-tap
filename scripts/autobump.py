@@ -5,6 +5,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+import upstream_catchup
+
 
 def output(*args):
     return subprocess.check_output(args, text=True)
@@ -192,11 +194,21 @@ def bump(cask, args, prs, repo, default_branch, source="livecheck"):
             uncovered = {arch for arch, results in data.items() if plan({arch: results})}
         elif (source == "catchup" and args
                 and all(a.startswith("--version") for a in args)):
-            # Livecheck is blind to this cask but upstream is newer (the
-            # catch-up row carries an explicit version). Attempt it directly:
-            # the download and audit inside bump-cask-pr still validate it,
-            # and a bogus version fails here without opening anything.
-            new_args = list(args)
+            # The base may have changed since catch-up generated its row.
+            current = output("git", "show", f"HEAD:Casks/{cask}.rb")
+            current_versions = upstream_catchup.version_literals(current)
+            if len(current_versions) != 1 or upstream_catchup.has_livecheck_skip(current):
+                print(f"Catch-up no longer applies to {cask} on latest {default_branch}")
+                return
+            newer = upstream_catchup.upstream_newer([
+                (arch, current_versions[0], versions[arch]) for arch in sorted(uncovered)
+            ])
+            uncovered = {arch for arch, _version in newer}
+            if not uncovered:
+                print(f"No remaining catch-up for {cask} on latest {default_branch}")
+                return
+            new_args = (list(args) if uncovered == architectures else
+                        [f"--version-{arch}={versions[arch]}" for arch in ("arm", "intel") if arch in uncovered])
         else:
             print(f"No remaining update for {cask} on latest {default_branch}")
             return
