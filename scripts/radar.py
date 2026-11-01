@@ -109,13 +109,23 @@ def autobump_evidence(repo):
                 failures = None
     except Exception as exc:
         return {"<evidence unavailable>": str(exc)}, None
-    if data is None:
-        return {"<evidence unavailable>": "livecheck evidence missing or invalid"}, failures
+    invalid = {"<evidence unavailable>": "livecheck evidence missing or invalid"}
+    if not isinstance(data, dict):
+        return invalid, failures
     errors = {}
     for results in data.values():
+        if not isinstance(results, list):
+            return invalid, failures
         for result in results:
+            if not isinstance(result, dict):
+                return invalid, failures
             if result.get("status") == "error":
-                errors.setdefault(result.get("cask", "?"), set()).update(result.get("messages") or [])
+                cask = result.get("cask", "?")
+                messages = result.get("messages")
+                if not isinstance(cask, str) or (messages is not None and
+                        (not isinstance(messages, list) or not all(isinstance(m, str) for m in messages))):
+                    return invalid, failures
+                errors.setdefault(cask, set()).update(messages or [])
     return {cask: sorted(msgs) for cask, msgs in sorted(errors.items())}, failures
 
 
