@@ -1,11 +1,7 @@
-name: Catchup real Homebrew test
+name: Catchup single-architecture fixture
 
 on:
   workflow_dispatch:
-    inputs:
-      pr_number:
-        description: Temporary fixture PR number
-        required: true
 
 permissions:
   contents: read
@@ -23,38 +19,69 @@ jobs:
         with:
           core: false
           cask: true
-      - name: Refresh isolated fixture
+      - name: Create and verify isolated ARM update
         env:
           GH_TOKEN: ${{ secrets.AUTOBUMP_PAT }}
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.AUTOBUMP_PAT }}
           HOMEBREW_NO_AUTO_UPDATE: 1
           HOMEBREW_NO_INSTALL_FROM_API: 1
           HOMEBREW_DEVELOPER: 1
-          DEFAULT_BRANCH: test/catchup-real-brew-base
-          PR_NUMBER: ${{ inputs.pr_number }}
+          HOMEBREW_BROWSER: /usr/bin/true
+          DEFAULT_BRANCH: test/catchup-single-arch-base
+          FIXTURE_HEAD: bump-treesheets-2.23.1-arm-only
         run: |
           set -euo pipefail
-          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]
+          test "$GITHUB_REPOSITORY" = thedavidweng/homebrew-unsigned-tap
+          test "$GITHUB_REF" = "refs/heads/$DEFAULT_BRANCH"
           test "$(gh api user --jq .login)" = "$GITHUB_REPOSITORY_OWNER"
+          test -z "$(gh api "repos/${GITHUB_REPOSITORY}/git/matching-refs/heads/${FIXTURE_HEAD}" --jq '.[].ref')"
+          cleanup() {
+            local prs number
+            prs="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
+              -f state=open -f base="$DEFAULT_BRANCH" -f head="${GITHUB_REPOSITORY_OWNER}:${FIXTURE_HEAD}" \
+              --jq '.[] | select(.user.login == "thedavidweng" and .head.repo.full_name == "thedavidweng/homebrew-unsigned-tap") | .number')"
+            while IFS= read -r number; do
+              [[ "$number" =~ ^[0-9]+$ ]] || continue
+              gh pr edit "$number" --repo "$GITHUB_REPOSITORY" --add-label automerge-skip
+              gh pr close "$number" --repo "$GITHUB_REPOSITORY"
+            done <<< "$prs"
+          }
+          trap cleanup EXIT
           brew tap --custom-remote thedavidweng/unsigned-tap "$GITHUB_WORKSPACE"
           brew trust thedavidweng/unsigned-tap
           gh auth setup-git
           tap="$(brew --repository thedavidweng/unsigned-tap)"
           git -C "$tap" remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git -C "$tap" fetch origin "$DEFAULT_BRANCH"
+          test "$(git -C "$tap" rev-parse "origin/$DEFAULT_BRANCH")" = "$GITHUB_SHA"
+          git -C "$tap" symbolic-ref refs/remotes/origin/HEAD "refs/remotes/origin/$DEFAULT_BRANCH"
+          test "$(git -C "$tap" symbolic-ref refs/remotes/origin/HEAD)" = "refs/remotes/origin/$DEFAULT_BRANCH"
           git -C "$tap" checkout -B "$DEFAULT_BRANCH" "origin/$DEFAULT_BRANCH"
           git -C "$tap" config user.name "$(git -C "$tap" show -s --format=%an HEAD)"
           git -C "$tap" config user.email "$(git -C "$tap" show -s --format=%ae HEAD)"
-          mkdir -p "$RUNNER_TEMP/catchup-test"
-          cd "$RUNNER_TEMP/catchup-test"
+          mkdir -p "$RUNNER_TEMP/catchup-single-arch"
+          cd "$RUNNER_TEMP/catchup-single-arch"
           gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
-            -f state=open -f base="$DEFAULT_BRANCH" --paginate --slurp |
-            jq --argjson n "$PR_NUMBER" 'add | map(select(.number == $n))' > open-cask-prs.json
+            -f state=open -f base="$DEFAULT_BRANCH" --paginate --slurp | jq add > open-cask-prs.json
+          jq -e 'length == 0' open-cask-prs.json >/dev/null
+          python3 "$GITHUB_WORKSPACE/scripts/autobump.py" bump treesheets catchup --version-arm=2.23.1
+          prs="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
+            -f state=open -f base="$DEFAULT_BRANCH" -f head="${GITHUB_REPOSITORY_OWNER}:${FIXTURE_HEAD}")"
           jq -e --arg repo "$GITHUB_REPOSITORY" --arg owner "$GITHUB_REPOSITORY_OWNER" \
-            'length == 1 and .[0].draft and .[0].head.ref == "bump-treesheets-2.23.0-e2e"
-             and .[0].head.repo.full_name == $repo and .[0].user.login == $owner' \
-            open-cask-prs.json >/dev/null
-          python3 "$GITHUB_WORKSPACE/scripts/autobump.py" bump treesheets catchup --version=2.23.1
-          head_sha="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.sha)"
-          gh api "repos/${GITHUB_REPOSITORY}/contents/Casks/treesheets.rb?ref=${head_sha}" --jq .content |
-            base64 -D | grep -q 'version "2.23.1"'
+            'length == 1 and .[0].user.login == $owner and .[0].head.repo.full_name == $repo' <<< "$prs" >/dev/null
+          number="$(jq -r '.[0].number' <<< "$prs")"
+          gh pr edit "$number" --repo "$GITHUB_REPOSITORY" --add-label automerge-skip
+          git -C "$tap" fetch origin "$FIXTURE_HEAD"
+          TAP="$tap" PYTHONPATH="$GITHUB_WORKSPACE/scripts" python3 - <<'PY'
+          import os
+          import subprocess
+          from autobump import cask_versions
+
+          source = subprocess.check_output(
+              ["git", "-C", os.environ["TAP"], "show", "origin/bump-treesheets-2.23.1-arm-only:Casks/treesheets.rb"],
+              text=True,
+          )
+          versions = cask_versions(source, {"arm", "intel"})
+          print("Created fixture versions:", versions)
+          assert versions == {"arm": "2.23.1", "intel": "2.22.5"}
+          PY
