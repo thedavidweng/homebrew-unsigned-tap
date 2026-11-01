@@ -48,6 +48,15 @@ class RadarTests(unittest.TestCase):
             (tap / "kept.rb").write_text("x")
             self.assertEqual(radar.missing_upstream(tap, {"kept"}, {"retired"}), ["gone"])
 
+    def test_catchup_and_inflight_uses_candidate_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tap = pathlib.Path(tmp)
+            (tap / "sample.rb").write_text('cask "sample" do\n  version "1.0"\nend\n')
+            prs = [{"number": 12, "title": "sample 2.0", "headRefName": "bump-sample-2.0"}]
+            with patch.object(radar, "TAP_CASK_DIR", tap), patch.object(radar, "gh", return_value=json.dumps(prs)):
+                self.assertEqual(radar.catchup_and_inflight("o/r", {"sample": ["2.0"]}),
+                                 ([("sample", "2.0")], [(12, "sample 2.0")]))
+
     def test_retired_tokens_use_sync_blocklist(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)

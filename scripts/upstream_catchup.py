@@ -17,8 +17,8 @@ Safety rules (fail-closed, never downgrade, never override intent):
 - Never touch `version :latest`.
 - Only fire when upstream is strictly newer under Homebrew's own `Version`
   comparison (reused via `brew ruby`, not reimplemented).
-- Tokens already flagged by livecheck or with an open same-repo bump PR are
-  excluded; they are handled by the normal plan/refresh path.
+- Existing PRs and livecheck results are handled per architecture by the
+  bump executor.
 
 Reads:
   SNAPSHOT_JSON  {token: [version literals]} built by upstream_snapshot.py
@@ -28,9 +28,7 @@ Reads:
                  entry and is skipped — tracking a deleted cask is impossible
                  by any method; livecheck remains its only updater.
   TAP_CASK_DIR   this tap's Casks dir (default <repo>/Casks)
-  EXCLUDE_TOKENS space-separated tokens livecheck already flagged
   ONLY_TOKENS    when set, restrict to these tokens (manual dispatch scope)
-  OPEN_PRS_JSON  path to slurped `gh api .../pulls` JSON (open PRs)
 
 Prints TSV rows: token<TAB>version<TAB>--version=<upstream version><TAB>catchup
 The trailing source marker tells bump() the version is explicit (livecheck is
@@ -48,36 +46,17 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC_CASK_DIR = Path(os.environ.get("SRC_CASK_DIR", str(Path.home() / "homebrew-cask" / "Casks")))
 TAP_CASK_DIR = Path(os.environ.get("TAP_CASK_DIR", str(ROOT / "Casks")))
 
-VERSION_LIT = re.compile(r'^[ \t]*version\s+"([^"]+)"', re.M)
+VERSION_LIT = re.compile(r'^[ \t]*version\s+(?:"([^"]+)"|(:latest)\b)', re.M)
 LIVECHECK_BLOCK = re.compile(r"^[ \t]*livecheck(?:\s+do|\s*$)(.*?)^[ \t]*end", re.M | re.S)
 SKIP_LINE = re.compile(r"^[ \t]*skip\b", re.M)
 
 
 def version_literals(text):
-    return VERSION_LIT.findall(text)
+    return [literal or latest for literal, latest in VERSION_LIT.findall(text)]
 
 
 def has_livecheck_skip(text):
     return any(SKIP_LINE.search(block) for block in LIVECHECK_BLOCK.findall(text))
-
-
-def open_bump_refs(pages, repo):
-    """Head branches of open same-repo bump PRs (refresh path owns them)."""
-    refs = set()
-    for page in pages:
-        for pr in page:
-            try:
-                head = pr["head"]
-                if pr["user"]["login"] not in ("github-actions[bot]", repo.split("/", 1)[0]):
-                    continue
-                if head["repo"]["full_name"] != repo:
-                    continue
-                ref = head["ref"]
-            except (KeyError, TypeError):
-                continue
-            if ref.startswith("bump-"):
-                refs.add(ref)
-    return refs
 
 
 def snapshot_upstream(src_dir):
@@ -95,16 +74,12 @@ def load_snapshot(path):
     return {token: list(lits) for token, lits in json.loads(Path(path).read_text()).items()}
 
 
-def candidates(tap_dir, upstream, exclude, only, open_refs):
+def candidates(tap_dir, upstream, only):
     """Compare tap files against {token: [upstream version literals]}."""
     pairs = []
     for dest in sorted(Path(tap_dir).glob("*.rb")):
         token = dest.stem
         if only and token not in only:
-            continue
-        if token in exclude:
-            continue
-        if any(ref.startswith(f"bump-{token}-") for ref in open_refs):
             continue
         if token not in upstream:
             # Deleted upstream: nothing to compare against. Livecheck remains
@@ -113,7 +88,8 @@ def candidates(tap_dir, upstream, exclude, only, open_refs):
         text = dest.read_text()
         ours = version_literals(text)
         theirs = upstream[token]
-        if len(ours) != 1 or len(theirs) != 1 or ours[0] == theirs[0]:
+        if (len(ours) != 1 or len(theirs) != 1 or ":latest" in (ours[0], theirs[0])
+                or ours[0] == theirs[0]):
             continue
         if has_livecheck_skip(text):
             print(f"note: {token} pins its version via livecheck skip; not adopting upstream {theirs[0]}",
@@ -144,20 +120,14 @@ def row(token, version):
 
 
 def main():
-    exclude = set(os.environ.get("EXCLUDE_TOKENS", "").split())
     only_raw = os.environ.get("ONLY_TOKENS", "").strip()
     only = set(only_raw.split()) if only_raw else set()
-    prs_path = os.environ.get("OPEN_PRS_JSON", "")
-    open_refs = set()
-    if prs_path and Path(prs_path).exists():
-        pages = json.loads(Path(prs_path).read_text())
-        open_refs = open_bump_refs(pages, os.environ.get("GITHUB_REPOSITORY", ""))
     snapshot_path = os.environ.get("SNAPSHOT_JSON", "")
     if snapshot_path and Path(snapshot_path).exists():
         upstream = load_snapshot(snapshot_path)
     else:
         upstream = snapshot_upstream(SRC_CASK_DIR)
-    pairs = candidates(TAP_CASK_DIR, upstream, exclude, only, open_refs)
+    pairs = candidates(TAP_CASK_DIR, upstream, only)
     for token, version in upstream_newer(pairs):
         print(row(token, version))
 

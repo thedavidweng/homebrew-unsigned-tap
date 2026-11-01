@@ -61,7 +61,7 @@ def missing_upstream(tap_dir, upstream_tokens, retired):
 
 def catchup_and_inflight(repo, upstream):
     import upstream_catchup
-    pairs = upstream_catchup.candidates(TAP_CASK_DIR, upstream, set(), set(), set())
+    pairs = upstream_catchup.candidates(TAP_CASK_DIR, upstream, set())
     rows = upstream_catchup.upstream_newer(pairs)
     prs = json.loads(gh("pr", "list", "--state", "open", "--limit", "100",
                         "--json", "number,title,headRefName", repo=repo))

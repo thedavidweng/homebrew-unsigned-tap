@@ -58,7 +58,7 @@ jobs:
           # gh api only: the preinstalled runner gh predates several
           # gh run list/download flags.
           mkdir -p /tmp/upstream-snapshot
-          aid="$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=upstream-versions&per_page=5" \
+          aid="$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=upstream-versions-v2&per_page=5" \
             --jq '[.artifacts[] | select(.expired == false)] | .[0].id // empty')"
           if [[ -n "$aid" ]]; then
             gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${aid}/zip" \

@@ -95,6 +95,39 @@ end)
 ''', "--", *sources)))
 
 
+def cask_versions(source, architectures):
+    return json.loads(output("brew", "ruby", "-e", '''
+require "cask/cask_loader"; require "simulate_system"; require "json"
+source = ARGV.shift
+puts JSON.generate(ARGV.to_h do |arch|
+  value = Homebrew::SimulateSystem.with(arch: arch.to_sym) do
+    version = Cask::CaskLoader::FromContentLoader.new(source).load(config: nil).version
+    version.to_s if version && !version.latest?
+  end
+  [arch, value]
+end)
+''', "--", source, *sorted(architectures)))
+
+
+def catchup_results(cask, versions, architectures, *, single_version):
+    current = output("git", "show", f"HEAD:Casks/{cask}.rb")
+    if upstream_catchup.has_livecheck_skip(current):
+        return {}
+    if single_version:
+        literals = upstream_catchup.version_literals(current)
+        if len(literals) != 1 or literals[0] == ":latest":
+            return {}
+        current_versions = dict.fromkeys(architectures, literals[0])
+    else:
+        current_versions = cask_versions(current, architectures)
+    newer = upstream_catchup.upstream_newer([
+        (arch, current_versions[arch], versions[arch]) for arch in sorted(architectures)
+        if current_versions.get(arch)
+    ])
+    return {arch: [{"cask": cask, "version": {"latest": version, "outdated": True}}]
+            for arch, version in newer}
+
+
 def bot_authors(repo):
     """Logins whose bump branches may be refreshed in place.
 
@@ -153,6 +186,11 @@ def bump(cask, args, prs, repo, default_branch, source="livecheck"):
         if errors:
             raise ValueError(json.dumps(errors))
         rows = plan(data)
+        if source == "catchup":
+            missing = scope - {arch for arch, results in data.items() if plan({arch: results})}
+            if missing:
+                data.update(catchup_results(cask, versions, missing, single_version=False))
+                rows = plan(data)
         skipped = False
         if rows:
             token, version, new_args = rows[0]
@@ -188,30 +226,18 @@ def bump(cask, args, prs, repo, default_branch, source="livecheck"):
         if errors:
             raise ValueError(json.dumps(errors))
         rows = plan(data)
-        if rows:
-            token, _version, new_args = rows[0]
-            assert len(rows) == 1 and token == cask
-            uncovered = {arch for arch, results in data.items() if plan({arch: results})}
-        elif (source == "catchup" and args
-                and all(a.startswith("--version") for a in args)):
-            # The base may have changed since catch-up generated its row.
-            current = output("git", "show", f"HEAD:Casks/{cask}.rb")
-            current_versions = upstream_catchup.version_literals(current)
-            if len(current_versions) != 1 or upstream_catchup.has_livecheck_skip(current):
-                print(f"Catch-up no longer applies to {cask} on latest {default_branch}")
-                return
-            newer = upstream_catchup.upstream_newer([
-                (arch, current_versions[0], versions[arch]) for arch in sorted(uncovered)
-            ])
-            uncovered = {arch for arch, _version in newer}
-            if not uncovered:
-                print(f"No remaining catch-up for {cask} on latest {default_branch}")
-                return
-            new_args = (list(args) if uncovered == architectures else
-                        [f"--version-{arch}={versions[arch]}" for arch in ("arm", "intel") if arch in uncovered])
-        else:
+        if source == "catchup":
+            missing = uncovered - {arch for arch, results in data.items() if plan({arch: results})}
+            if missing:
+                # Recheck the base, which may have changed since the scan.
+                data.update(catchup_results(cask, versions, missing, single_version=True))
+                rows = plan(data)
+        if not rows:
             print(f"No remaining update for {cask} on latest {default_branch}")
             return
+        token, _version, new_args = rows[0]
+        assert len(rows) == 1 and token == cask
+        uncovered = {arch for arch, results in data.items() if plan({arch: results})}
         if not bump_cask_pr("--no-fork", *new_args, qualified):
             return
         pages = json.loads(output("gh", "api", f"repos/{repo}/pulls", "--method", "GET",

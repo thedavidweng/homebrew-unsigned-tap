@@ -57,7 +57,7 @@ jobs:
           # never the livecheck bumps. Uses only long-stable gh api calls:
           # the preinstalled runner gh predates several gh run list flags.
           mkdir -p /tmp/upstream-snapshot
-          aid="$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=upstream-versions&per_page=5" \
+          aid="$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=upstream-versions-v2&per_page=5" \
             --jq '[.artifacts[] | select(.expired == false)] | .[0].id // empty')"
           if [[ -n "$aid" ]] && gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${aid}/zip" \
               > /tmp/upstream-snapshot.zip \
@@ -99,17 +99,17 @@ jobs:
           gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
             -f state=open -f base="${DEFAULT_BRANCH}" --paginate --slurp | jq add > open-cask-prs.json
           # Catch casks livecheck cannot see: single-version tokens where the
-          # upstream checkout is strictly newer (skips and open PRs excluded).
+          # upstream checkout is strictly newer (pins excluded). The bump
+          # executor handles existing PRs and their architecture coverage.
           # bump-cask-pr still validates each one via download + audit.
           CATCHUP=$(SNAPSHOT_JSON=/tmp/upstream-snapshot/upstream-versions.json \
             TAP_CASK_DIR="$(brew --repository thedavidweng/unsigned-tap)/Casks" \
-            EXCLUDE_TOKENS="$(awk -F'\t' '{print $1}' <<<"${OUTDATED}" | tr '\n' ' ')" \
             ONLY_TOKENS="${CASKS-}" \
-            OPEN_PRS_JSON=open-cask-prs.json \
-            GITHUB_REPOSITORY="${GITHUB_REPOSITORY}" \
             python3 "$GITHUB_WORKSPACE/scripts/upstream_catchup.py")
           echo "Upstream catch-up: ${CATCHUP:-<none>}"
-          COMBINED=$(printf '%s\n%s' "${OUTDATED}" "${CATCHUP}" | { grep -v '^$' || true; } | awk -F'\t' '!seen[$1]++')
+          # A catch-up row retains livecheck results when the executor rechecks
+          # each channel, and can fill channels livecheck did not detect.
+          COMBINED=$(printf '%s\n%s' "${CATCHUP}" "${OUTDATED}" | { grep -v '^$' || true; } | awk -F'\t' '!seen[$1]++')
           FAILED_COUNT=0
           FAILED_LIST=""
           : > bump-failures.txt
