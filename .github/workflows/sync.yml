@@ -1,97 +1,39 @@
-name: sync-disabled-casks
+name: Health range observation
 
 on:
-  schedule:
-    - cron: "0 3 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
-
 jobs:
-  sync:
-    timeout-minutes: 60
+  observe:
     runs-on: macos-latest
-    permissions:
-      contents: write
-      pull-requests: write
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
-          persist-credentials: true
-          # PAT, not GITHUB_TOKEN: sync PR branches pushed as the token owner
-          # let pull_request workflows run to completion (same reason as
-          # autobump). GITHUB_TOKEN pushes leave those runs action_required.
-          token: ${{ secrets.AUTOBUMP_PAT }}
-      - name: Clone homebrew/cask
-        run: git clone --depth 1 https://github.com/Homebrew/homebrew-cask.git /tmp/homebrew-cask
-      - name: Set up Python
-        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: "3.15"
-      - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@d482da0e602890d3160aade42e72c8556103bf04 # 2026.10.26.1
-        with:
-          core: false
-          cask: false
-          # setup-homebrew 会把 checkout 移走并换成全新 git init 的 tap 仓库
-          # （rm -rf GITHUB_WORKSPACE/*），连 checkout 写入的 credential 一起清掉；
-          # 传 token 让它写入全局 extraheader，否则后续 git push 无认证可用。
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Snapshot upstream versions
-        run: python3 scripts/upstream_snapshot.py
+          persist-credentials: false
+      - name: Observe bounded download
         env:
-          SRC_CASK_DIR: /tmp/homebrew-cask/Casks
-          SNAPSHOT_OUT: upstream-versions.json
-      - name: Retain upstream snapshot
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: upstream-versions-v2
-          path: upstream-versions.json
-          retention-days: 7
-      - name: Sync
+          PYTHONDONTWRITEBYTECODE: 1
         run: |
-          set -euo pipefail
-          SRC_CASK_DIR=/tmp/homebrew-cask/Casks python3 scripts/sync_disabled_casks.py
-          new_paths=$(git ls-files --others --exclude-standard Casks/)
-          if [[ -z "$new_paths" ]]; then
-            echo "No new disabled casks"
-            exit 0
-          fi
-          new_casks=()
-          while IFS= read -r path; do
-            new_casks+=("$path")
-          done <<< "$new_paths"
-          python3 scripts/fix_quarantine_targets.py "${new_casks[@]}"
-          python3 scripts/drop_noop_quarantine_step.py "${new_casks[@]}"
-          brew style --fix "${new_casks[@]}"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          branch="sync/$(date +%Y%m%d)"
-          git checkout -B "$branch"
-          git add "${new_casks[@]}"
-          git commit -m "sync: import ${#new_casks[@]} new disabled casks from Homebrew/homebrew-cask"
-          # setup-homebrew 的 tap 搬迁会清掉 checkout 存的 credential，
-          # push 前用 GITHUB_TOKEN 重写 origin，保证认证一定存在。
-          git remote set-url origin "https://x-access-token:${SYNC_PAT}@github.com/${GITHUB_REPOSITORY}.git"
-          git push --force-with-lease origin "$branch"
-          existing_pr=$(gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
-            -f state=open -f base=main -f head="${GITHUB_REPOSITORY_OWNER}:${branch}" \
-            | jq -r --arg repo "$GITHUB_REPOSITORY" \
-              '.[] | select(.head.repo.full_name == $repo) | .html_url')
-          if [[ -n "$existing_pr" ]]; then
-            echo "Updated existing sync PR: $existing_pr"
-          else
-            gh pr create --head "$branch" --title "sync: import new disabled casks $(date +%Y-%m-%d)" \
-              --body "Import newly disabled Homebrew casks; preserve existing maintained definitions. Removes disable! and normalizes quarantine handling for imported artifacts." --base main
-          fi
-        env:
-          SYNC_PAT: ${{ secrets.AUTOBUMP_PAT }}
-          # gh API calls (existing-PR check, PR creation) also run as the PAT
-          # owner, so pull_request workflows trigger on a human-equivalent actor.
-          GH_TOKEN: ${{ secrets.AUTOBUMP_PAT }}
+          set -eu
+          url='https://www.rebornevo.com/downloads/rebornremote/Reborn_19.5/Reborn-19.5.0-macos.zip'
+          ua='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          curl --version | head -n 1
+          set +e
+          response="$(curl -sS -L --range 0-1024 --max-filesize 1025 -A "$ua" \
+            --max-time 8 -o /dev/null -w '%{http_code} %{size_download}' "$url" 2>"$RUNNER_TEMP/curl-error")"
+          status=$?
+          set -e
+          printf 'GET exit=%s response=%s\n' "$status" "$response"
+          sed -n '1,3p' "$RUNNER_TEMP/curl-error"
+          python3 - <<'PY'
+          import sys
+          sys.path.insert(0, "scripts")
+          from check_cask_health import check_url_and_fetch
+
+          url = "https://www.rebornevo.com/downloads/rebornremote/Reborn_19.5/Reborn-19.5.0-macos.zip"
+          print("Health check:", check_url_and_fetch("pokemon-reborn", url))
+          PY
