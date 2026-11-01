@@ -1,10 +1,11 @@
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts/check_cask_compatibility.rb"
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts/check_cask_compatibility.py"
 
 
 def cask(extra=""):
@@ -39,7 +40,7 @@ class CompatibilityTests(unittest.TestCase):
         self.git("add", "Casks/sample.rb")
         self.git("-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-qm", "update")
         head = self.git("rev-parse", "HEAD")
-        return subprocess.run(["brew", "ruby", str(SCRIPT), base, head], cwd=self.root,
+        return subprocess.run([sys.executable, str(SCRIPT), base, head], cwd=self.root,
                               env={**os.environ, "HOMEBREW_NO_AUTO_UPDATE": "1"},
                               capture_output=True, text=True)
 
@@ -85,7 +86,7 @@ end
         self.assertNotIn("tahoe / arm", result.stderr)
 
     def test_rejects_missing_revision(self):
-        result = subprocess.run(["brew", "ruby", str(SCRIPT), "missing", "HEAD"], cwd=self.root,
+        result = subprocess.run([sys.executable, str(SCRIPT), "missing", "HEAD"], cwd=self.root,
                                 capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0)
 
