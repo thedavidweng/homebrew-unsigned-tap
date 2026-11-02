@@ -1,26 +1,27 @@
 cask "quickhash" do
-  version "3.3.4,2510,01,11,2023"
+  version "3.3.4,01,11,2023"
   sha256 "d5b73524b0d62a7f100f7a6f976eaad98968f03f20f6d6b6c28040f9c255a884"
 
-  url "https://www.quickhash-gui.org/download/quickhash-gui-v#{version.csv.first.dots_to_hyphens}-apple-osx/?wpdmdl=#{version.csv.second}"
+  url "https://github.com/tedsmith/quickhash/releases/download/v#{version.csv.first}/QuickHash-Gui-AppleOSX-v#{version.csv.first}.zip"
   name "Quickhash"
   desc "Data hashing tool"
   homepage "https://www.quickhash-gui.org/"
 
   livecheck do
-    url "https://www.quickhash-gui.org/downloads/?tax%5Bwpdmcategory%5D=osx/"
-    regex(%r{
-      dt_update_date[^>]*>\s*(\d+[-/]\d+[-/]\d+)\s*<.+?
-      /quickhash(?:-gui)?[._-]v?(\d+(?:[.-]\d+)+)-apple-osx
-      /\?(?:[^"' >]+?&)?wpdmdl=([^&"' >]+)
-    }imx)
-    strategy :page_match do |page, regex|
-      page.scan(regex).map { |match| "#{match[1].tr("-", ".")},#{match[2]},#{match[0].tr("-/", ",")}" }
+    url :url
+    strategy :github_latest do |json|
+      release = json["tag_name"]&.delete_prefix("v")
+      next if release.blank? || json["assets"].none? do |asset|
+        asset["name"] == "QuickHash-Gui-AppleOSX-v#{release}.zip"
+      end
+
+      date = Time.iso8601(json["published_at"]).utc.strftime("%d,%m,%Y")
+      "#{release},#{date}"
     end
   end
 
   depends_on :macos
-  container nested: "Quickhash-GUI_#{version.csv.third}#{version.csv.fourth}#{version.csv.fifth}.dmg"
+  container nested: "Quickhash-GUI_#{version.csv.second}#{version.csv.third}#{version.csv.fourth}.dmg"
 
   app "Quickhash-GUI.app"
 
