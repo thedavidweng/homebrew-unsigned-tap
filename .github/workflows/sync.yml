@@ -31,7 +31,12 @@ jobs:
           brew trust thedavidweng/unsigned-tap
           brew install --cask thedavidweng/unsigned-tap/obs-advanced-scene-switcher
           test -f '/Library/Application Support/obs-studio/plugins/advanced-scene-switcher.plugin/Contents/MacOS/advanced-scene-switcher'
-      - name: Verify OBS loads plugin
+      - name: Copy plugin to user directory for diagnosis
+        run: |
+          mkdir -p "$HOME/Library/Application Support/obs-studio/plugins"
+          ditto '/Library/Application Support/obs-studio/plugins/advanced-scene-switcher.plugin' \
+            "$HOME/Library/Application Support/obs-studio/plugins/advanced-scene-switcher.plugin"
+      - name: Verify OBS loads copied plugin
         timeout-minutes: 5
         run: |
           set -euo pipefail
