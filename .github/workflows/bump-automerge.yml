@@ -17,6 +17,7 @@ name: Bump auto-merge
 #   Workflow lint and CodeQL - are present on that exact head and actually
 #   success. neutral/skipped results are tolerated only as advisory context
 #   (CodeRabbit, Dependabot auto-merge), never for those four signals.
+# - bump-*: the checked cask has not changed on main since compatibility CI
 # - GitHub reports the PR mergeable
 # - the head SHA still matches at merge time (--match-head-commit)
 #
@@ -40,6 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      checks: read
       contents: write
       pull-requests: write
     env:
@@ -145,7 +147,7 @@ jobs:
                 --paginate \
                 | jq -s 'map(.check_runs)
                          | if any(.[]; type != "array") then error("malformed check-runs page")
-                           else (add // []) | map({name, status, conclusion})
+                           else (add // []) | map({id, name, status, conclusion})
                            end')"; then
               skip "could not read check runs"; continue
             fi
@@ -175,6 +177,38 @@ jobs:
                           and ([$ok[] | select(startswith("CodeQL"))] | length > 0)' \
                 <<<"$checks" >/dev/null; then
               skip "CI conclusion, audit, Workflow lint or CodeQL not green on this head"; continue
+            fi
+
+            if [[ "$branch" == bump-* ]]; then
+              if ! check_id="$(jq -er '[.[] | select(.name == "generate-matrix" and .status == "completed" and .conclusion == "success") | .id]
+                  | if length == 1 and (.[0] | type == "number") then .[0] else error("missing compatibility check") end' <<<"$checks")"; then
+                skip "compatibility baseline unavailable"; continue
+              fi
+              if ! checked_base="$(gh api "repos/$REPO/check-runs/$check_id/annotations?per_page=100" --paginate \
+                  | jq -ser '[.[][] | select(.annotation_level == "notice" and .title == "Cask compatibility base") | .message]
+                      | if length == 1 and (.[0] | type == "string" and test("^[0-9a-f]{40}$"))
+                        then .[0] else error("missing compatibility baseline") end')"; then
+                skip "compatibility baseline unavailable"; continue
+              fi
+              if ! current_base="$(gh api "repos/$REPO/git/ref/heads/main" \
+                  | jq -er '.object.sha | select(type == "string" and test("^[0-9a-f]{40}$"))')"; then
+                skip "could not read current base"; continue
+              fi
+              if [[ "$checked_base" != "$current_base" ]]; then
+                path="$(jq -r '.[0].filename' <<<"$files")"
+                if [[ ! "$path" =~ ^Casks/[A-Za-z0-9@._+-]+\.rb$ ]]; then
+                  skip "unsupported cask path"; continue
+                fi
+                if ! old_blob="$(gh api "repos/$REPO/contents/$path" --method GET -f ref="$checked_base" \
+                    | jq -er '.sha | select(type == "string" and test("^[0-9a-f]{40}$"))')" \
+                  || ! current_blob="$(gh api "repos/$REPO/contents/$path" --method GET -f ref="$current_base" \
+                    | jq -er '.sha | select(type == "string" and test("^[0-9a-f]{40}$"))')"; then
+                  skip "could not compare cask base"; continue
+                fi
+                if [[ "$old_blob" != "$current_blob" ]]; then
+                  skip "cask base changed since compatibility check"; continue
+                fi
+              fi
             fi
 
             echo "merge #$number: all gates green"

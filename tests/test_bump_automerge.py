@@ -40,6 +40,10 @@ WORKFLOW = ROOT / ".github/workflows/bump-automerge.yml"
 REPO = "thedavidweng/homebrew-unsigned-tap"
 OWNER = "thedavidweng"
 SHA = "45c3f67c5571a0e89b2f31edaa4f346e0cb3f8e9"
+BASE_SHA = "1" * 40
+NEW_BASE_SHA = "2" * 40
+BLOB_SHA = "3" * 40
+NEW_BLOB_SHA = "4" * 40
 
 # Exit codes the stub uses for states the tests must never mistake for success.
 EXIT_UNKNOWN_CALL = 91
@@ -142,14 +146,34 @@ fi
 
 if [[ "${1:-}" == "api" ]]; then
   url="${2:-}"; shift 2
-  paginate=0
+  paginate=0; ref=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --paginate) paginate=1; shift ;;
+      -f) ref="${2#ref=}"; shift 2 ;;
       --jq|--cache|--header) shift 2 ;;
       *) shift ;;
     esac
   done
+  if [[ "$url" == *"/annotations"* ]]; then
+    [[ -e "$DIR/fail.annotations" ]] && exit 1
+    cat "$DIR/annotations.json"
+    if [[ "$paginate" == 1 && -e "$DIR/annotations.page2.json" ]]; then
+      echo
+      cat "$DIR/annotations.page2.json"
+    fi
+    exit 0
+  fi
+  if [[ "$url" == *"/git/ref/heads/main" ]]; then
+    [[ -e "$DIR/fail.base" ]] && exit 1
+    cat "$DIR/base.json"
+    exit 0
+  fi
+  if [[ "$url" == *"/contents/"* ]]; then
+    [[ -e "$DIR/fail.contents" ]] && exit 1
+    jq --arg ref "$ref" '{sha: .[$ref]}' "$DIR/blobs.json"
+    exit 0
+  fi
   if [[ "$url" == *"/files" ]]; then
     [[ -e "$DIR/fail.files" ]] && exit 1
     cat "$DIR/files.json"
@@ -199,7 +223,7 @@ def workflow_script():
 
 
 def check(name, conclusion="success", status="completed"):
-    return {"name": name, "status": status, "conclusion": conclusion}
+    return {"id": 123, "name": name, "status": status, "conclusion": conclusion}
 
 
 def healthy_checks():
@@ -261,6 +285,13 @@ class AutomergeGateTests(unittest.TestCase):
             {"status": "modified", "filename": "Casks/zenmap.rb"}])))
         (d / "checks.object.json").write_text(json.dumps(
             {"check_runs": scenario.get("checks", healthy_checks())}))
+        (d / "annotations.json").write_text(json.dumps(scenario.get("annotations", [
+            {"annotation_level": "notice", "title": "Cask compatibility base", "message": BASE_SHA}])))
+        if "annotations_page2" in scenario:
+            (d / "annotations.page2.json").write_text(json.dumps(scenario["annotations_page2"]))
+        (d / "base.json").write_text(json.dumps({"object": {"sha": scenario.get("base", BASE_SHA)}}))
+        (d / "blobs.json").write_text(json.dumps(scenario.get("blobs", {
+            BASE_SHA: BLOB_SHA, NEW_BASE_SHA: BLOB_SHA})))
         if "checks_page2" in scenario:
             (d / "checks.page2.json").write_text(
                 json.dumps({"check_runs": scenario["checks_page2"]}))
@@ -342,6 +373,42 @@ class AutomergeGateTests(unittest.TestCase):
             candidates=[candidate(branch="sync/20261027")],
             files=[{"status": "added", "filename": "Casks/new-cask.rb"}])
         self.assert_merged()
+
+    def test_unrelated_base_change_does_not_block(self):
+        self.run_script(base=NEW_BASE_SHA)
+        self.assert_merged()
+        self.assertIn("git/ref/heads/main", self.calls)
+
+    def test_duplicate_baseline_on_second_page_blocks(self):
+        out = self.run_script(annotations_page2=[
+            {"annotation_level": "notice", "title": "Cask compatibility base", "message": BASE_SHA}])
+        self.assert_skipped(out, "compatibility baseline unavailable")
+
+    def test_ambiguous_compatibility_checks_block(self):
+        out = self.run_script(checks=healthy_checks() + [check("generate-matrix")])
+        self.assert_skipped(out, "compatibility baseline unavailable")
+
+    def test_changed_cask_base_blocks(self):
+        out = self.run_script(base=NEW_BASE_SHA, blobs={BASE_SHA: BLOB_SHA, NEW_BASE_SHA: NEW_BLOB_SHA})
+        self.assert_skipped(out, "cask base changed since compatibility check")
+
+    def test_missing_or_invalid_compatibility_evidence_blocks(self):
+        for annotations in ([], [{"annotation_level": "notice", "title": "Cask compatibility base", "message": "bad"}],
+                            [{"annotation_level": "notice", "title": "Cask compatibility base", "message": BASE_SHA}] * 2):
+            with self.subTest(annotations=annotations):
+                out = self.run_script(annotations=annotations)
+                self.assert_skipped(out, "compatibility baseline unavailable")
+
+    def test_baseline_or_current_base_read_failure_blocks(self):
+        for failure in ("fail.annotations", "fail.base"):
+            with self.subTest(failure=failure):
+                out = self.run_script(fail=[failure])
+                self.assertEqual(self.merged_numbers(), [])
+                self.assertIn("skip #305:", out)
+
+    def test_cask_blob_read_failure_blocks(self):
+        out = self.run_script(base=NEW_BASE_SHA, fail=["fail.contents"])
+        self.assert_skipped(out, "could not compare cask base")
 
     # -- candidate selection, using the production filter ------------------
 
