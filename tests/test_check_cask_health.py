@@ -95,6 +95,14 @@ class HealthcheckTests(unittest.TestCase):
             _, _, result, _ = health.check_url_and_fetch("test", "https://example.test")
         self.assertIsNone(result)
 
+    def test_curl_failure_retains_http_status(self):
+        results = [subprocess.CompletedProcess([], 0, "403 0", ""),
+                   subprocess.CompletedProcess([], 56, "403 0", "Maximum file size exceeded")]
+        with patch.object(health.subprocess, "run", side_effect=results):
+            _, _, result, detail = health.check_url_and_fetch("test", "https://example.test")
+        self.assertIsNone(result)
+        self.assertEqual(detail, "HEAD: 403; GET: HTTP 403: Maximum file size exceeded")
+
     def test_homebrew_confirmation_requires_explicit_missing_response(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)

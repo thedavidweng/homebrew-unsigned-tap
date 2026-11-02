@@ -7,6 +7,19 @@ cask "milkman" do
   desc "Extensible request and response workbench"
   homepage "https://github.com/warmuuh/milkman"
 
+  livecheck do
+    url :url
+    regex(/^(\d+(?:\.\d+)+)$/i)
+    strategy :github_releases do |json, regex|
+      json.filter_map do |release|
+        next if release["draft"] || release["prerelease"]
+        next unless release["assets"].any? { |asset| asset["name"] == "milkman-dist-appbundle-macos64-bin.tgz" }
+
+        release["tag_name"]&.[](regex, 1)
+      end
+    end
+  end
+
   depends_on :macos
 
   app "Milkman.app"
