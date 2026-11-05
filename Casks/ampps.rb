@@ -1,6 +1,6 @@
 cask "ampps" do
-  version "4.4"
-  sha256 "77b1107c02b7ca33cefa785432867f9706ac3eeaa3ab3723c8b63a1f30cfb28c"
+  version "4.5"
+  sha256 "df6543323f0b40657046f0fadbc4418c6fbc8ce8e0a030a0b68b2b5fd765f99a"
 
   url "https://s1.softaculous.com/a/ampps/files/versions/AMPPS-#{version}-x86_64.dmg"
   name "AMPPS"
