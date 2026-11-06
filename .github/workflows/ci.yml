@@ -37,7 +37,7 @@ jobs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
     runs-on: macos-latest
     steps:
-      - uses: Homebrew/actions/setup-homebrew@d482da0e602890d3160aade42e72c8556103bf04 # 2026.10.26.1
+      - uses: Homebrew/actions/setup-homebrew@c262868c096d909fc278daa87ed9772967331ea3 # 2026.11.02.1
         with:
           core: false
           cask: true
@@ -84,7 +84,7 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
-      - uses: Homebrew/actions/setup-homebrew@d482da0e602890d3160aade42e72c8556103bf04 # 2026.10.26.1
+      - uses: Homebrew/actions/setup-homebrew@c262868c096d909fc278daa87ed9772967331ea3 # 2026.11.02.1
         with:
           core: true
           cask: true
