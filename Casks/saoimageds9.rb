@@ -16,8 +16,8 @@ cask "saoimageds9" do
     end
   end
   on_monterey :or_newer do
-    version "8.8"
-    sha256 "6c70f3ea440a38e5aa4f2a73113c32de50e11cd9fab7dd5f0fbf45bc9465c5ec"
+    version "8.8.1"
+    sha256 "bb39e3678dfc571f361442125e90b2f144665cf324124de08f37bd4d0ed92c61"
 
     url "https://ds9.si.edu/download/macos_universal/SAOImageDS9%20#{version}.dmg"
 
