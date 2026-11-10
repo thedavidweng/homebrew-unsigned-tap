@@ -22,7 +22,6 @@ cask "mfiles" do
       end
     end
 
-    depends_on macos: :monterey
   end
 
   url "https://mfiles.maokebing.com/package/mfiles-helper-#{version.csv.first}-macos-#{version.csv.second}.dmg"
