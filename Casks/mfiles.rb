@@ -21,7 +21,6 @@ cask "mfiles" do
         "#{match[1]},#{match[2]}"
       end
     end
-
   end
 
   url "https://mfiles.maokebing.com/package/mfiles-helper-#{version.csv.first}-macos-#{version.csv.second}.dmg"
