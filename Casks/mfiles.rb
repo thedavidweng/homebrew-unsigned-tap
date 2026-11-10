@@ -1,6 +1,31 @@
 cask "mfiles" do
-  version "2.6.1,2026110601"
-  sha256 "5d1b101638c3a8a7fd27e64b7b05f2785fc1af64de5cd2fc8fbacf0b33d6b11d"
+  on_big_sur :or_older do
+    version "2.5.3,20240328"
+    sha256 "ed871abb9876721f6b9e17805147c9afa505851857f1dd88cfeef4a847b59173"
+
+    livecheck do
+      skip "Legacy version for macOS Big Sur and earlier"
+    end
+
+    depends_on :macos
+  end
+  on_monterey :or_newer do
+    version "2.6.1,2026110601"
+    sha256 "5d1b101638c3a8a7fd27e64b7b05f2785fc1af64de5cd2fc8fbacf0b33d6b11d"
+
+    livecheck do
+      url :homepage
+      regex(/mfiles[._-]helper[._-]v?(\d+(?:\.\d+)+)[._-]macos[._-](\d+)\.dmg/i)
+      strategy :page_match do |page, regex|
+        match = page.match(regex)
+        next if match.blank?
+
+        "#{match[1]},#{match[2]}"
+      end
+    end
+
+    depends_on macos: :monterey
+  end
 
   url "https://mfiles.maokebing.com/package/mfiles-helper-#{version.csv.first}-macos-#{version.csv.second}.dmg"
   name "MFiles"
@@ -9,18 +34,7 @@ cask "mfiles" do
   desc "Transfer files over local network"
   homepage "https://mfiles.maokebing.com/"
 
-  livecheck do
-    url :homepage
-    regex(/mfiles[._-]helper[._-]v?(\d+(?:\.\d+)+)[._-]macos[._-](\d+)\.dmg/i)
-    strategy :page_match do |page, regex|
-      match = page.match(regex)
-      next if match.blank?
-
-      "#{match[1]},#{match[2]}"
-    end
-  end
-
-  depends_on macos: :monterey
+  depends_on :macos
 
   app "爱传送.app"
 
