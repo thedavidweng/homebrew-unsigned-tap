@@ -6,8 +6,6 @@ cask "mfiles" do
     livecheck do
       skip "Legacy version for macOS Big Sur and earlier"
     end
-
-    depends_on :macos
   end
   on_monterey :or_newer do
     version "2.6.1,2026110601"
