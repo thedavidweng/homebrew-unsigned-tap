@@ -1,9 +1,9 @@
 cask "angry-ip-scanner" do
   arch arm: "Arm64", intel: "X86"
 
-  version "3.12.1"
-  sha256 arm:   "4dfe0ffd15b11d61aeaec12b293e3c2ce827c98485476eaa2ea082722f612ed2",
-         intel: "e5d70bbf6fe935cacf99e1c2693363de65cece491852cd393714fa6b89daf282"
+  version "3.12.2"
+  sha256 arm:   "d27ba31ed018fdb2230f03b57d0a4bc568d31bd6da694d8150c58fcb9862839b",
+         intel: "7b348837ad76ccf035360009f24b77e33bc2d80e1324b5084df946c1106c5ab9"
 
   url "https://github.com/angryip/ipscan/releases/download/#{version}/ipscan-#{version}-mac#{arch}.zip"
   name "Angry IP Scanner"
