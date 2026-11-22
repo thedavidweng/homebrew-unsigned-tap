@@ -1,6 +1,6 @@
 cask "cncjs" do
-  version "1.12.0"
-  sha256 "4e92befd824e129a5670ba726debd9774e2320956f4afa4330bd7d8a71d1d19a"
+  version "1.13.0"
+  sha256 "aaca607e0c20170ce13d58e3e04cb09a19cd87d26032f4a34e59367001363fdd"
 
   url "https://github.com/cncjs/cncjs/releases/download/v#{version}/cncjs-app-#{version}-macos-arm64.dmg"
   name "CNSjs"
