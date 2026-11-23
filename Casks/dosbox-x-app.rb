@@ -5,7 +5,8 @@ cask "dosbox-x-app" do
   sha256 arm:   "8514ab856e8ac2611fbdac7adf334c34085c1e00d700a88711f842adec50240f",
          intel: "a0605348355ff4a45c781f124c44122e97156ae3f7d048637f545c9de641bedb"
 
-  url "https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v#{version.csv.first}/dosbox-x-macosx-#{arch}-#{version.csv.second || version.csv.first}.zip"
+  file_version = version.csv.second || version.csv.first
+  url "https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v#{version.csv.first}/dosbox-x-macosx-#{arch}-#{file_version}.zip"
   name "DOSBox-X"
   desc "Fork of the DOSBox project"
   homepage "https://github.com/joncampbell123/dosbox-x"
@@ -27,7 +28,11 @@ cask "dosbox-x-app" do
 
         file_version = asset["name"].match(file_regex)[1]
         tag_version = tag_match[1]
-        (tag_version == file_version) ? tag_version : "#{tag_version},#{file_version}"
+        if tag_version == file_version
+          tag_version
+        else
+          "#{tag_version},#{file_version}"
+        end
       end
     end
   end
