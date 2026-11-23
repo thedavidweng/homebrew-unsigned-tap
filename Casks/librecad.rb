@@ -5,7 +5,8 @@ cask "librecad" do
   sha256 arm:   "2c5049f5d38346b6152e5b000bb60060f3a2113484bba4bcb388cb690f275879",
          intel: "b46eb69effae096b1fd1e85d0aa1b037a71661617ca733f607f4e9d681c9c770"
 
-  url "https://github.com/LibreCAD/LibreCAD/releases/download/v#{version.csv.first}/LibreCAD-v#{version.csv.second || version.csv.first}#{arch}.dmg"
+  file_version = version.csv.second || version.csv.first
+  url "https://github.com/LibreCAD/LibreCAD/releases/download/v#{version.csv.first}/LibreCAD-v#{file_version}#{arch}.dmg"
   name "LibreCAD"
   desc "CAD application"
   homepage "https://librecad.org/"
@@ -23,7 +24,11 @@ cask "librecad" do
           match = asset["name"]&.match(regex)
           next tag if match.blank?
 
-          (match[1] == tag) ? tag : "#{tag},#{match[1]}"
+          if match[1] == tag
+            tag
+          else
+            "#{tag},#{match[1]}"
+          end
         end
       end.flatten
     end

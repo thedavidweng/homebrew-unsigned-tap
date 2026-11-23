@@ -14,7 +14,11 @@ cask "write" do
       match = headers["location"]&.match(regex)
       next if match.blank?
 
-      match[1].include?(".") ? match[1] : match[1].sub(/(\d)(\d)(\d)/, '\1.\2.\3')
+      if match[1].include?(".")
+        match[1]
+      else
+        match[1].sub(/(\d)(\d)(\d)/, '\1.\2.\3')
+      end
     end
   end
 

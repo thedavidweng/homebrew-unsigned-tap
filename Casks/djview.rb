@@ -12,7 +12,11 @@ cask "djview" do
     regex(%r{url=.*?/DjVuLibre[._-](\d+(?:\.\d+)+)%2BDjView[._-](\d+(?:\.\d+)+)[._-]universal(?:-(\d+))?\.dmg}i)
     strategy :sourceforge do |page, regex|
       page.scan(regex).map do |match|
-        match[2].present? ? "#{match[1]},#{match[0]},#{match[2]}" : "#{match[1]},#{match[0]}"
+        if match[2].present?
+          "#{match[1]},#{match[0]},#{match[2]}"
+        else
+          "#{match[1]},#{match[0]}"
+        end
       end
     end
   end
