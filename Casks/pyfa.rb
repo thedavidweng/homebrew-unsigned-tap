@@ -1,9 +1,9 @@
 cask "pyfa" do
   arch arm: "arm64", intel: "x86_64"
 
-  version "2.70.0"
-  sha256 arm:   "04579fd5b45517193e64ad3ca684a03e0f2ec6921388e343d7da9119c648d011",
-         intel: "10cdb2651fab62d78e9acb178338420173c00691757ce24ee470ecc1d17b5e76"
+  version "2.70.1"
+  sha256 arm:   "7a73f724a31b92cd2362fa254ad12816cf52d81c4c123e0c9d02dfff399d6a4c",
+         intel: "714efea043976e413544144f7e0c7443d7457dce4ac01649fff4b8c94982cc0c"
 
   url "https://github.com/pyfa-org/Pyfa/releases/download/v#{version}/pyfa-v#{version}-mac-#{arch}.zip"
   name "pyfa"
