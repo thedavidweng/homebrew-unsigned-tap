@@ -15,7 +15,8 @@ cask "tinypng4mac" do
     version "2.2.1,20201"
     sha256 "d1ce60d76bf178221f0ab81051886b8adcb0856e654a2335a514b8b68a0c5b9c"
 
-    url "https://github.com/kyleduo/TinyPNG4Mac/releases/download/v#{version.csv.first}/Tiny-Image-Installer#{"-#{version.csv.second}" if version.csv.second}.dmg"
+    suffix = "-#{version.csv.second}" if version.csv.second
+    url "https://github.com/kyleduo/TinyPNG4Mac/releases/download/v#{version.csv.first}/Tiny-Image-Installer#{suffix}.dmg"
 
     livecheck do
       url :url
@@ -25,7 +26,11 @@ cask "tinypng4mac" do
           match = asset["browser_download_url"]&.match(regex)
           next if match.blank?
 
-          match[2].present? ? "#{match[1]},#{match[2]}" : match[1]
+          if match[2].present?
+            "#{match[1]},#{match[2]}"
+          else
+            match[1]
+          end
         end
       end
     end
