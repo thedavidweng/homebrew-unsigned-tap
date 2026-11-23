@@ -2,9 +2,9 @@ cask "circuitjs1" do
   # NOTE: "1" is not a version number, but an intrinsic part of the product name
   arch arm: "arm", intel: "x86"
 
-  version "5.0.5ts"
-  sha256 arm:   "f145a0b41b3e9f2959c6efea825056930bec58a75d05b25cc911ddb6634456f9",
-         intel: "23643a1001e941fd518014bb55a499e3101ca4fb787892a5c79fe18cee627adb"
+  version "5.0.6ts"
+  sha256 arm:   "56300943ca2be88fc0d22e8c391be3cf40ed969475bbd723491f251f78f61c55",
+         intel: "4d360144a7198e5bda34dcc916bb555e4f407633541839cda36b2887af227b91"
 
   url "https://www.falstad.com/circuit/offline/CircuitJS1-#{version}-mac#{arch}.dmg"
   name "Falstad CircuitJS"
