@@ -1,9 +1,9 @@
 cask "polyphone" do
   arch arm: "12", intel: "12_Intel"
 
-  version "2.6.0"
-  sha256 arm:   "6d182033d46f09803ca9217e6caf8f93154ca8443b7633e6050053e58f3a07e4",
-         intel: "b01b762329be6904deb03316081c71eefbbc1ae42e0c8202f17a48d6a24ffabf"
+  version "2.7.3"
+  sha256 arm:   "a9c6bc32fc4bac4c878bc6bf71eb4a92112e67bce3c36b95dfba4fbbc520f47e",
+         intel: "a186d11bae0438d2c425ec3d90a8d17dfcc170265ba8adbde8e944d3c0bd7d00"
 
   url "https://github.com/davy7125/polyphone/releases/download/#{version}/Polyphone_#{version}-macOS_#{arch}.dmg"
   name "Polyphone"
