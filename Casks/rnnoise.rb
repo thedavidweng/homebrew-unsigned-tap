@@ -8,8 +8,8 @@ cask "rnnoise" do
     end
   end
   on_sonoma :or_newer do
-    version "1.10"
-    sha256 "53c41fe3ce8af529b1d2d18802ecbd7e9f0b6d7ad013fd5f92f6af974472a9e9"
+    version "1.22"
+    sha256 "a402f08819a48d2406656b502af918ab9d86469e0214bb04f79e58958df3ffc9"
 
     livecheck do
       url :url
