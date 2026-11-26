@@ -1,6 +1,6 @@
 cask "plotdigitizer" do
-  version "2.6.12"
-  sha256 "46542758d70e80e194bf1ae7d1da31415bf91635f13782bc460d10af9568b987"
+  version "2.6.12b"
+  sha256 "ea547e274744cac653dcddd299fcc876c4522f922d663febaded88752efc3a7f"
 
   url "https://downloads.sourceforge.net/plotdigitizer/plotdigitizer/#{version}/PlotDigitizer_MacOS.dmg"
   name "Plot Digitizer"
