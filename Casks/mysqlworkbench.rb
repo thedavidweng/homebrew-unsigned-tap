@@ -1,6 +1,6 @@
 cask "mysqlworkbench" do
-  version "26.10.0"
-  sha256 "b0ea97a20a0ff368247ddd3b90dbb2f4ad866a43e0e722d4b1a13f43bbba51ed"
+  version "26.10.0.1"
+  sha256 "5c44ece5fc7785c559d025d88d583ab51eb4b398851d46294a9c8c4f26548897"
 
   url "https://cdn.mysql.com/Downloads/MySQLGUITools/mysql-workbench-#{version}-macos-arm64.dmg"
   name "MySQL Workbench"
@@ -15,7 +15,7 @@ cask "mysqlworkbench" do
 
   conflicts_with cask: "mysqlworkbench@legacy"
   depends_on arch: :arm64
-  depends_on macos: :monterey
+  depends_on macos: :ventura
 
   app "MySQL Workbench.app"
 
