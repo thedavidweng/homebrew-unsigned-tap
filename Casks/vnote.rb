@@ -8,8 +8,8 @@ cask "vnote" do
     end
   end
   on_ventura :or_newer do
-    version "4.15.1"
-    sha256 "eb9f1418482bf5b9411f40d192557ba31c3f8a4687d142946a26562dc38fc62c"
+    version "4.15.2"
+    sha256 "e18db2753faf4e5320fff569aeb3d4184958a99729b074e09af5defb943a8a0c"
   end
 
   url "https://github.com/vnotex/vnote/releases/download/v#{version}/VNote-#{version}-mac-universal.dmg"
