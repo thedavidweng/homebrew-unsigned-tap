@@ -65,7 +65,7 @@ jobs:
                    | select(.author.login == \"github-actions[bot]\" or .author.login == \"$OWNER\")
              ]"
           if ! candidates="$(gh pr list --repo "$REPO" --state open --limit 50 \
-              --json number,headRefName,headRefOid,headRepository,baseRefName,author,isDraft \
+              --json number,title,headRefName,headRefOid,headRepository,baseRefName,author,isDraft \
               --jq "$filter")"; then
             echo "Could not read candidate PRs; merging nothing."
             exit 1
@@ -85,6 +85,7 @@ jobs:
           while read -r number; do
             sha="$(jq -r --argjson n "$number" '.[] | select(.number == $n) | .headRefOid' <<<"$candidates")"
             branch="$(jq -r --argjson n "$number" '.[] | select(.number == $n) | .headRefName' <<<"$candidates")"
+            title="$(jq -r --argjson n "$number" '.[] | select(.number == $n) | .title' <<<"$candidates")"
             echo "=== #$number ($branch @ ${sha:0:7}) ==="
 
             skip() { echo "skip #$number: $1"; }
@@ -213,8 +214,11 @@ jobs:
 
             echo "merge #$number: all gates green"
             # CAS: the head must still be exactly the SHA every gate above was
-            # evaluated against.
+            # evaluated against. An explicit subject and empty body keep the
+            # squash commit to the PR title, without the BrewTestBot
+            # Co-authored-by trailer GitHub would otherwise copy in.
             if ! gh pr merge --repo "$REPO" --squash --delete-branch \
+                --subject "$title (#$number)" --body "" \
                 --match-head-commit "$sha" "$number"; then
               skip "merge rejected (head moved or not permitted)"; continue
             fi

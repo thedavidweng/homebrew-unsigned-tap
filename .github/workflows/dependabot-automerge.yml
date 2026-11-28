@@ -38,6 +38,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           DEP_NAMES: ${{ steps.meta.outputs.dependency-names }}
           PKG_ECOSYSTEM: ${{ steps.meta.outputs.package-ecosystem }}
           UPDATE_TYPE: ${{ steps.meta.outputs.update-type }}
@@ -124,4 +126,7 @@ jobs:
           fi
 
           echo "enable auto-merge ($reason): ecosystem=$eco update-type=$ut dependency-type=$dt alert=$alert names=$DEP_NAMES"
-          gh pr merge --auto --squash "$PR_URL"
+          # An explicit empty body keeps the squash commit to the PR title.
+          # Without it, auto-merge copies Dependabot's Signed-off-by and adds
+          # Co-authored-by trailers even though the repository default is BLANK.
+          gh pr merge --auto --squash --subject "$PR_TITLE (#$PR_NUMBER)" --body "" "$PR_URL"
